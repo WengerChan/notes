@@ -16,9 +16,12 @@ nav:
   - Docs:
     - Ansible: docs/Ansible
     - Bonding: docs/Bonding
-    - Fedora: docs/Fedora-使用手册
+    - Fedora-使用手册: docs/Fedora-使用手册
     - Git: docs/Git
     - Kvm: docs/Kvm
+    - Netcat: docs/Netcat
+    - Netfilter/iptables: docs/Netfilter-iptables
+    - NFS: docs/NFS
     - Shell-多线程: docs/Shell-多线程
     - Team: docs/Team
     - 正则表达式: docs/正则表达式
