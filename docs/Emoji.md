@@ -1,6 +1,6 @@
 # Emoji in Github
 
-> *Fork from: `caiyongji/emoji-list`*
+> *Fork from: [Github: caiyongji/emoji-list]([caiyongji/emoji-list](https://github.com/caiyongji/emoji-list))*
 
 - [Emoji in Github](#emoji-in-github)
   - [People](#people)
@@ -9,10 +9,13 @@
   - [Places](#places)
   - [Symbols](#symbols)
 
+> 本地查看无法正常显示, 请前往 [github.com](https://github.com/WengerChan/notes/blob/main/docs/Emoji.md) 查看.
+
 ## People ##
 
-| :bowtie: `:bowtie:` | :smile: `:smile:` | :laughing: `:laughing:` |
+|   |   |   |
 |---|---|---|
+| :bowtie: `:bowtie:` | :smile: `:smile:` | :laughing: `:laughing:` |
 | :blush: `:blush:` | :smiley: `:smiley:` | :relaxed: `:relaxed:` |
 | :smirk: `:smirk:` | :heart_eyes: `:heart_eyes:` | :kissing_heart: `:kissing_heart:` |
 | :kissing_closed_eyes: `:kissing_closed_eyes:` | :flushed: `:flushed:` | :relieved: `:relieved:` |
@@ -80,8 +83,9 @@
 
 ## Nature ##
 
-| :sunny: `:sunny:` | :umbrella: `:umbrella:` | :cloud: `:cloud:` |
+|   |   |   |
 |---|---|---|
+| :sunny: `:sunny:` | :umbrella: `:umbrella:` | :cloud: `:cloud:` |
 | :snowflake: `:snowflake:` | :snowman: `:snowman:` | :zap: `:zap:` |
 | :cyclone: `:cyclone:` | :foggy: `:foggy:` | :ocean: `:ocean:` |
 | :cat: `:cat:` | :dog: `:dog:` | :mouse: `:mouse:` |
@@ -123,8 +127,9 @@
 
 ## Objects ##
 
-| :bamboo: `:bamboo:` | :gift_heart: `:gift_heart:` | :dolls: `:dolls:` |
+|   |   |   |
 |---|---|---|
+| :bamboo: `:bamboo:` | :gift_heart: `:gift_heart:` | :dolls: `:dolls:` |
 | :school_satchel: `:school_satchel:` | :mortar_board: `:mortar_board:` | :flags: `:flags:` |
 | :fireworks: `:fireworks:` | :sparkler: `:sparkler:` | :wind_chime: `:wind_chime:` |
 | :rice_scene: `:rice_scene:` | :jack_o_lantern: `:jack_o_lantern:` | :ghost: `:ghost:` |
@@ -255,8 +260,9 @@
 
 ## Symbols ##
 
-| :one: `:one:` | :two: `:two:` | :three: `:three:` |
+|   |   |   |
 |---|---|---|
+| :one: `:one:` | :two: `:two:` | :three: `:three:` |
 | :four: `:four:` | :five: `:five:` | :six: `:six:` |
 | :seven: `:seven:` | :eight: `:eight:` | :nine: `:nine:` |
 | :keycap_ten: `:keycap_ten:` | :1234: `:1234:` | :zero: `:zero:` |

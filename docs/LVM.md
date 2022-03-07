@@ -1,24 +1,10 @@
 # LVM #
 
-
-Table of Contents
------------------
-- [LVM](#lvm)
-  - [Table of Contents](#table-of-contents)
-  - [LVM相关概念](#lvm相关概念)
-  - [实操一: LVM全新创建](#实操一-lvm全新创建)
-  - [实操二: LVM在线扩容](#实操二-lvm在线扩容)
-  - [实操三: RHCS卷组信息同步](#实操三-rhcs卷组信息同步)
-  - [实操四: LVM数据迁移](#实操四-lvm数据迁移)
-  - [关于PE大小](#关于pe大小)
-  - [关于扫盘](#关于扫盘)
-
-
 LVM: Logical Volume Manager, 逻辑卷管理. 
 
-LVM的工作原理其实很简单, 它就是通过将底层的物理硬盘/分区抽象的封装起来, 然后以逻辑卷的方式呈现给上层应用。
+LVM 的工作原理其实很简单, 它就是通过将底层的物理硬盘/分区抽象的封装起来, 然后以逻辑卷的方式呈现给上层应用。
 
-在传统的磁盘管理机制中, 我们的上层应用是直接访问文件系统, 从而对底层的物理硬盘进行读取, 而在LVM中, 其通过对底层的硬盘进行封装, 当我们对底层的物理硬盘进行操作时, 其不再是针对于分区进行操作, 而是通过一个叫做 "逻辑卷" 的东西来对其进行底层的磁盘管理操作。
+在传统的磁盘管理机制中, 我们的上层应用是直接访问文件系统, 从而对底层的物理硬盘进行读取, 而在 LVM 中, 其通过对底层的硬盘进行封装, 当我们对底层的物理硬盘进行操作时, 其不再是针对于分区进行操作, 而是通过一个叫做 "逻辑卷" 的东西来对其进行底层的磁盘管理操作。<sup>Baidu<sup>
 
 ## LVM相关概念 ##
 
@@ -64,33 +50,33 @@ LVM 架构:
 
 * 相关名词解释
 
-    * PV(Physical Volume): 物理卷
+    * PV (Physical Volume): 物理卷
         
         物理卷在LVM管理中处于最底层, 它可以是实际物理硬盘上的分区, 也可以是整个物理硬盘。
 
         常用命令: `pvcreate`, `pvs`, `pvdisplay`, `pvremove`, `pvmove`, `pvscan`
 
-    * VG(Volume Group): 卷组
+    * VG (Volume Group): 卷组
 
         卷组建立在物理卷之上, 一个卷组中至少要包括一个物理卷, 在卷组建立之后可动态添加物理卷到卷组中。一个逻辑卷管理系统工程中可以只有一个卷组, 也可以拥有多个卷组。
 
         常用命令: `vgcreate`, `vgs`, `vgdisplay`, `vgremove`, `vgchange`, `vgreduce`, `vgextend`, `vgscan`, `vgrename`, `vgexport`, `vgimport`
 
-    * LV(Logical Volume): 逻辑卷
+    * LV (Logical Volume): 逻辑卷
 
         逻辑卷由卷组分配, 卷组中的未分配空间可以用于建立新的逻辑卷, 逻辑卷建立后可以动态地扩展和缩小空间。
 
         常用命令: `lvcreate`, `lvs`, `lvdisplay`, `lvremove`, `lvextend`, `lvresize`, `lvscan`, `lvrename`
 
-    * PE(Physical Extent)
+    * PE (Physical Extent)
 
-        每一个物理卷被划分为称为 PE(Physical Extents)的基本单元, 具有唯一编号的PE是可以被LVM寻址的最小单元。PE的大小是可配置的, 默认为4MB。
+        每一个物理卷被划分为称为 PE (Physical Extents)的基本单元, 具有唯一编号的PE是可以被LVM寻址的最小单元。PE 的大小是可配置的, 默认为 4MB。
         
-        > 注: PV加入VG后, 才会划分PE(后面实操中会提及)
+        > 注: PV 加入 VG 后, 才会划分 PE (后面实操中会提及)
 
     * LE(Logical Extent)
 
-        逻辑卷也被划分为被称为 LE(Logical Extents) 的可被寻址的基本单位。在同一个卷组中, LE的大小和PE是相同的, 并且一一对应。
+        逻辑卷也被划分为被称为 LE (Logical Extents) 的可被寻址的基本单位。在同一个卷组中, LE 的大小和 PE 是相同的, 并且一一对应。
 
 * 命令速查
 
@@ -200,7 +186,7 @@ LVM 架构:
     PV UUID               3Ylg8w-2ej1-18Jg-iKg1-zaet-JXu4-jIIbdr  # <= 唯一UUID
     ```
 
-    从上面输出可以看出, 此时 `PE Size`, `Total PE`, `Free PE`, `Allocated PE` 均为 0, 说明PV此时并未被划分为PE
+    从上面输出可以看出, 此时 `PE Size`, `Total PE`, `Free PE`, `Allocated PE` 均为 0, 说明 PV 此时并未被划分为PE
 
 * 创建 VG
 
@@ -234,7 +220,7 @@ LVM 架构:
     VG UUID               lJMVMU-2GEG-ygtS-6Z6d-cDQt-0rfa-lTEsS1  # <= 唯一UUID
     ```
 
-    VG创建成功后, LVM对PV进行PV划分, 此步骤结束后可查看到PE相关信息; "`PV Size`" 的值也由 "`1022.00 MiB`" 变成 "`1022.00 MiB / not usable 2.00 MiB`"
+    VG 创建成功后, LVM 对 PV 进行 PE 划分, 此步骤结束后可查看到 PE 相关信息; "`PV Size`" 的值也由 "`1022.00 MiB`" 变成 "`1022.00 MiB / not usable 2.00 MiB`"
 
     ```sh
     ~] pvdisplay 
@@ -301,22 +287,22 @@ LVM 架构:
 
 ## 实操二: LVM在线扩容 ##
 
-* 选择物理磁盘, 创建PV
+* 选择物理磁盘, 创建 PV
 
-    * 情景一: 检查VG是否有空余空间, 如果有, 可使用空余空间扩容, 无需扩展VG
+    * 情景一: 检查 VG 是否有空余空间, 如果有, 可使用空余空间扩容, 无需扩展 VG
     
         ```sh
         vgs
         ```
     
-    * 情景二: VG无空余空间; 检查是否有未使用的物理磁盘或者未分配完的空间, 如果有, 将使用这部分空间创建新的PV
+    * 情景二: VG 无空余空间; 检查是否有未使用的物理磁盘或者未分配完的空间, 如果有, 将使用这部分空间创建新的 PV
 
         ```sh
         lsblk
         pvcreate /dev/vdb2
         ```
 
-* 扩展VG(将PV添加至VG)
+* 扩展 VG (将 PV 添加至 VG )
 
     ```sh
     # 格式: vgextend VG_Name PV_Name
@@ -324,7 +310,7 @@ LVM 架构:
     vgextend vg_test /dev/vdb2
     ```
 
-* 扩展LV
+* 扩展 LV
 
     ```sh
     # 格式1: 使用lv所在vg的全部空间
@@ -350,17 +336,17 @@ LVM 架构:
     ```
 
 
-## 实操三: RHCS卷组信息同步 ##
+## 实操三: RHCS 卷组信息同步 ##
 
-搭建RHCS群集时, 如果未使用集群文件系统, 而使用的是本地文件系统, 在进行完LVM在线扩容, 建议对卷组执行一般导入导出, 同步VG信息
+搭建 RHCS 群集时, 如果未使用集群文件系统, 而使用的是本地文件系统, 在进行完 LVM 在线扩容, 建议对卷组执行一般导入导出, 同步 VG 信息
 
-以两节点RHCS群集为例, 操作如下:
+以两节点 RHCS 群集为例, 操作如下:
 
 * Step 1: 停止群集服务(在此不做介绍)
 
-* Step 2: 在主节点正常进行LVM分区扩容操作
+* Step 2: 在主节点正常进行 LVM 分区扩容操作
 
-* Step 3: 在主节点和备节点上将卷组 "失活"(两边都执行)
+* Step 3: 在主节点和备节点上将卷组 "失活" (两边都执行)
 
     ```sh
     vgchange -an vg_test
@@ -407,22 +393,22 @@ LVM 架构:
 
 注: 执行以上命令时, 部分会由部分对卷组状态的提示, 忽略这部分提示
 
-## 实操四: LVM数据迁移 ##
+## 实操四: LVM 数据迁移 ##
 
 
 * 情景一: 更新替换
 
-    对LVM使用的底层物理磁盘更新替换: 如底层SAN存储到期更换或其他原因更新(e.g.: EMC -> Huawei); 典型的, 当前LVM使用的LUN识别为 `/dev/sdb`, 要更换相同大小或更大的LUN `/dev/sdc`
+    对LVM使用的底层物理磁盘更新替换: 如底层SAN存储到期更换或其他原因更新(e.g.: EMC -> Huawei); 典型的, 当前 LVM 使用的 LUN 识别为 `/dev/sdb`, 要更换相同大小或更大的LUN `/dev/sdc`
 
 * 情景二: "磁盘整合"
 
-    前期对LVM进行过多次扩容, 为了方便管理, 需要将多块磁盘/LUN整个成一块或者几块大的磁盘/LUN; 典型的, 当前LVM使用的共有三块磁盘/LUN `/dev/sdb`, `/dev/sdc`, `/dev/sdd`各100G, 使用一块 500G 的磁盘/LUN来整合
+    前期对 LVM 进行过多次扩容, 为了方便管理, 需要将多块磁盘整个成一块或者几块大的磁盘; 典型的, 当前 LVM 使用的共有三块磁盘 `/dev/sdb`, `/dev/sdc`, `/dev/sdd`各100G, 使用一块 500G 的磁盘来整合
 
 * 基本思路
 
-    * 将新磁盘添加到VG
+    * 将新磁盘添加到 VG ;
     * 将旧磁盘数据迁移到新加磁盘
-    * 将旧磁盘从VG移除
+    * 将旧磁盘从 VG 移除
     * 将旧磁盘创建的PV移除
 
     ```text
@@ -475,8 +461,7 @@ LVM 架构:
     # Move extents belonging to a single LV.
     pvmove -n lvol1 /dev/sdb1 /dev/sdc1
 
-    # Rather  than  moving  the  contents  of an entire device, it is possible to move a range of physical extents, for example numbers 1000 to 1999 inclusive on the
-       specified PV.
+    # Rather  than  moving  the  contents  of an entire device, it is possible to move a range of physical extents, for example numbers 1000 to 1999 inclusive on the specified PV.
     pvmove /dev/sdb1:1000-1999
 
     # A range of physical extents to move can be specified as start+length. For example, starting from PE 1000. (Counting starts from 0, so this refers to the 1001st to the 2000th PE inclusive.)
@@ -498,9 +483,9 @@ LVM 架构:
 
 ## 关于PE大小 ##
 
-当使用 `vgcreate` 创建VG时, 如果未指定 PE 大小, 那么 PE 默认大小 4MB.
+当使用 `vgcreate` 创建 VG 时, 如果未指定 PE 大小, 那么 PE 默认大小 4MB.
 
-* 创建VG时指定PE大小
+* 创建 VG 时指定PE大小
 
     要指定 PE 大小, 使用类似以下命令创建 VG:
 
@@ -508,7 +493,7 @@ LVM 架构:
     vgcreate -s 8MB vg_test /dev/vdb1 # 8, 8M, 8Mb, 8MB, 8MiB 都是正确的格式
     ```
 
-* 创建VG后修改PE大小
+* 创建 VG 后修改 PE 大小
 
     `vgchange` man 文档关于 `-s` 的解释: 
 
@@ -522,11 +507,11 @@ LVM 架构:
 
     经过实验, 总结来说:
 
-    * 当修改PE大小时, 新设定的PE大小必须能够被当前VG空间大小(`PE Size * Total PE`)整除
-    * 当有数据存在时, 修改PE后还需要分别对PV和LV执行 `pvresize` 和 `lvresize` 操作, 同时还需要执行 `pvmove` 保证数据可用
-    * PE大小可以为 5, 10 等, 并非一定要2的幂数值
-    * 调小PE时, 一般 `PE Size / 2` 可用
-    * 生产环境下, 不建议直接修改PE大小, 最佳实践是新建一个VG指定特定大小的PE, 对数据进行迁移
+    * 当修改 PE 大小时, 新设定的 PE 大小必须能够被当前VG空间大小 `PE Size * Total PE` 整除;
+    * 修改 PE 后需要分别对 PV 和 LV 执行 `pvresize` 和 `lvresize` 操作, 同时还需要执行 `pvmove` 保证数据可用;
+    * PE 也可以为 5MB, 10MB 等, 并非一定要 2 的幂数值;
+    * 调小 PE 时, 一般 `PE Size / 2` 可用;
+    * 生产环境下, 不建议直接修改 PE 大小, 最佳实践是**新建一个VG指定特定大小的PE, 对数据进行迁移**.
 
 
 ## 关于扫盘 ##
@@ -543,7 +528,7 @@ LVM 架构:
 
 * 用过脚本
 
-    当安装了 `sg3_utils` 包时, 可使用软件包含的扫描scsi设备的脚本
+    当安装了 `sg3_utils` 包时, 可使用软件包含的扫描 SCSI 设备的脚本
 
     ```bash
     /usr/bin/rescan-scsi-bus.sh

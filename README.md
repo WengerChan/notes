@@ -8,8 +8,8 @@ permalink: /
 
 Some notes that hopefully will help you.
 
-* **Docs**: :yum:You can believe it!:yum:
-* **Drafts**: Unfinished documentation and others.
+* **Docs**: 😏You can believe it!👍
+* **Drafts**: 😴Unfinished documentation and others.👊
 
 ## Usage
 
