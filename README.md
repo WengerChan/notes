@@ -3,7 +3,7 @@ permalink: /
 ---
 
 
-# [WengerChan/notes](https://github.com/WengerChan/notes)
+# [notes](https://github.com/WengerChan/notes)
 
 
 Some notes that hopefully will help you.
