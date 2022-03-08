@@ -9,7 +9,7 @@ permalink: /
 Some notes that hopefully will help you.
 
 * **Docs**: 😏You can believe it!👍
-* **Drafts**: 😴Unfinished documentation and others.👊
+* **Drafts**: 😴Unfinished documentions and others.👊
 
 ## Usage
 
@@ -40,7 +40,7 @@ Use you eyes.
 
 ## Maintainer
 
-[@WengerChan.](cnwn1111@hotmail.com)
+[@WengerChan.](https://github.com/WengerChan/notes/issues)
 
 
 <!--

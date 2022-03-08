@@ -106,7 +106,7 @@ teamdctl team0 port config dump ens33
     GATEWAY=192.168.1.1
     ```
 
-* Team Port配置文件1: /etc/sysconfig/network-scripts/ifcfg-team0-ens33
+* Team Port配置文件1: `/etc/sysconfig/network-scripts/ifcfg-team0-ens33`
 
     ```text
     NAME=team0-ens33
@@ -116,7 +116,7 @@ teamdctl team0 port config dump ens33
     DEVICETYPE=TeamPort
     ```
 
-* Team Port配置文件2: /etc/sysconfig/network-scripts/ifcfg-team0-ens38
+* Team Port配置文件2: `/etc/sysconfig/network-scripts/ifcfg-team0-ens38`
 
     ```text
     NAME=team0-ens38
