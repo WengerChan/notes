@@ -26,6 +26,7 @@ nav:
     - Netcat: docs/Netcat
     - Netfilter/iptables: docs/Netfilter-iptables
     - NFS: docs/NFS
+    - NTP: docs/NTP
     - Shell-多线程: docs/Shell-多线程
     - Team: docs/Team
   - Drafts:
