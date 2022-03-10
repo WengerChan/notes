@@ -244,21 +244,18 @@ echo " Stop: ${stop}"
     * 查看fd
 
         ```sh
-        ls -l /proc/PID/fd
+        # ls -l /proc/PID/fd
+
+        ~] ls -l /proc/self/fd/
+
+        lrwx------. 1 root root 64 Mar  3 20:19 0 -> /dev/pts/1
+        lrwx------. 1 root root 64 Mar  3 20:19 1 -> /dev/pts/1
+        lrwx------. 1 root root 64 Mar  3 20:19 2 -> /dev/pts/1
+        lr-x------. 1 root root 64 Mar  3 20:19 3 -> /var/lib/sss/mc/passwd
+        lrwx------. 1 root root 64 Mar  3 20:19 4 -> 'socket:[19415980]'
+        lr-x------. 1 root root 64 Mar  3 20:19 5 -> /var/lib/sss/mc/group
+        lr-x------. 1 root root 64 Mar  3 20:19 6 -> /proc/1235249/fd
         ```
-
-
-    默认FD: 0 1 2 3
-
-    ls -l /proc/self/fd/
-
-    lrwx------. 1 root root 64 Mar  3 20:19 0 -> /dev/pts/1
-    lrwx------. 1 root root 64 Mar  3 20:19 1 -> /dev/pts/1
-    lrwx------. 1 root root 64 Mar  3 20:19 2 -> /dev/pts/1
-    lr-x------. 1 root root 64 Mar  3 20:19 3 -> /var/lib/sss/mc/passwd
-    lrwx------. 1 root root 64 Mar  3 20:19 4 -> 'socket:[19415980]'
-    lr-x------. 1 root root 64 Mar  3 20:19 5 -> /var/lib/sss/mc/group
-    lr-x------. 1 root root 64 Mar  3 20:19 6 -> /proc/1235249/fd
 
     * 操作fd
 
