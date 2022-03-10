@@ -55,7 +55,7 @@
 
     | Arguments | Meanings |
     |  --  | :-- |
-    | `%%` | A literal '`%`'. |
+    | `%%` | A literal `%`. |
     | `%C` | Shorthand for `%l%h%p%r`. |
     | `%d` | Local user's home directory. |
     | `%h` | The remote hostname. |
@@ -394,18 +394,18 @@ internal-sftp 可以实现对用户 SFTP 连接的灵活限制
 
     * Match
 
-    The arguments to Match are one or more criteria-pattern pairs or the single token All which matches all criteria.  The available criteria are User, Group, Host, LocalAddress, LocalPort, and Address.  The match patterns may consist of single entries or comma-separated lists and may use the wildcard and negation operators described in the PATTERNS section of ssh_config(5).
+        The arguments to Match are one or more criteria-pattern pairs or the single token All which matches all criteria.  The available criteria are User, Group, Host, LocalAddress, LocalPort, and Address.  The match patterns may consist of single entries or comma-separated lists and may use the wildcard and negation operators described in the PATTERNS section of ssh_config(5).
 
-    Available keywords are: 
-    `AcceptEnv`, `AllowAgentForwarding`, `AllowGroups`, `AllowStreamLocalForwarding`, `AllowTcpForwarding`, `AllowUsers`, `AuthenticationMethods`, `AuthorizedKeysCommand`, `AuthorizedKeysCommandUser`, `AuthorizedKeysFile`, `AuthorizedPrincipalsCommand`, `AuthorizedPrincipalsCommandUser`, `AuthorizedPrincipalsFile`, `Banner`, `ChrootDirectory`, `ClientAliveCountMax`, `ClientAliveInterval`, `DenyGroups`, `DenyUsers`, `ForceCommand`, `GatewayPorts`, `GSSAPIAuthentication`, `HostbasedAcceptedKeyTypes`, `HostbasedAuthentication`, `HostbasedUsesNameFromPacketOnly`, `IPQoS`, `KbdInteractiveAuthentication`, `KerberosAuthentication`, `KerberosUseKuserok`, `MaxAuthTries`, `MaxSessions`, `PasswordAuthentication`, `PermitEmptyPasswords`, `PermitOpen`, `PermitRootLogin`, `PermitTTY`, `PermitTunnel`, `PermitUserRC`, `PubkeyAcceptedKeyTypes`, `PubkeyAuthentication`, `RekeyLimit`, `RevokedKeys`, `StreamLocalBindMask`, `StreamLocalBindUnlink`, `TrustedUserCAKeys`, `X11DisplayOffset`, `X11MaxDisplays`, `X11Forwarding` and `X11UseLocalHost`.
+        Available keywords are: 
+        `AcceptEnv`, `AllowAgentForwarding`, `AllowGroups`, `AllowStreamLocalForwarding`, `AllowTcpForwarding`, `AllowUsers`, `AuthenticationMethods`, `AuthorizedKeysCommand`, `AuthorizedKeysCommandUser`, `AuthorizedKeysFile`, `AuthorizedPrincipalsCommand`, `AuthorizedPrincipalsCommandUser`, `AuthorizedPrincipalsFile`, `Banner`, `ChrootDirectory`, `ClientAliveCountMax`, `ClientAliveInterval`, `DenyGroups`, `DenyUsers`, `ForceCommand`, `GatewayPorts`, `GSSAPIAuthentication`, `HostbasedAcceptedKeyTypes`, `HostbasedAuthentication`, `HostbasedUsesNameFromPacketOnly`, `IPQoS`, `KbdInteractiveAuthentication`, `KerberosAuthentication`, `KerberosUseKuserok`, `MaxAuthTries`, `MaxSessions`, `PasswordAuthentication`, `PermitEmptyPasswords`, `PermitOpen`, `PermitRootLogin`, `PermitTTY`, `PermitTunnel`, `PermitUserRC`, `PubkeyAcceptedKeyTypes`, `PubkeyAuthentication`, `RekeyLimit`, `RevokedKeys`, `StreamLocalBindMask`, `StreamLocalBindUnlink`, `TrustedUserCAKeys`, `X11DisplayOffset`, `X11MaxDisplays`, `X11Forwarding` and `X11UseLocalHost`.
 
 * 实际案例
 
-实现：
+    实现：
 
-> 1. 指定专用目录作为sftp目录, 读写只在该目录中完成；
-> 2. 用户权限分离, 对于允许的用户：部分用户可读写, 部分用户只读；对于不允许的用户, 不允许读写；
-> 3. 针对后续新增的文件和文件夹, 满足条件1
+    > 1. 指定专用目录作为sftp目录, 读写只在该目录中完成；
+    > 2. 用户权限分离, 对于允许的用户：部分用户可读写, 部分用户只读；对于不允许的用户, 不允许读写；
+    > 3. 针对后续新增的文件和文件夹, 满足条件1
 
 
     * 创建案例中使用用户组

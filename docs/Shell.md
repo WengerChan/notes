@@ -132,9 +132,9 @@
 
 * 关于 `$BASH_SUBSHELL`
 
-Incremented by one within each subshell or subshell environment when the shell begins executing in that environment. The initial value is 0. If BASH_SUBSHELL is unset, it loses its special properties, even if it is subsequently reset.
+    Incremented by one within each subshell or subshell environment when the shell begins executing in that environment. The initial value is 0. If BASH_SUBSHELL is unset, it loses its special properties, even if it is subsequently reset.
 
-真正的子 Shell 可以访问其父 Shell 的任何变量，而通过再执行一次 bash 命令所启动的 Shell 只能访问其父 Shell 传来的环境变量。
+    真正的子 Shell 可以访问其父 Shell 的任何变量，而通过再执行一次 bash 命令所启动的 Shell 只能访问其父 Shell 传来的环境变量。
 
     ```sh
     ~] echo $BASH_SUBSHELL
