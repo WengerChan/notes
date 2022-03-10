@@ -13,13 +13,15 @@ Some notes that hopefully will help you.
 
 ## Usage
 
-Use you eyes.
+- *Step 1*: Open your browser, link to [https://notes.qwer.today](https://notes.qwer.today)
+
+- *Step 2*: Use you eyes.
 
 ## Content
 
 - Docs:
-  - [正则表达式](docs/正则表达式.md)
   - [Ansible](docs/Ansible.md)
+  - [Awk](docs/Awk.md)
   - [Bonding](docs/Bonding.md)
   - [Emoji](docs/Emoji.md)
   - [Fedora-使用手册](docs/Fedora-使用手册.md)
@@ -30,8 +32,11 @@ Use you eyes.
   - [Netcat](docs/Netcat.md)
   - [Netfilter/iptables](docs/Netfilter-iptables.md)
   - [NFS](docs/NFS.md)
+  - [Shell](docs/Shell.md)
   - [Shell-多线程](docs/Shell-多线程.md)
+  - [SSH](docs/SSH.md)
   - [Team](docs/Team.md)
+  - [正则表达式](docs/正则表达式.md)
 - Drafts:
   - [计算机网络](drafts/计算机网络.md)
   - [三次握手与四次挥手](drafts/三次握手与四次挥手.md)

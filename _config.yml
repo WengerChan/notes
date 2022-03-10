@@ -14,8 +14,8 @@ nav:
   - Getting Started:
     - About: ''
   - Docs:
-    - 正则表达式: docs/正则表达式
     - Ansible: docs/Ansible
+    - Awk: docs/Awk
     - Bonding: docs/Bonding
     - Emoji: docs/Emoji
     - Fedora-使用手册: docs/Fedora-使用手册
@@ -27,8 +27,12 @@ nav:
     - Netfilter/iptables: docs/Netfilter-iptables
     - NFS: docs/NFS
     - NTP: docs/NTP
+    - Shell: docs/Shell
     - Shell-多线程: docs/Shell-多线程
+    - SSH: docs/SSH
     - Team: docs/Team
+    - 正则表达式: docs/正则表达式
+    - 双网卡路由: docs/双网卡路由
   - Drafts:
     - 计算机网络: drafts/计算机网络
     - 三次握手与四次挥手: drafts/三次握手与四次挥手
