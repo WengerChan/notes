@@ -36,7 +36,9 @@ Some notes that hopefully will help you.
   - [Shell-多线程](docs/Shell-多线程.md)
   - [SSH](docs/SSH.md)
   - [Team](docs/Team.md)
+  - [双网卡路由](docs/双网卡路由.md)
   - [正则表达式](docs/正则表达式.md)
+  - [证书](docs/证书.md)
 - Drafts:
   - [计算机网络](drafts/计算机网络.md)
   - [三次握手与四次挥手](drafts/三次握手与四次挥手.md)
