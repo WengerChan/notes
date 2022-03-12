@@ -87,7 +87,7 @@
         | `ignore` | 拒绝所有 NTP 数据包 |
         | `nopeer` | 阻止主机尝试与服务器对等, 并允许欺诈性服务器控制时钟 |
         | `notrust` | 拒绝未经加密验证的数据包 |
-        | `notrap` | 拒绝提供trap远端登陆<sup id="a1">[1](#f1) |
+        | `notrap` | 拒绝提供trap远端登陆<sup id="a1">[1](#f1)</sup> |
         | `limited` | 丢弃超过 `discard` 设置速率的请求包; `ntpq` 和 `ntpdc` 查询不受影响 |
         | `kod` |  被 `limited` 拒绝时发送 KoD 包 |
         | `lowpriotrap` | 设置低优先级陷阱声明 |
