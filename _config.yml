@@ -21,6 +21,7 @@ nav:
     - Fedora-使用手册: docs/Fedora-使用手册
     - Git: docs/Git
     - Kvm: docs/Kvm
+    - Linux: docs/Linux
     - LVM: docs/LVM
     - Markdown: docs/Markdown
     - Netcat: docs/Netcat
@@ -29,6 +30,7 @@ nav:
     - NTP: docs/NTP
     - Shell: docs/Shell
     - Shell-多线程: docs/Shell-多线程
+    - Shell-圣经: docs/Shell-圣经-CN
     - SSH: docs/SSH
     - Team: docs/Team
     - 双网卡路由: docs/双网卡路由

@@ -131,10 +131,11 @@
     | `t`        | `u`: unicast, `b`: broadcast, `l`: local(such as a GPS, WWVB)                              |
     | `when`     | `sec/min/hr` since last received packet                                                    |
     | `poll`     | poll interval (log2 s)                                                                     |
-    | `reach`    | reach shift register (octal)                                                               |
+    | `reach`    | reach shift register (octal), 每成功连接一次, 值就会增加                                     |
     | `delay`    | roundtrip delay, 传输延迟                                                                   |
     | `offset`   | offset                                                                                     |
     | `jitter`   | jitter<sup>振动</sup>, 描述 offset 分布情况                                                 |
+
 
     * 关于 `[tally]`
 
