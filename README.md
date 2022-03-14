@@ -35,7 +35,6 @@ Some notes that hopefully will help you.
   - [NFS](docs/NFS.md)
   - [NTP](docs/NTP.md)
   - [Shell](docs/Shell.md)
-  - [Shell-多线程](docs/Shell-多线程.md)
   - [Shell-圣经-CN](docs/Shell-圣经-CN.md)
   - [Shell-圣经-EN](docs/Shell-圣经-EN.md)
   - [SSH](docs/SSH.md)
@@ -44,6 +43,8 @@ Some notes that hopefully will help you.
   - [正则表达式](docs/正则表达式.md)
   - [证书](docs/证书.md)
 - Drafts:
+  - [RHCS](drafts/RHCS.md)
+  - [VSFTPD](drafts/VSFTPD.md)
   - [计算机网络](drafts/计算机网络.md)
   - [三次握手与四次挥手](drafts/三次握手与四次挥手.md)
   - [左右mongodb右手redis读书笔记](drafts/左右mongodb右手redis读书笔记.md)

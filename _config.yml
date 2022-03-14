@@ -29,7 +29,6 @@ nav:
     - NFS: docs/NFS
     - NTP: docs/NTP
     - Shell: docs/Shell
-    - Shell-多线程: docs/Shell-多线程
     - Shell-圣经: docs/Shell-圣经-CN
     - SSH: docs/SSH
     - Team: docs/Team
@@ -37,6 +36,8 @@ nav:
     - 正则表达式: docs/正则表达式
     - 证书: docs/证书
   - Drafts:
+    - RHCS: docs/RHCS
+    - VSFTPD: docs/VSFTPD
     - 计算机网络: drafts/计算机网络
     - 三次握手与四次挥手: drafts/三次握手与四次挥手
     - 左右mongodb右手redis读书笔记: drafts/左右mongodb右手redis读书笔记

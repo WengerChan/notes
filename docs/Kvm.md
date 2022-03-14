@@ -66,13 +66,6 @@ virt-clone -o VM-NAME-01 -n VM-NAME-02 -f /data/VM-NAME-02.qcow2  # VM-NAME-01�
 
 ### 配置虚拟机
 
-* 虚拟磁盘
-
-    ```sh
-    qemu-img create -f qcow2 /home/virtimg/rhel6.img 10G # 创建
-    qemu-img resize /home/virtimg/rhel6.img +1G          # 增大容量
-    qemu-img info /home/virtimg/rhel6.img                # 查看信息
-    ```
 
 * 虚拟内存
 
@@ -161,6 +154,14 @@ virt-clone -o VM-NAME-01 -n VM-NAME-02 -f /data/VM-NAME-02.qcow2  # VM-NAME-01�
         ```
 
 * 块设备(磁盘)
+
+    * 创建/扩容磁盘
+
+        ```sh
+        qemu-img create -f qcow2 /home/virtimg/rhel6.img 10G # 创建磁盘
+        qemu-img resize /home/virtimg/rhel6.img +1G          # 增大磁盘容量
+        qemu-img info /home/virtimg/rhel6.img                # 查看磁盘信息
+        ```
 
     * 添加磁盘
 
