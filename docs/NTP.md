@@ -54,7 +54,7 @@
     server <IP> [OPTIONs]
     ```
 
-    * `burst`/`iburst`: 当此行 `server` 配置的 NTP 服务器 "可用"/"不可用" 时，向它发送一系列的并发包进行检测
+    * `burst`/`iburst`: 当此行 `server` 配置的 NTP 服务器 "可用"/"不可用" 时, 向它发送一系列的并发包进行检测
 
     * `minpoll N`/`maxpoll N`: 指定 NTP 消息的最小和最大轮询间隔
 
@@ -98,7 +98,7 @@
 
         ---
 
-        <b id="f1"><font size=1>1 拒绝为匹配的主机提供 模式6 控制消息陷阱服务( trap service ); 陷阱服务是 ntpdq 控制消息协议的子系统, 用于远程事件日志记录程序</font> [?](#a1)
+        <b id="f1"><font size=1>1 拒绝为匹配的主机提供 模式6 控制消息陷阱服务( trap service ); 陷阱服务是 ntpdq 控制消息协议的子系统, 用于远程事件日志记录程序</font></b> [?](#a1)
 
 ## 查询同步结果
 
@@ -140,14 +140,14 @@
     * 关于 `[tally]`
 
     ```text
-    " "    : 无状态，表示: 没有远程通信的主机 
+    " "    : 无状态, 表示: 没有远程通信的主机 
     "LOCAL": 即本机 （未被使用的）高层级服务器 远程主机使用的这台机器作为同步服务器 
     "x"    : 已不再使用 
     "-"    : 已不再使用 
-    "#"    : 良好的远程节点或服务器但是未被使用 （不在按同步距离排序的前六个节点中，作为备用节点使用） 
+    "#"    : 良好的远程节点或服务器但是未被使用 （不在按同步距离排序的前六个节点中, 作为备用节点使用） 
     "+"    : 良好的且优先使用的远程节点或服务器（包含在组合算法中） 
     "*"    : 当前作为优先主同步对象的远程节点或服务器 
-    "o"    : PPS 节点 (当优先节点是有效时)。实际的系统同步是源于秒脉冲信号（pulse-per-second，PPS），可能通过PPS 时钟驱动或者通过内核接口。
+    "o"    : PPS 节点 (当优先节点是有效时)。实际的系统同步是源于秒脉冲信号（pulse-per-second, PPS）, 可能通过PPS 时钟驱动或者通过内核接口。
     ```
 
     * 关于 `refid`
@@ -169,7 +169,7 @@
         .DCFa.  – DCF77 (LF, Mainflingen, Germany) 标准时间无线电接收器
         .HBG.   – HBG (LF Prangins, Switzerland) 标准时间无线电接收器
         .JJY.   – JJY (LF Fukushima, Japan) 标准时间无线电接收器
-        .LORC.  – LORAN-C station (MF) 标准时间无线电接收器，注： 不再可用 (被 eLORAN 废弃)
+        .LORC.  – LORAN-C station (MF) 标准时间无线电接收器, 注： 不再可用 (被 eLORAN 废弃)
         .MSF.   – MSF (LF, Anthorn, Great Britain) 标准时间无线电接收器
         .TDF.   – TDF (MF, Allouis, France)标准时间无线电接收器
         .WWV.   – WWV (HF, Ft. Collins, CO, America) 标准时间无线电接收器
@@ -188,7 +188,7 @@
         .MCST.  – 多播服务器
         .RATE.  – (轮询) 速率超出限定
         .TIME.  – 关联超时
-        .STEP.  – 间隔时长改变，偏移量比危险阈值小(1000ms) 比间隔时间 (125ms)大
+        .STEP.  – 间隔时长改变, 偏移量比危险阈值小(1000ms) 比间隔时间 (125ms)大
         ```
 
 * `ntpq -c associations`

@@ -47,6 +47,7 @@ Some notes that hopefully will help you.
   - [VSFTPD](drafts/VSFTPD.md)
   - [计算机网络](drafts/计算机网络.md)
   - [三次握手与四次挥手](drafts/三次握手与四次挥手.md)
+  - [特殊字符](drafts/特殊字符.md)
   - [左右mongodb右手redis读书笔记](drafts/左右mongodb右手redis读书笔记.md)
 
 

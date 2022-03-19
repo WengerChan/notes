@@ -36,9 +36,10 @@ nav:
     - 正则表达式: docs/正则表达式
     - 证书: docs/证书
   - Drafts:
-    - RHCS: docs/RHCS
-    - VSFTPD: docs/VSFTPD
+    - RHCS: drafts/RHCS
+    - VSFTPD: drafts/VSFTPD
     - 计算机网络: drafts/计算机网络
     - 三次握手与四次挥手: drafts/三次握手与四次挥手
+    - 特殊字符: drafts/特殊字符
     - 左右mongodb右手redis读书笔记: drafts/左右mongodb右手redis读书笔记
 

@@ -76,7 +76,7 @@ github中脚注：
 ```md
 Bla bla <sup id="a1">[1](#f1)
 
-<b id="f1">1 Footnote content here. [?](#a1)
+<b id="f1">1 Footnote content here.</b> [?](#a1)
 ```
 
 ## 7. 引用
