@@ -246,20 +246,35 @@ vsftp 提供3种远程的登录方式：
 
 ### Log In Options and Access Controls
 
+
 * `anonymous_enable=YES` — 控制是否允许匿名登录; 如果启用, 用户名 `ftp` 和 `anonymous` 都会被识别成匿名登录
+
 * `deny_email_enable=NO` — 控制是否启用匿名登录邮件地址(密码)过滤<sup id="a2">[2](#f2)</sup>
+
 * `banned_email_file=/etc/vsftpd.banned_emails` — 邮件列表, 记录拒绝访问的邮件地址; 仅当 `deny_email_enable=YES` 时才生效
 
+
+
 * `ftpd_banner=[String]` — 字符串, 设置 FTP 登录欢迎语
+
 * `banner_file=/path/to/file` — 文件名, 设置 FTP 登录欢迎语; 该指令会覆盖 `ftpd_banner` 的配置
 
+
+
 * `userlist_enable=NO`<sup id="a3">[3](#f3)</sup> — 控制是否通过用户列表控制用户登录 (注: 主配置文件初始配置为 "YES")
+
 * `userlist_deny=YES` — 控制用户列表对用户的控制动作是: "YES" => Deny, "NO" => Allow
+
 * `userlist_file=/etc/vsftpd/user_list` — 用户列表, 列表中的用户允许<sup>`userlist_deny=NO`</sup>/禁止<sup>`userlist_deny=YES`</sup>访问 FTP 
 
+
+
 * `cmds_allowed=cmd1, cmd2, ...` 逗号分隔的列表, 设置允许执行的 FTP 命令, 未设置的命令都会被拒绝执行
+
 * `pam_service_name=ftp`<sup id="a4">[4](#f4)</sup> — 设置 VSFTPD 的 PAM 服务名
+
 * `tcp_wrappers=NO`<sup id="a5">[5](#f5)</sup> — 控制是否通过 TCP Wrappers 进行访问控制
+
 * `local_enable=YES` — 控制是否允许本地用户方式登录, 注意 SELinux 权限
 
 ---
@@ -272,12 +287,19 @@ vsftp 提供3种远程的登录方式：
 
 ### Anonymous User Options
 
+
 * `anon_mkdir_write_enable=NO` — 控制是否允许匿名登录用户拥有创建目录权限; 该指令需要配置 `write_enable=YES`
+
 * `anon_upload_enable=NO` — 控制是否允许匿名登录用户拥有上传文件权限; 该指令需要配置 `write_enable=YES`
+
 * `anon_root=/path/to/root` — 设置匿名用户登录后目录
+
 * `anon_world_readable_only=YES` — 控制匿名用户只能下载设置了 "全局可读" 权限的文件
+
 * `ftp_username=ftp` — 设置匿名用户对应的本地 FTP 用户
+
 * `no_anon_password=NO` — 控制是否允许免密匿名登陆: "NO" => 不允许, "YES" => 允许
+
 * `secure_email_list_enable=NO` — 控制是否启用匿名登录邮件地址(密码)过滤, "YES" => 只允许以 `/etc/vsftpd/email_passwords` 中的密码登录
 
 
