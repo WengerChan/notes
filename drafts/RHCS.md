@@ -33,7 +33,7 @@
 
         ```sh
         ~] targetcli ls 
-        
+
         o- / .................................................................... [...]
           o- backstores ......................................................... [...]
           | o- block ............................................. [Storage Objects: 0]
@@ -77,7 +77,7 @@
 
     ```sh
     ~] targetcli ls 
-    
+
     o- / .............................................................................. [...]
       o- backstores ................................................................... [...]
       | o- block ....................................................... [Storage Objects: 1]
@@ -104,7 +104,7 @@
 
 
     * 防火墙配置
-        
+
         ```sh
         ~] netstat -an | grep 3260
 
@@ -117,9 +117,9 @@
         ```
 
     * 已知问题: 如果客户端挂载了服务端共享的磁盘, 并对磁盘使用 Lvm 创建相应 PV, VG, LV; 当服务端操作系统重启后, target 可能丢失 block 。
-        
+
         原因：服务端的 `lvm2-lvmetad.service` 将客户端的 Lvm 元素据识别并纳管, 导致 target 绑定的磁盘 `/dev/sdb` 无法被识别。
-        
+
         解决：修改 `/etc/lvm/lvm.conf` 中 `volume_list = [ "rhel_host0" ]`, 即只将主机上的卷组添加进去, 其他的不添加。修改完毕以后, 关闭 target 服务, 重启 `lvm2-lvmetad.service` (建议重启操作系统)
 
 * KVM 虚拟机使用共享磁盘
@@ -135,7 +135,7 @@
     virsh attach-disk --domain node01 --source rhel76-rhcs-10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --config
     virsh attach-disk --domain node01 --source rhel76-rhcs-10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --current
     virsh attach-disk --domain node01 --source rhel76-rhcs-10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
-    
+
     virsh attach-disk --domain node02 --source rhel76-rhcs-10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
     virsh attach-disk --domain node02 --source rhel76-rhcs-10g-01.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
     virsh attach-disk --domain node02 --source rhel76-rhcs-10g-02.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
@@ -187,7 +187,7 @@ KVM/VMware 虚拟机使用共享磁盘, 直接在平台操作挂载以后即可,
     ```
 
 * 配置
-    
+
     修改 InititorName, 与 Target 端配置的保持一致:
 
     ```sh
@@ -308,7 +308,12 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     mkdir /data01
     mkdir /data02
     yum install -y vsftpd
-    useradd vsftpd
+
+    useradd ftpuser01
+    useradd ftpuser0101
+    useradd ftpuser02
+    useradd ftpuser0202
+    for user in ftpuser01{,01} ftpuser02{,02} ; do echo '111' | passwd --stdin ${user}; done
     ```
 
 * 修改 VSFTPD 配置文件
@@ -319,69 +324,84 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     ~] vi /etc/vsftpd/vsftpd_ftp01.conf
 
     anonymous_enable=NO
-    guest_enable=NO
+
     local_enable=YES
-    write_enable=YES
-    local_umask=022
-    port_enable=YES
-    pasv_enable=NO
-    dirmessage_enable=YES
-    ftpd_banner=Welcome to blah FTP service
-    xferlog_enable=YES
-    xferlog_std_format=YES
-    xferlog_file=/var/log/ftp01_xferlog
-    dual_log_enable=YES
-    vsftpd_log_file=/var/log/ftp01_vsftpd.log
-    nopriv_user=vsftpd
-    connect_from_port_20=YES
+    local_root=/data01
     chroot_local_user=NO
     chroot_list_enable=YES
     chroot_list_file=/etc/vsftpd/chroot_list01
+    allow_writeable_chroot=NO
+    guest_enable=NO
+
+    dirmessage_enable=YES
+    connect_from_port_20=YES
     listen=YES
     listen_ipv6=NO
-    listen_address=192.168.161.12
-    pam_service_name=vsftpd
+    pam_service_name=vsftpd_01
     userlist_enable=YES
     userlist_deny=NO
+    userlist_file=/etc/vsftpd/user_list01
     tcp_wrappers=YES
-    local_root=/data01
-    use_localtime=YES
-    allow_writeable_chroot=YES
+
+    # 日志配置
+    xferlog_enable=YES
+    xferlog_std_format=YES
+    xferlog_file=/var/log/xferlog01
+    dual_log_enable=YES
+    vsftpd_log_file=/var/log/vsftpd01.log
     ```
 
     ```sh
     ~] vi /etc/vsftpd/vsftpd_ftp02.conf
 
     anonymous_enable=NO
-    guest_enable=NO
+
     local_enable=YES
-    write_enable=YES
-    local_umask=022
-    port_enable=YES
-    pasv_enable=NO
-    dirmessage_enable=YES
-    ftpd_banner=Welcome to blah FTP service
-    xferlog_enable=YES
-    xferlog_std_format=YES
-    xferlog_file=/var/log/ftp02_xferlog
-    dual_log_enable=YES
-    vsftpd_log_file=/var/log/ftp02_vsftpd.log
-    nopriv_user=vsftpd
-    connect_from_port_20=YES
+    local_root=/data02
     chroot_local_user=NO
     chroot_list_enable=YES
     chroot_list_file=/etc/vsftpd/chroot_list02
+    allow_writeable_chroot=NO
+    guest_enable=NO
+
+    dirmessage_enable=YES
+    connect_from_port_20=YES
     listen=YES
     listen_ipv6=NO
-    listen_address=192.168.161.13
-    pam_service_name=vsftpd
+    pam_service_name=vsftpd_02
     userlist_enable=YES
     userlist_deny=NO
+    userlist_file=/etc/vsftpd/user_list02
     tcp_wrappers=YES
-    local_root=/data02
-    use_localtime=YES
-    allow_writeable_chroot=YES
+
+    # 日志配置
+    xferlog_enable=YES
+    xferlog_std_format=YES
+    xferlog_file=/var/log/xferlog02
+    dual_log_enable=YES
+    vsftpd_log_file=/var/log/vsftpd02.log
     ```
+
+    两个节点添加 `user_list` 和 `chroot_list` 共四个文件, 和主配置文件中相应配置项保持一致:
+
+    ```sh
+    ~] vi user_list01
+    ftpuser01
+    ftpuser0101
+
+    ~] vi user_list02
+    ftpuser02
+    ftpuser0202
+
+    ~] vi chroot_list01
+    ftpuser01
+    ftpuser0101
+
+    ~] vi chroot_list02
+    ftpuser02
+    ftpuser0202
+    ```
+
 
 
     如果需要 "**禁用主动模式, 启动被动模式**", 并限制端口范围, 可以参考以下配置:
@@ -397,7 +417,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
 * 防火墙配置
 
     如果启用了防火墙, 则需要添加策略:
-    
+
     ```sh
     firewall-cmd --add-service=ftp --permanent
     firewall-cmd --reload
@@ -439,7 +459,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
         ```
 
     * 节点认证
-    
+
         ```sh
         pcs cluster auth [node] [...] [-u username] [-p password]
         ```
@@ -539,7 +559,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
             runtime.totem.pg.mrp.srp.members.2.status (str) = joined
 
             ~] pcs status corosync
-            
+
             Membership information
             ----------------------
                 Nodeid      Votes Name
@@ -548,10 +568,10 @@ mkfs.xfs /dev/mapper/rhcs02-data02
             ```
 
     * 检查 `pacemaker` 状态
-    
+
         ```sh
         ~] ps axf |grep pacemaker
-    
+
         4810 pts/0    S+     0:00      |   \_ grep --color=auto pacemaker
         4619 ?        Ss     0:00 /usr/sbin/pacemakerd -f
         4620 ?        Ss     0:00  \_ /usr/libexec/pacemaker/cib
@@ -560,29 +580,29 @@ mkfs.xfs /dev/mapper/rhcs02-data02
         4623 ?        Ss     0:00  \_ /usr/libexec/pacemaker/attrd
         4624 ?        Ss     0:00  \_ /usr/libexec/pacemaker/pengine
         4625 ?        Ss     0:00  \_ /usr/libexec/pacemaker/crmd
-    
+
         ~] pcs status
         ~] pcs cluster cib
         ```
-    
+
     * 集群基础配置信息检测
-    
+
         ```sh
         ~] crm_verify -L -V
-    
+
            error: unpack_resources:	Resource start-up disabled since no STONITH resources have been defined
            error: unpack_resources:	Either configure some or disable STONITH with the stonith-enabled option
            error: unpack_resources:	NOTE: Clusters with shared data need STONITH to ensure data integrity
         Errors found during check: config not valid
         ```
-    
+
         注: `STONITH/Fencing` 默认开启, 可以先暂时关闭: 
-        
+
         > By default pacemaker enables STONITH (Shoot The Other Node In The Head ) / Fencing in an order to protect the data. Fencing is mandatory when you use the shared storage to     avoid the data corruptions.)
-        
+
         ```sh
         ~] pcs property set stonith-enabled=false
-        
+
         ~] pcs property show stonith-enabled
         Cluster Properties:
          stonith-enabled: false
@@ -637,7 +657,7 @@ pcs resource describe IPaddr2
 
     ```sh
     pcs resource create IP_161.14 ocf:heartbeat:IPaddr2 ip=192.168.161.14 cidr_netmask=24 nic=eth0 op monitor interval=30s
-    
+
     pcs resource create IP_161.15 ocf:heartbeat:IPaddr2 ip=192.168.161.15 cidr_netmask=24 nic=eth0 op monitor interval=30s
     ```
 
@@ -656,15 +676,15 @@ pcs resource describe IPaddr2
 
     ```sh
     ~] pcs resource show IP_161.14
-    
+
      Resource: IP_161.14 (class=ocf provider=heartbeat type=IPaddr2)
       Attributes: cidr_netmask=24 ip=192.168.161.14 nic=eth0
       Operations: monitor interval=30s (IP_161.14-monitor-interval-30s)
                   start interval=0s timeout=20s (IP_161.14-start-interval-0s)
                   stop interval=0s timeout=20s (IP_161.14-stop-interval-0s)
-    
+
     ~] pcs resource show IP_161.15
-    
+
      Resource: IP_161.15 (class=ocf provider=heartbeat type=IPaddr2)
       Attributes: cidr_netmask=24 ip=192.168.161.15 nic=eth0
       Operations: monitor interval=30s (IP_161.15-monitor-interval-30s)
@@ -700,7 +720,7 @@ pcs resource describe IPaddr2
 
         > 以上两步可以直接执行 `lvmconf --enable-halvm --services --startstopservices`, 然后检查 `/etc/lvm/lvm.conf` 配置, 注意非集群管理的卷组都要包含在 `volume_list = [  ]` 
 
-        
+
         * 重建 initramfs
 
             ```sh
@@ -721,7 +741,7 @@ pcs resource describe IPaddr2
         > 注: (1) `ocf:heartbeat:LVM` 可简写成 `LVM`; (2) `exclusive=yes` 表示独占激活
 
         添加完成以后, 两个卷组分别挂载到不同节点: 
-        
+
         ```sh
         ~] pcs status 
 
@@ -730,19 +750,19 @@ pcs resource describe IPaddr2
         Current DC: rhel76-node01 (version 1.1.19-8.el7-c3c624ea3d) - partition with quorum
         Last updated: Tue Mar 15 10:14:45 2022
         Last change: Tue Mar 15 09:59:46 2022 by root via cibadmin on rhel76-node01
-        
+
         2 nodes configured
         4 resources configured
-        
+
         Online: [ rhel76-node01 rhel76-node02 ]
-        
+
         Full list of resources:
-        
+
          IP_161.14      (ocf::heartbeat:IPaddr2):       Started rhel76-node01
          IP_161.15      (ocf::heartbeat:IPaddr2):       Started rhel76-node02
          VG_rhcs01      (ocf::heartbeat:LVM):   Started rhel76-node01    # <= 节点 1
          VG_rhcs02      (ocf::heartbeat:LVM):   Started rhel76-node02    # <= 节点 2
-        
+
         Daemon Status:
           corosync: active/enabled
           pacemaker: active/enabled
@@ -775,14 +795,144 @@ pcs resource describe IPaddr2
 
 * 添加 VSFTPD 服务
 
+    取消 Systemd 开机自启动:
+
+    ```sh
+    systemctl disable vsftpd
+    ```
+
+    添加服务托管:
+
+    ```sh
+    pcs resource create VSFTPD_01 systemd:vsftpd@vsftpd_01
+    pcs resource create VSFTPD_02 systemd:vsftpd@vsftpd_02
+    ```
 
 
 * 创建资源组
 
-
+    ```sh
+    pcs resource group add VSFTPD_GROUP_01 IP_161.14 VG_rhcs01 FS_data01 VSFTPD_01
+    pcs resource group add VSFTPD_GROUP_02 IP_161.15 VG_rhcs02 FS_data02 VSFTPD_02
+    ```
 
 * 添加约束条件
 
+    查看约束条件可使用以下格式:
+
+    ```text
+    pcs constraint ref <resource>                               # 列出指定资源的约束条件
+    pcs constraint [order|colocation|location] [show] [--full]  # 列出约束条件
+        --full      # If '--full' is specified also list the constraint ids
+    ```
+
+    - 添加 `order` 类约束
+
+        语法:
+
+        ```text
+        order [action] <resource id> then [action] <resource id> [options]
+        ```
+
+        配置:
+
+        1. 确保 IP 和 FS 都正常启动以后, 才启动 VSFTPD
+        2. 确保 VG 正常识别后, 才挂载 FS
+
+        ```sh
+        pcs constraint order start IP_161.14 then VSFTPD_01
+        pcs constraint order start FS_data01 then VSFTPD_01
+        pcs constraint order start VG_rhcs01 then FS_data01
+
+        pcs constraint order start IP_161.15 then VSFTPD_02
+        pcs constraint order start FS_data02 then VSFTPD_02
+        pcs constraint order start VG_rhcs02 then FS_data02
+        ```
+
+        查看配置结果:
+
+        ```sh
+        ~] pcs constraint order --full
+
+        Ordering Constraints:
+          start IP_161.14 then start VSFTPD_01 (kind:Mandatory) (id:order-IP_161.14-VSFTPD_01-mandatory)
+          start FS_data01 then start VSFTPD_01 (kind:Mandatory) (id:order-FS_data01-VSFTPD_01-mandatory)
+          start VG_rhcs01 then start FS_data01 (kind:Mandatory) (id:order-VG_rhcs01-FS_data01-mandatory)
+          start IP_161.15 then start VSFTPD_02 (kind:Mandatory) (id:order-IP_161.15-VSFTPD_02-mandatory)
+          start FS_data02 then start VSFTPD_02 (kind:Mandatory) (id:order-FS_data02-VSFTPD_02-mandatory)
+          start VG_rhcs02 then start FS_data02 (kind:Mandatory) (id:order-VG_rhcs02-FS_data02-mandatory)
+        ```
+
+
+    - 添加 `colocation` 类约束
+
+        > 注: 如果设置了资源组, `colocation` 类可不用设置, 因为资源组本就是只能启动在一个节点上
+
+        语法:
+
+        ```text
+        colocation add [master|slave] <source resource id> with [master|slave] <target resource id> [score] [options] [id=constraint-id]
+
+        # Request <source resource> to run on the same node where pacemaker has determined <target resource> should run.
+        ```
+
+        配置:
+
+        ```sh
+        pcs constraint colocation add VG_rhcs01 with FS_data01
+        pcs constraint colocation add IP_161.14 with VSFTPD_01
+        pcs constraint colocation add FS_data01 with VSFTPD_01
+
+        pcs constraint colocation add VG_rhcs02 with FS_data02
+        pcs constraint colocation add IP_161.15 with VSFTPD_02
+        pcs constraint colocation add FS_data02 with VSFTPD_02
+        ```
+
+        查看配置结果:
+
+        ```sh
+        ~] pcs constraint colocation
+        Colocation Constraints:
+          VG_rhcs01 with FS_data01 (score:INFINITY)
+          IP_161.14 with VSFTPD_01 (score:INFINITY)
+          FS_data01 with VSFTPD_01 (score:INFINITY)
+          VG_rhcs02 with FS_data02 (score:INFINITY)
+          IP_161.15 with VSFTPD_02 (score:INFINITY)
+          FS_data02 with VSFTPD_02 (score:INFINITY)
+
+        ```
+
+    - 添加`location`类约束
+
+        语法: 
+
+        ```text
+        # Create a location constraint on a resource to prefer the specified node with score (default score: INFINITY).
+        location <resource> prefers <node>[=<score>] [<node>[=<score>]]...
+
+        # Create a location constraint on a resource to avoid the specified node with score (default score: INFINITY).
+        location <resource> avoids <node>[=<score>] [<node>[=<score>]]...
+        ```
+
+        配置:
+
+        ```sh
+        pcs constraint location VSFTPD_GROUP_01 prefers rhel76-node01=200 rhel76-node02=20
+        pcs constraint location VSFTPD_GROUP_02 prefers rhel76-node01=20 rhel76-node02=200
+        ```
+
+        查看配置结果:
+
+        ```sh
+        ~] pcs constraint location show
+        Location Constraints:
+          Resource: VSFTPD_GROUP_01
+            Enabled on: rhel76-node01 (score:200)
+            Enabled on: rhel76-node02 (score:20)
+          Resource: VSFTPD_GROUP_02
+            Enabled on: rhel76-node01 (score:20)
+            Enabled on: rhel76-node02 (score:200)
+        ```
 
 
 ### 配置 Fence

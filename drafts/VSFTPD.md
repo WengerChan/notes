@@ -1,14 +1,5 @@
 # VSFTPD, Very Security FTP Daemon
 
-vsftp 提供3种远程的登录方式：
-
-* 匿名登录方式: 不需要用户名和密码
-
-* 本地用户登录方式: 需要用户名和密码, 并且用户应该存在 Linux 系统里面
-
-* 虚拟用户登录方式: 需要用户名和密码, 用户不在你 Linux 系统
-
-
 
 ## 安装与配置
 
@@ -40,6 +31,15 @@ vsftp 提供3种远程的登录方式：
     | `user_list`<sup id="aa2">[2](#ff2)</sup>   | 用户列表, 作用取决于 `userlist_enbale`, `userlist_deny` 的配置 |
     | `vsftpd.conf`<sup id="aa3">[3](#ff3)</sup> | 默认主配置文件.                                               |
     | `vsftpd_conf_migrate.sh`                 | 脚本文件, 此文件可以忽略.                                      |
+
+
+    * `ftpusers` 文件中记录的黑名单, 不允许文件中记录的用户登录 FTP
+
+        ftpusers 文件由默认的 pam 文件 (`/etc/pam.d/vsftpd`/`/etc/pam.d/ftp`) 设置功能, 配置行如下:
+
+        ```text
+        auth       required     pam_listfile.so item=user sense=deny file=/etc/vsftpd/ftpusers onerr=succeed
+        ```
 
     * 文件默认配置: 
 
@@ -174,7 +174,6 @@ vsftp 提供3种远程的登录方式：
 ## 关于 VSFTPD 服务模式
 
 
-
 被动模式, PASV Style, passive mode
 
 * 主动模式
@@ -191,8 +190,8 @@ vsftp 提供3种远程的登录方式：
 
         ```text
         1. 客户端以随机非特权端口 N, 就是大于 1024 的端口, 对服务端 21 端口发起连接;
-        2. 客户端开始监听 N+1 端口;
-        3. 服务端会主动以 20 端口连接到客户端的 N+1 端口 <= connect_timeout
+        2. 客户端开始监听 M 端口;
+        3. 服务端会主动以 20 端口连接到客户端的 M 端口
         ```
 
     * 优/缺点
@@ -225,10 +224,31 @@ vsftp 提供3种远程的登录方式：
         优点：对客户端网络环境没有要求
 
 
+## 关于 VSFTPD 登录方式
+
+VSFTPD 提供3种远程的登录方式：
+
+* 匿名登录方式: 不需要用户名和密码
+
+* 本地用户登录方式: 需要用户名和密码, 并且用户应该存在 Linux 系统里面
+
+* 虚拟用户登录方式: 需要用户名和密码, 用户不在 Linux 系统
+
+说明:
+
+* 匿名登录方式开启时, VSFTPD 默认将用户名 `ftp` 和 `anonymous` 识别成匿名用户登录, 登陆后 chroot 到 `ftp` 或 `anonymous` 的家目录下 (一般为 `/var/ftp`)
+
+* 开启 虚拟用户登录方式 后, 本地用户登录会提示错误, 详见下文示例;
+
+* 虚拟用户登录方式, 最终会映射到本地的一个 宿主用户 上
+* 虚拟用户登录方式, 登录后的权限由匿名登录方式下的用户权限来管理 (并不需要开启匿名登录方式)
+* 虚拟用户登录方式, 需要提供 "宿主用户"<sup>`guest_username`<sup> 和允许登录的 "虚拟用户" 的账号密码文件(可通过 `db_load` 命令生成)
+
+
+
 ## 详解 `vsftpd.conf`
 
 ### Daemon Options
-
 
 
 * `listen=NO`
@@ -237,7 +257,7 @@ vsftp 提供3种远程的登录方式：
 
 * `session_support=NO` — VSFTPD 尝试通过 PAM 为每个登录的用户 (开启 `pam_session`) 维护 login session (如更新 `utmp`, `wtmp`)
 
-`listen` 或者 `listen_ipv6` 默认选项为 NO, 如果设置为 YES 表示开启 "stand-alone"; 此外, 如果需要同时监听 IPv4 和 IPv6 地址, `listen` 和 `listen_ipv6` 选项都需要指定
+`listen` 或者 `listen_ipv6` 默认选项为 NO, 如果设置为 YES 表示开启 "stand-alone"
 
 ---
 
@@ -254,11 +274,9 @@ vsftp 提供3种远程的登录方式：
 * `banned_email_file=/etc/vsftpd.banned_emails` — 邮件列表, 记录拒绝访问的邮件地址; 仅当 `deny_email_enable=YES` 时才生效
 
 
-
 * `ftpd_banner=[String]` — 字符串, 设置 FTP 登录欢迎语
 
 * `banner_file=/path/to/file` — 文件名, 设置 FTP 登录欢迎语; 该指令会覆盖 `ftpd_banner` 的配置
-
 
 
 * `userlist_enable=NO`<sup id="a3">[3](#f3)</sup> — 控制是否通过用户列表控制用户登录 (注: 主配置文件初始配置为 "YES")
@@ -268,14 +286,15 @@ vsftp 提供3种远程的登录方式：
 * `userlist_file=/etc/vsftpd/user_list` — 用户列表, 列表中的用户允许<sup>`userlist_deny=NO`</sup>/禁止<sup>`userlist_deny=YES`</sup>访问 FTP 
 
 
-
 * `cmds_allowed=cmd1, cmd2, ...` 逗号分隔的列表, 设置允许执行的 FTP 命令, 未设置的命令都会被拒绝执行
 
-* `pam_service_name=ftp`<sup id="a4">[4](#f4)</sup> — 设置 VSFTPD 的 PAM 服务名
+* `pam_service_name=ftp`<sup id="a4">[4](#f4)</sup> — 设置 VSFTPD 的 PAM 服务文件名
 
 * `tcp_wrappers=NO`<sup id="a5">[5](#f5)</sup> — 控制是否通过 TCP Wrappers 进行访问控制
 
 * `local_enable=YES` — 控制是否允许本地用户方式登录, 注意 SELinux 权限
+
+* `guest_enables=NO`
 
 ---
 
@@ -287,10 +306,13 @@ vsftp 提供3种远程的登录方式：
 
 ### Anonymous User Options
 
+* `anonymous_enable=YES` — 控制是否允许匿名登录; 如果启用, 用户名 `ftp` 和 `anonymous` 都会被识别成匿名登录
 
 * `anon_mkdir_write_enable=NO` — 控制是否允许匿名登录用户拥有创建目录权限; 该指令需要配置 `write_enable=YES`
 
 * `anon_upload_enable=NO` — 控制是否允许匿名登录用户拥有上传文件权限; 该指令需要配置 `write_enable=YES`
+
+* `anon_other_write_enable=NO` — 控制是否允许匿名登录用户拥有除创建目录, 上传文件之外的写操作, 如删除和重命名
 
 * `anon_root=/path/to/root` — 设置匿名用户登录后目录
 
@@ -305,9 +327,9 @@ vsftp 提供3种远程的登录方式：
 
 ### Local-User Options
 
+* `local_enable=YES` — 控制是否允许本地用户方式登录, 注意 SELinux 权限
 
 * `chmod_enable=YES` — 控制是否允许本地用户通过 `SITE CHMOD` 命令修改文件权限 (仅对本地用户登录方式生效)
-
 
 
 * `chroot_local_user=NO` — 控制是否将本地用户限制在某一目录<sup id="a6">[6](#f6)</sup>活动 ( 强制 `chroot` )
@@ -320,13 +342,15 @@ vsftp 提供3种远程的登录方式：
 
     * `chroot_list_enable=YES`: 则 `chroot_local_user`: `YES` => 列表中用户不限制, 其他用户限制; `NO` => 列表中用户限制, 其他用户不限制
 
-* `allow_wirteable_chroot=NO` — 控制是否允许用户 chroot 进入具有 `write` 权限的目录 <sup>[Probelm](###500-oops-vsftpd-refusing-to-run-with-writable-root-inside-chroot)</sup>
-
+* `allow_writeable_chroot=NO` — 控制是否允许用户 chroot 进入具有 `write` 权限的目录 <sup>[Probelm](###500-oops-vsftpd-refusing-to-run-with-writable-root-inside-chroot)</sup>
 
 
 * `guest_enable=NO` — 控制是否将非匿名登录用户设置为 guest 身份用户<sup>由 `guest_username` 设置用户</sup>
 
-* `guest_username=ftp` — 设置 guest 身份用户
+* `guest_username=ftp` — 设置 guest 身份宿主用户
+
+* `virtual_use_local_privs=NO` — 控制是否将虚拟用户的权限设置成和宿主用户权限一致 (默认情况下, 虚拟用户权限遵循匿名登录用户权限管理)
+
 
 * `local_root=/path/to/dir` — 设置本地用户登录 FTP 后进入的目录, 此指标会覆盖用户家目录
 
@@ -385,19 +409,17 @@ vsftp 提供3种远程的登录方式：
 ### Logging Options
 
 
-
 * `xferlog_enable=NO`<sup id="a10">[10](#f10)</sup> — 控制是否记录 FTP 上传和下载详细信息到日志文件; 
 
 * `xferlog_std_format=NO`<sup id="a11">[11](#f11)</sup> — 控制是否以 xferlog 格式<sup>wu-ftpd style</sup>记录日志到 `vsftpd_log_file`
 
-* `xferlog_file=/var/log/xferlog` — 设置上传和下载日志文件名
+* `xferlog_file=/var/log/xferlog` — 设置记录上传和下载日志的文件名
 
 * `dual_log_enable=NO` — 控制是否同时记录两份日志: 由 `xferlog_file`<sup>wu-ftpd style</sup> 和 `vsftpd_log_file`<sup>vsftpd style</sup> 指定的文件
 
-* `syslog_enable=NO` — 控制是否将原先写入 `vsftpd_log_file` 的日志转至 syslog (facility: `FTPD`)
-
 * `vsftpd_log_file=/var/log/vsftpd.log` — 设置 VSFTPD 标准日志文件名
 
+* `syslog_enable=NO` — 控制是否将原先写入 `vsftpd_log_file` 的日志转至 syslog (facility: `FTPD`)
 
 
 * `log_ftp_protocol=NO` — 控制是否记录所有 FTP 请求和响应 (需要 `xferlog_std_format=NO`)
@@ -429,7 +451,6 @@ vsftpd_log_file=/var/log/vsftpd.log
 * `listen_address6=[IPv6]` — 默认为 `none`, 表示监听本机所有 IPv6 地址
 
 
-
 * `max_clients=0` — 设置 "stand-alone" 模式下允许的最大连接数
 
 * `max_per_ip=2000` — 设置 "stand-alone" 模式下每个源 IP 允许的最大连接数
@@ -437,29 +458,22 @@ vsftpd_log_file=/var/log/vsftpd.log
 * `max_login_fails=3`
 
 
-
 * `idle_session_timeout=20` — 设置最长空闲时间, 超时后连接中断 (单位 s)
 
 * `data_connection_timeout=300` — 设置允许数据传输停止的最长时间, 超时后连接会中断 (单位 s)
-
 
 
 * `anon_max_rate=0` — 设置匿名登录用户传输速率, 单位 bytes/s; "0" 表示不限制
 
 * `local_max_rate=` — 设置本地登录用户传输速率, 单位 bytes/s; "0" 表示不限制
 
-
-
 以下参数与 "主动模式" 和 "被动模式" 相关:
-
-
 
 * `port_enable=YES` — 控制是否启用 主动模式
 
 * `connect_from_port_20=NO`<sup id="a12">[12](#f12)</sup> — 控制主动模式数据传输使用 20 端口, 此时 VSFTPD 有较大权限
 
 * `ftp_data_port=20` — 设置主动模式下数据连接的端口
-
 
 
 * `pasv_enable=YES` — 控制是否启用 被动模式
@@ -473,7 +487,6 @@ vsftpd_log_file=/var/log/vsftpd.log
 * `pasv_promiscuous=NO`<sup>混杂</sup> — 控制在被动模式是否关闭对数据连接的安全检查<sup id="a13">[13](#f13)</sup>
 
 * `pasv_addr_resolve=NO` — 控制是否开启 "pasv_address" 主机名解析
-
 
 
 * `connect_timeout=60` — 设置主动模式下客户端响应 数据连接 的时间量 (超时时间, 单位 s)
@@ -520,22 +533,249 @@ vsftpd_log_file=/var/log/vsftpd.log
 <b id="f14"><font size=1>14 "索取": 只发送 `request`, 并不是 `require`</font></b> [↺](#a14)  
 
 
+## 示例
+
+`vsftpd-3.0.2-25` 主配置文件中的初始配置如下:
+
+```sh
+~] grep -Ev '^$|^#' /etc/vsftpd/vsftpd.conf 
+anonymous_enable=YES
+local_enable=YES
+write_enable=YES
+local_umask=022
+dirmessage_enable=YES
+xferlog_enable=YES
+connect_from_port_20=YES
+xferlog_std_format=YES
+listen=NO
+listen_ipv6=YES
+pam_service_name=vsftpd
+userlist_enable=YES
+tcp_wrappers=YES
+```
+
+### 匿名方式登录
+
+* 实现要求:
+
+    * 开启匿名方式登录
+    * 匿名方式登录时, 在目录权限允许下, 可以下载文件, 上传文件, 创建目录; 除此之外不允许其他的写操作
+    * 限制活动目录到 /data01
+    * 开启 TCP Wrappers
+    * 开启日志记录
+
+* 主配置文件: 
+
+    ```text
+    # 匿名方式登录配置
+    anonymous_enable=YES
+    anon_mkdir_write_enable=YES
+    anon_upload_enable=YES
+    anon_other_write_enable=NO
+    anon_root=/data01
+    write_enable=YES
+
+    local_enable=NO
+    guest_enable=NO
+    dirmessage_enable=YES
+    connect_from_port_20=YES
+    listen=YES
+    listen_ipv6=NO
+    pam_service_name=vsftpd
+    tcp_wrappers=YES
+
+    # 日志配置
+    xferlog_enable=YES
+    xferlog_std_format=YES
+    xferlog_file=/var/log/xferlog
+    dual_log_enable=YES
+    vsftpd_log_file=/var/log/vsftpd.log
+    ```
+
+### 本地用户登录方式
+
+* 实现要求:
+
+    * 开启本地用户登录
+    * 关闭匿名方式登录, 关闭虚拟用户方式登录
+    * 本地用户登录时, 在目录权限允许下有读写权限
+    * 启用用户列表来设置允许登录的用户, 并对指定用户限制活动目录
+    * 限制活动目录到 /data01
+    * 开启 TCP Wrappers
+    * 开启日志记录
+
+* 主配置文件: 
+
+    ```text
+    anonymous_enable=NO
+
+    local_enable=YES
+    local_root=/data01
+    chroot_local_user=NO
+    chroot_list_enable=YES
+    chroot_list_file=/etc/vsftpd/chroot_list
+    allow_writeable_chroot=NO
+    guest_enable=NO
+
+    dirmessage_enable=YES
+    connect_from_port_20=YES
+    listen=YES
+    listen_ipv6=NO
+    pam_service_name=vsftpd
+    userlist_enable=YES
+    userlist_deny=NO
+    userlist_file=/etc/vsftpd/user_list
+    tcp_wrappers=YES
+
+    # 日志配置
+    xferlog_enable=YES
+    xferlog_std_format=YES
+    xferlog_file=/var/log/xferlog
+    dual_log_enable=YES
+    vsftpd_log_file=/var/log/vsftpd.log
+    ```
+
+* 用户配置
+
+    ```sh
+    # 创建用户
+    useradd -s /sbin/nologin ftpuser01
+    useradd -s /sbin/nologin ftpuser02
+
+    echo '111' | passwd --stdin ftpuser01
+    echo '222' | passwd --stdin ftpuser02
+
+    # 配置
+    ~] vi /etc/vsftpd/user_list
+    ftpuser01
+    ftpuser02
+
+    ~] vi /etc/vsftpd/chroot_list
+    ftpuser01
+    ftpuser02
+    ```
 
 
-## VSFTPD 问题处理
+### 虚拟用户登录方式
+
+* 实现要求:
+
+    * 开启本地用户登录
+    * 开启虚拟用户方式登录, 关闭匿名方式登录
+    * 虚拟用户方式登录时, 按照匿名方式登录配置权限 (配置一): 在目录权限允许下, 可以下载文件, 上传文件, 创建目录; 除此之外不允许其他的写操作
+    * 虚拟用户方式登录时, 按照宿主用户来配置权限 (配置二): 在目录权限允许下有读写权限
+    * 限制活动目录到 /data01
+    * 开启 TCP Wrappers
+    * 开启日志记录
+
+* 主配置文件: 
+
+    * 配置一:
+
+        ```text
+        anonymous_enable=NO
+
+        local_enable=YES
+        guest_enable=YES
+        guest_username=ftp
+        local_root=/data01
+
+        virtual_use_local_privs=NO
+        write_enable=YES
+        anon_mkdir_write_enable=YES
+        anon_upload_enable=YES
+        anon_other_write_enable=NO
+
+        dirmessage_enable=YES
+        connect_from_port_20=YES
+        listen=YES
+        listen_ipv6=NO
+        pam_service_name=vsftpd.vu
+        tcp_wrappers=YES
+
+        # 日志配置
+        xferlog_enable=YES
+        xferlog_std_format=YES
+        xferlog_file=/var/log/xferlog
+        dual_log_enable=YES
+        vsftpd_log_file=/var/log/vsftpd.log
+        ```
+
+    * 配置二:
+
+        ```text
+        anonymous_enable=NO
+
+        local_enable=YES
+        guest_enable=YES
+        guest_username=ftp
+        local_root=/data01
+
+        virtual_use_local_privs=YES
+        write_enable=YES
+        chroot_local_user=YES
+
+        dirmessage_enable=YES
+        connect_from_port_20=YES
+        listen=YES
+        listen_ipv6=NO
+        pam_service_name=vsftpd.vu
+        tcp_wrappers=YES
+
+        # 日志配置
+        xferlog_enable=YES
+        xferlog_std_format=YES
+        xferlog_file=/var/log/xferlog
+        dual_log_enable=YES
+        vsftpd_log_file=/var/log/vsftpd.log
+        ```
+
+* 密码文件: `/etc/vsftpd/vuser.db`
+
+    ```sh
+    # 创建用户密码文件, 格式: 奇数行用户名, 偶数行密码; 用户和密码在上下两行
+    ~] vi /etc/vsftpd/vuser.list
+    user01
+    111
+    user02
+    222
+
+    # 通过用户密码文件生成用户密码数据文件
+    ~] db_load -T -t hash -f vuser.list vuser.db
+    ```
+
+* pam 配置文件: `/etc/pam.d/vsftpd.vu`
+
+    ```text
+    #%PAM-1.0
+    auth            required        pam_userdb.so db=/etc/vsftpd/vuser
+    account         required        pam_userdb.so db=/etc/vsftpd/vuser
+    ```
+
+## VSFTPD 问题汇总
 
 ### 关于设置防火墙的问题
 
 
 * 主动模式下, 客户端连接 TCP/21, 服务端通过 TCP/20 连接客户端的随机端口
 
+    服务端防火墙配置:
+
     ```text
-    -A INPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+    -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
     -A INPUT -p tcp --dport 21 -j ACCEPT
-    -A OUTPUT -p tcp --sport 20 -j ACCEPT
+    -A OUTPUT -p tcp --sport 20 -j ACCEPT 
     ```
 
-* 被动模式下, 客户端连接 TCP/21, 客户端再通过其他端口连接服务端的随机端口
+    客户端防火墙配置:
+
+    ```text
+    -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+    -A INPUT -p tcp --sport 20 -j ACCEPT
+    -A OUTPUT -p tcp --dport 21 -j ACCEPT
+    ```
+
+* 被动模式下, 客户端连接服务端 TCP/21, 数据传输时, 客户端再通过其他端口连接服务端的随机端口
 
     > 常见现象: 客户端能够登录到, 但是 LIST 列出目录失败(超时)。
 
@@ -548,13 +788,23 @@ vsftpd_log_file=/var/log/vsftpd.log
     pasv_min_port=3000
     ```
 
-    配置 iptables:
+    服务端防火墙配置:
 
     ```text
     -A INPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
     -A INPUT -p tcp --dport 21 -j ACCEPT
     -A INPUT -p tcp --dport 2000:3000 -j ACCEPT
     ```
+
+    客户端防火墙配置:
+
+    ```text
+    -A INPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+    -A OUTPUT -p tcp --dport 21 -j ACCEPT
+    -A OUTPUT -p tcp --dport 2000:3000 -j ACCEPT
+    ```
+
+
 
 
     如果不配置端口范围, 有一种 "临时打洞" 的方法 (来自网上, 未验证):
@@ -586,6 +836,37 @@ VSFTPD 从 2.3.5 之后增强了安全检查: 如果用户被限定在了其主�
 * 添加一行配置: `allow_writeable_chroot=YES`
 
 
+### 500 OOPS: run two copies of vsftpd for IPv4 and IPv6
+
+VSFTPD 不能同时监听 IPv4 和 IPv6, 注释其中之一:
+
+```text
+listen=YES
+listen_ipv6=NO
+```
+
+或
+
+```text
+listen=NO
+listen_ipv6=YES
+```
+
+### 500 OOPS: bad bool value in config file for: xxx
+
+启动 VSFTPD 服务失败, 检查日志有 "500 OOPS: bad bool value in config file for: xxx" 报错; 该报错是因为配置项 `xxx` 后面有多余的空格, 去掉空格以后即可
+
+
+### 530 Login incorrect.
+
+从以下几方面排查:
+
+* 密码是否正确?
+
+* 配置是否正确: 现在的配置下, 该用户是否允许登录? 该用户是否被禁用? 是否有权限 chroot ? ...
+
+* 给用户配置的 login shell, 是否在系统支持的 shell 列表中? 检查 `/etc/shells`
+
 ### SELinux 
 
 For example, in order to be able to share files anonymously, the `public_content_t` label must be assigned to the files and directories to be shared. You can do this using the chcon command as `root`:
@@ -600,18 +881,25 @@ Similarly, if you want to set up a directory for uploading files, you need to as
 chcon -R -t public_content_rw_t /path/to/directory
 ```
 
-In addition to that, the `allow_ftpd_anon_write` SELinux Boolean option must be set to `1`. Use the setsebool command as `root` to do that:
+In addition to that, the `allow_ftpd_anon_write` or `ftpd_anon_write` SELinux Boolean option must be set to `1`. Use the setsebool command as `root` to do that:
 
 
 ```sh
 setsebool -P allow_ftpd_anon_write=1
 ```
 
-If you want local users to be able to access their home directories through FTP, which is the default setting on Red Hat Enterprise Linux 6, the `ftp_home_dir` or `tftp_home_dir` Boolean option needs to be set to `1`. If vsftpd is to be allowed to run in standalone mode, which is also enabled by default on Red Hat Enterprise Linux 6, the `ftpd_is_daemon` option needs to be set to 1 as well.<sup>检查未发现此 Boolean</sup>
+If you want local users to be able to access their home directories through FTP, which is the default setting on Red Hat Enterprise Linux 6, the `ftp_home_dir` or `tftp_home_dir`  Boolean option needs to be set to `1`. 
 
 ```sh
 setsebool -P tftp_home_dir 1
 ```
+
+Upload file:
+
+```text
+setsebool -P ftpd_full_access 1
+```
+
 
 查看:
 
