@@ -168,8 +168,8 @@
 ```sh
 ~] vi /etc/hosts
 
-10.168.161.12 node01
-10.168.161.13 node02
+10.168.161.12 rhel76-node01
+10.168.161.13 rhel76-node02
 ```
 
 ### 配置网卡绑定
@@ -337,7 +337,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     connect_from_port_20=YES
     listen=YES
     listen_ipv6=NO
-    pam_service_name=vsftpd_01
+    pam_service_name=vsftpd
     userlist_enable=YES
     userlist_deny=NO
     userlist_file=/etc/vsftpd/user_list01
@@ -368,7 +368,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     connect_from_port_20=YES
     listen=YES
     listen_ipv6=NO
-    pam_service_name=vsftpd_02
+    pam_service_name=vsftpd
     userlist_enable=YES
     userlist_deny=NO
     userlist_file=/etc/vsftpd/user_list02
@@ -936,6 +936,329 @@ pcs resource describe IPaddr2
 
 
 ### 配置 Fence
+
+上面配置完成以后, VSFTPD_GROUP_01 运行在 rhel76-node01 上, VSFTPD_GROUP_02 运行在 rhel76-node02 上; 
+
+如果 down 掉 rhel76-node01 的心跳网卡 eth1, 此时 rhel76-node02 认为 rhel76-node01 失联, 开始接管 VSFTPD_GROUP_01 服务; 而 rhel76-node01 会认为 rhel76-node02 失联, 开始接管 VSFTPD_GROUP_02; 由此很容易造成相互抢占资源, 造成 "脑裂", 验证情况下可能会导致数据丢失, 磁盘损坏等, 因此需要给集群各节点配置 Fence 监控节点状态, 如果节点出现故障而未释放资源时, 做出预设的操作来保证集群正常工作
+
+生产环境下, 如果使用的是 VMware vSphere 虚拟机来搭建的 RHCS 集群, 可使用 vCenter/ESXi 的接口来配置 Fence; 如果使用的是 KVM 类的虚拟机搭建 RHCS 集群, 可调用宿主机的相应软 Fence 来操作节点; 物理机搭建 RHCS 时, 可配置通过 带外/管理口/IPMI 来配置 Fence.
+
+触发 Fence 操作时, 主机应该立刻 "断电关机/重启" (powered off immediately), 而不是执行普通的 "系统关机" (shutdown gracefully); 为了达到此要求, 需要对集群节点做些前置配置:
+
+* RHEL 5,6:
+
+    The preferred method of disabling ACPI Soft-Off is with `chkconfig` management. If the preferred method is not effective for your cluster, you can disable ACPI Soft-Off with the BIOS power management. If neither of those methods is effective for your cluster, you can disable ACPI completely by appending `acpi=off` to the kernel boot command line in the grub.conf file.
+
+    * Disabling ACPI Soft-Off with the BIOS
+
+        BIOS CMOS Setup Utility, `Soft-Off by PWR-BTTN` set to `Instant-Off`
+
+        *[Refer to Redhat Document ->](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/cluster_administration/s1-acpi-ca)*
+
+    * Disabling ACPI Soft-Off with `chkconfig`
+
+        ```sh
+        chkconfig --del acpid
+        ```
+        
+        or
+
+        ```sh
+        chkconfig --level 345 acpid off
+        ```
+        
+        Then `reboot` the node.
+
+    * Disabling ACPI Completely in the `grub.conf` File
+
+        ```sh
+        ~] vi /boot/grub/grub.conf
+        ...
+        title Red Hat Enterprise Linux Server (2.6.32-193.el6.x86_64)
+                root (hd0,0)
+                kernel /vmlinuz-2.6.32-193.el6.x86_64 ... acpi=off   # <= 添加 acpi=off
+        ...
+
+        ~] reboot
+        ```
+
+* RHEL 7,8:
+
+    You can disable ACPI Soft-Off with one of the following alternate methods:
+
+    * Disabling ACPI Soft-Off with the BIOS
+
+        BIOS CMOS Setup Utility, `Soft-Off by PWR-BTTN` set to `Instant-Off`
+
+        *[Refer to Redhat Document ->](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/high_availability_add-on_reference/s1-acpi-ca)*
+
+    * Disabling ACPI Soft-Off in the `logind.conf` file
+
+        ```sh
+        ~] vi /etc/systemd/logind.conf
+        HandlePowerKey=ignore
+
+        ~] systemctl daemon-reload
+        ~] systemctl restart systemd-logind.service
+
+    * Disabling ACPI Completely in the `GRUB 2` File
+
+        This method completely disables ACPI; some computers do not boot correctly if ACPI is completely disabled. Use this method *only* if the other methods are not effective for your cluster.
+
+        ```sh
+        ~] grubby --args=acpi=off --update-kernel=ALL
+        ~] reboot
+        ```
+
+前置操作完成以后, 进行 Fence 设备的添加:
+
+* 添加 vCenter 或 Esxi 作为 Fence 设备
+
+    ```text
+    # Examples:
+        Hostnames: node1, node2.
+        VM names: node1-vm, node2-vm.
+    ```
+
+    检查连接是否正常:
+
+    ```sh
+    ~] fence_vmware_soap -a <vCenter/ESXi IP address> -l <vCenter/ESXi username> -p <vCenter/ESXi password> [--ssl] --ssl-insecure -o status
+    Status: ON
+    ```
+
+    找到虚拟机信息：  
+
+    ```sh
+    ~] fence_vmware_soap -a <vCenter/ESXi IP address> -l <vCenter/ESXi username> -p <vCenter/ESXi password> [--ssl] --ssl-insecure -o list | egrep '(node1-vm|node2-vm)'
+    node1-vm,11111111-aaaa-bbbb-cccc-111111111111
+    node2-vm,22222222-dddd-eeee-ffff-222222222222
+    ```
+
+    添加 Fencing:
+
+    > 参考链接: [https://access.redhat.com/solutions/917813](https://access.redhat.com/solutions/917813)
+
+    ```sh
+    # 查看 fence_vmware_soap 的配置参考 
+    pcs stonith describe fence_vmware_soap
+
+    # 添加
+    pcs stonith create FTP_fence_vmware fence_vmware_soap inet4_only=1 ipport=443 ipaddr="192.168.163.252" login="administrator@vsphere.local" passwd="1qaz@WSX4rfv" ssl_insecure=1 pcmk_host_map="node1:11111111-aaaa-bbbb-cccc-111111111111;node2:22222222-dddd-eeee-ffff-222222222222" pcmk_host_list="node1-vm,node2-vm" pcmk_host_check=static-list
+    # pcmk_host_map 也可以写成 "node1:node1-vm;node2:node2-vm"
+    ```
+
+* IPMI 设置 Fence
+
+    ```sh
+    # 检查连接状态
+    ~] fence_ipmilan -a <IP> -P -l <username> -p <password> –o status
+    Status: ON    # ON 表示正常
+
+    # 检查连接状态
+    ~] ipmitool -H <IP> -I lanplus -U <username> [-L ADMINISTRATOR] -P <password> chassis power status -vvv
+
+    # 配置
+    ~] pcs stonith create <NAME> fence_ipmilan pcmk_host_list='cnsz03016' pcmk_host_check='static-list' ipaddr='10.0.64.115' login='USERID' passwd='PASSW0RD' lanplus=1 power_wait=4 pcmk_reboot_action='reboot' op monitor interval=30s
+    ```
+
+    `pcmk_reboot_action` 用于指定 Fence 操作, 默认指令为 `reboot`, 可按需求修改, 如改成 `off` (只关机不开机)
+
+
+* KVM 虚拟机配置 Fence
+
+    * KVM 宿主机配置
+
+        It is needed to setup `fence_virtd` on the KVM host so that `fence_xvm` can be configured on the virtual machines. `fence_virtd` is a host daemon designed to route fencing requests for virtual machines
+
+        1. Install:
+
+        ```sh
+        yum install fence-virt fence-virtd fence-virtd-libvirt fence-virtd-multicast fence-virtd-serial
+        ```
+
+        2. Create and distribute fence key:
+
+        ```sh
+        mkdir -p /etc/cluster
+        dd if=/dev/urandom of=/etc/cluster/fence_xvm.key bs=4k count=1
+
+        # copy key to all nodes
+        scp /etc/cluster/fence_xvm.key nodeX:/etc/cluster/
+        ```
+
+        3. Create `/etc/fence_virt.conf` file:
+
+        ```sh
+        ~] fence_virtd -c
+
+        Module search path [/usr/lib64/fence-virt/]: 
+        
+        Available backends:
+            libvirt 0.3
+        Available listeners:
+            vsock 0.1
+            multicast 1.2
+            serial 0.4
+        
+        Listener modules are responsible for accepting requests
+        from fencing clients.
+        
+        Listener module [multicast]: 
+        
+        The multicast listener module is designed for use environments
+        where the guests and hosts may communicate over a network using
+        multicast.
+        
+        The multicast address is the address that a client will use to
+        send fencing requests to fence_virtd.
+        
+        Multicast IP Address [225.0.0.12]: 
+        
+        Using ipv4 as family.
+        
+        Multicast IP Port [1229]: 
+        
+        Setting a preferred interface causes fence_virtd to listen only
+        on that interface.  Normally, it listens on all interfaces.
+        In environments where the virtual machines are using the host
+        machine as a gateway, this *must* be set (typically to virbr0).
+        Set to 'none' for no interface.
+        
+        Interface [virbr0]: br-heartb  # <= 指定虚拟机使用的心跳网卡对应的 bridge
+        
+        The key file is the shared key information which is used to
+        authenticate fencing requests.  The contents of this file must
+        be distributed to each physical host and virtual machine within
+        a cluster.
+        
+        Key File [/etc/cluster/fence_xvm.key]: 
+        
+        Backend modules are responsible for routing requests to
+        the appropriate hypervisor or management layer.
+        
+        Backend module [libvirt]: 
+        
+        The libvirt backend module is designed for single desktops or
+        servers.  Do not use in environments where virtual machines
+        may be migrated between hosts.
+        
+        Libvirt URI [qemu:///system]: 
+        
+        Configuration complete.
+        
+        === Begin Configuration ===
+        backends {
+                libvirt {
+                        uri = "qemu:///system";
+                }
+        
+        }
+        
+        listeners {
+                multicast {
+                        port = "1229";
+                        family = "ipv4";
+                        interface = "br-heartb";
+                        address = "225.0.0.12";
+                        key_file = "/etc/cluster/fence_xvm.key";
+                }
+        
+        }
+        
+        fence_virtd {
+                module_path = "/usr/lib64/fence-virt/";
+                backend = "libvirt";
+                listener = "multicast";
+        }
+        
+        === End Configuration ===
+        Replace /etc/fence_virt.conf with the above [y/N]? y
+        ```
+
+        4. Start the `fence_virtd` service
+
+        ```sh
+        # <= 6
+        service fence_virtd restart
+        chkconfig fence_virtd on
+
+        # >= 7
+        systemctl restart fence_virtd
+        systemctl enable fence_virtd
+        ```
+    
+    * 节点配置
+
+        1. Ensure `fence-virt` package is installed on each cluster node
+
+        ```sh
+        rpm -qa fence-virt
+        ```
+
+        2. Firewall settings
+
+        ```sh
+        # <= 6
+        iptables -I INPUT -m state --state NEW -p tcp --dport 1229 -j ACCEPT
+        service iptables save; service iptables restart
+
+        # >= 7
+        firewall-cmd --permanent --add-port=1229/tcp
+        firewall-cmd --reload
+        ```
+
+        3. Test fencing: In order that the fencing to be successful, below command should succeed on host as well as cluster nodes. 
+
+        ```sh
+        ~] fence_xvm -o list
+        ~] fence_xvm -o reboot -H <cluster-node>
+        ```
+
+        4. (Optional) Edit `/etc/hosts`: 按需决定是否添加 IP 到虚拟机名称的解析记录
+
+        ```sh
+        ~] vi /etc/hosts
+
+        10.168.161.12 rhel76-node01 rhel76-01
+        10.168.161.13 rhel76-node02 rhel76-02
+        ```
+
+    * 为集群节点添加 Fence 代理
+
+
+pcs stonith create VSFTPD_xvmfence fence_xvm key_file=/etc/cluster/fence_xvm.key
+pcs stonith create VSFTPD_xvmfence fence_xvm pcmk_host_check=static-list pcmk_host_map="rhel76-node01:rhel76-01;rhel76-node02:rhel76-02" key_file=/etc/cluster/fence_xvm.key
+
+
+后置操作: 前文中将 `STONITH/Fencing` 暂时关闭了, 配置完成以后需要开启：
+
+```sh
+~] pcs property set stonith-enabled=true
+
+~] pcs property show
+
+Cluster Properties:
+ cluster-infrastructure: corosync
+ cluster-name: Cluster-VSFTPD
+ dc-version: 1.1.19-8.el7-c3c624ea3d
+ have-watchdog: false
+ last-lrm-refresh: 1647849911
+ stonith-enabled: true  # <= 此处已经变成 true
+```
+
+查看 Fence 配置情况:
+
+```
+~] pcs stonith show --full
+
+ Resource: FTP_fence_vmware (class=stonith type=fence_vmware_soap)
+  Attributes: inet4_only=1 ipaddr=192.168.163.252 ipport=443 login=administrator@vsphere.local passwd=1qaz@WSX4rfv pcmk_host_check=static-list pcmk_host_list=node01,node02 pcmk_host_map=node01:422a97b9-5f92-a095-db50-c6a08eccda73;node02:422aa805-fe81-638a-02a5-a1985085f68e ssl_insecure=1
+  Operations: monitor interval=60s (FTP_fence_vmware-monitor-interval-60s)
+```
+
+
+
 
 ## Demo 2 - RHEL6.4 - 双机双业务互为冗余的 VSFTPD RHCS 集群
 
