@@ -43,6 +43,7 @@ Some notes that hopefully will help you.
   - [正则表达式](docs/正则表达式.md)
   - [证书](docs/证书.md)
 - Drafts:
+  - [Git](drafts/Git.md)
   - [RHCS](drafts/RHCS.md)
   - [VSFTPD](drafts/VSFTPD.md)
   - [计算机网络](drafts/计算机网络.md)
