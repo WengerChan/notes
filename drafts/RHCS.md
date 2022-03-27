@@ -118,9 +118,9 @@
 
     * 已知问题: 如果客户端挂载了服务端共享的磁盘, 并对磁盘使用 Lvm 创建相应 PV, VG, LV; 当服务端操作系统重启后, target 可能丢失 block 。
 
-        原因：服务端的 `lvm2-lvmetad.service` 将客户端的 Lvm 元素据识别并纳管, 导致 target 绑定的磁盘 `/dev/sdb` 无法被识别。
+        原因: 服务端的 `lvm2-lvmetad.service` 将客户端的 Lvm 元素据识别并纳管, 导致 target 绑定的磁盘 `/dev/sdb` 无法被识别。
 
-        解决：修改 `/etc/lvm/lvm.conf` 中 `volume_list = [ "rhel_host0" ]`, 即只将主机上的卷组添加进去, 其他的不添加。修改完毕以后, 关闭 target 服务, 重启 `lvm2-lvmetad.service` (建议重启操作系统)
+        解决: 修改 `/etc/lvm/lvm.conf` 中 `volume_list = [ "rhel_host0" ]`, 即只将主机上的卷组添加进去, 其他的不添加。修改完毕以后, 关闭 target 服务, 重启 `lvm2-lvmetad.service` (建议重启操作系统)
 
 * KVM 虚拟机使用共享磁盘
 
@@ -157,11 +157,11 @@
 > *主要内容: 配置时间同步, 添加主机解析记录, 网卡绑定, 挂载共享存储, 创建文件系统, 配置 VSFTPD 服务*
 
 
-### 配置时间同步
+### 1.1 配置时间同步
 
 两个节点配置到同一时间源, 使用 `ntpd` 或者 `chronyd` 均可
 
-### 配置主机解析记录
+### 1.2 配置主机解析记录
 
 两个节点都需要配置, 在 `/etc/hosts` 添加以下两行; 注意使用的 IP 是心跳 IP, 如果资源不足也可和管理 IP 共用
 
@@ -172,21 +172,21 @@
 10.168.161.13 rhel76-node02
 ```
 
-### 配置网卡绑定
+### 1.3 配置网卡绑定
 
 有网络冗余要求, 可配置 `Team` 或者 `Bonding`, Refer to: *[Bonding](Bonding.md)* or *[Team](Team.md)*
 
-### 配置共享存储
+### 1.4 配置共享存储
 
 KVM/VMware 虚拟机使用共享磁盘, 直接在平台操作挂载以后即可, 无需额外操作, 下文介绍 iSCSI Inititor 配置方法
 
-* 安装
+* 1.4.1 安装
 
     ```sh
     yum install iscsi-initiator-utils
     ```
 
-* 配置
+* 1.4.2 配置
 
     修改 InititorName, 与 Target 端配置的保持一致:
 
@@ -210,7 +210,7 @@ KVM/VMware 虚拟机使用共享磁盘, 直接在平台操作挂载以后即可,
     systemctl enable iscsid
     ```
 
-* 发现 iSCSI 目标
+* 1.4.3 发现 iSCSI 目标
 
     ```sh
     ~] iscsiadm --mode discoverydb --type sendtargets --portal 20.192.168.1 --discover
@@ -218,7 +218,7 @@ KVM/VMware 虚拟机使用共享磁盘, 直接在平台操作挂载以后即可,
     20.192.168.1:3260,1 iqn.2019-12.com.test:rhcs
     ```
 
-* 登录/连接
+* 1.4.4 登录/连接
 
     ```sh
     ~] iscsiadm --mode node --targetname iqn.2019-12.com.test:rhcs --portal 20.192.168.1:3260 --login
@@ -227,9 +227,9 @@ KVM/VMware 虚拟机使用共享磁盘, 直接在平台操作挂载以后即可,
     Login to [iface: default, target: iqn.2019-12.com.test:targer01, portal: 20.20.20.240,3260] successful.
     ```
 
-* 登出/断开连接
+* 1.4.5 登出/断开连接
 
-    先取消所有磁盘占用, 然后执行以下命令：
+    先取消所有磁盘占用, 然后执行以下命令: 
 
     ```sh
     iscsiadm --mode node --targetname iqn.2019-12.com.test:rhcs --portal 20.192.168.1:3260 --logout
@@ -239,7 +239,7 @@ KVM/VMware 虚拟机使用共享磁盘, 直接在平台操作挂载以后即可,
 > 以上三步 (挂载, 登录, 登出) 可参考 `iscsiadm` man 文档的 `EXAMPLE` 部分获取帮助
 
 
-两个节点均发现磁盘, 表明配置正常：
+两个节点均发现磁盘, 表明配置正常: 
 
 ```sh
 ~] lsblk
@@ -254,7 +254,7 @@ vdb         253:16   0   10G  0 disk
 vdc         253:32   0   10G  0 disk 
 ```
 
-### 配置文件系统
+### 1.5 配置文件系统
 
 任一节点执行创建操作:
 
@@ -298,11 +298,11 @@ mkfs.xfs /dev/mapper/rhcs02-data02
 * 正常识别后, 将所有节点将卷组激活
 
 
-### 配置 VSFTPD 服务
+### 1.6 配置 VSFTPD 服务
 
 > 本次实验搭建双机双业务互为冗余的 VSFTPD 集群, 因此两个节点都需要配置 VSFTPD 服务
 
-* 添加用户及挂载点
+* 1.6.1 添加用户及挂载点
 
     ```sh
     mkdir /data01
@@ -316,7 +316,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     for user in ftpuser01{,01} ftpuser02{,02} ; do echo '111' | passwd --stdin ${user}; done
     ```
 
-* 修改 VSFTPD 配置文件
+* 1.6.2 修改 VSFTPD 配置文件
 
     两个节点都需要添加这两个配置文件 `/etc/vsftpd/vsftpd_ftp01.conf`, `/etc/vsftpd/vsftpd_ftp02.conf`, 分别配置两个 VSFTPD 实例: 
 
@@ -402,8 +402,6 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     ftpuser0202
     ```
 
-
-
     如果需要 "**禁用主动模式, 启动被动模式**", 并限制端口范围, 可以参考以下配置:
 
     ```text
@@ -414,7 +412,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     ```
 
 
-* 防火墙配置
+* 1.6.3 防火墙配置
 
     如果启用了防火墙, 则需要添加策略:
 
@@ -423,10 +421,10 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     firewall-cmd --reload
     ```
 
-### 配置集群
+### 1.7 配置集群
 
 
-* 安装集群套件
+* 1.7.1 安装集群套件
 
     ```sh
     yum groupinstall 'High Availability'
@@ -439,9 +437,9 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     firewall-cmd --reload
     ```
 
-* 初始化集群
+* 1.7.2 初始化集群
 
-    * 启动 `pcsd` 服务
+    * (1) 启动 `pcsd` 服务
 
         设置开机自启:
 
@@ -450,7 +448,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
         systemctl enable pcsd.service
         ```
 
-    * 修改 `hacluster` 服务用户密码
+    * (2) 修改 `hacluster` 服务用户密码
 
         `hacluster` 用户是集群 `pcsd` 进程认证需要使用的用户; 添加节点到集群时, 需要验证此用户的密码
 
@@ -458,7 +456,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
         echo '123qweQ' | passwd hacluster  --stdin
         ```
 
-    * 节点认证
+    * (3) 点认证
 
         ```sh
         pcs cluster auth [node] [...] [-u username] [-p password]
@@ -479,58 +477,43 @@ mkfs.xfs /dev/mapper/rhcs02-data02
         node02: Authorized
         ```
 
-* 创建集群
+* 1.7.3 创建集群
+
+    (1) 创建
 
     ```sh
-    ~] pcs cluster setup --name Cluster-VSFTPD rhel76-node01 rhel76-node02
-
-    Destroying cluster on nodes: rhel76-node01, rhel76-node02...
-    rhel76-node01: Stopping Cluster (pacemaker)...
-    rhel76-node02: Stopping Cluster (pacemaker)...
-    rhel76-node02: Successfully destroyed cluster
-    rhel76-node01: Successfully destroyed cluster
-
-    Sending 'pacemaker_remote authkey' to 'rhel76-node01', 'rhel76-node02'
-    rhel76-node01: successful distribution of the file 'pacemaker_remote authkey'
-    rhel76-node02: successful distribution of the file 'pacemaker_remote authkey'
-    Sending cluster config files to the nodes...
-    rhel76-node01: Succeeded
-    rhel76-node02: Succeeded
-
-    Synchronizing pcsd certificates on nodes rhel76-node01, rhel76-node02...
-    rhel76-node02: Success
-    rhel76-node01: Success
-    Restarting pcsd on the nodes in order to reload the certificates...
-    rhel76-node02: Success
-    rhel76-node01: Success
+    pcs cluster setup --name Cluster-VSFTPD rhel76-node01 rhel76-node02
     ```
 
+    创建完以后可查看集群状态，此时集群未启动
 
-    * 启动集群服务
+    ```sh
+    ~] pcs status
+    Error: cluster is not currently running on this node
+    ```
 
-        ```sh
-        ~] pcs status
-        Error: cluster is not currently running on this node
-        ```
+    (2) 启动
 
-        ```sh
-        ~] pcs cluster start --all
+    ```sh
+    pcs cluster start --all
+    ```
 
-        rhel76-node01: Starting Cluster (corosync)...
-        rhel76-node02: Starting Cluster (corosync)...
-        rhel76-node02: Starting Cluster (pacemaker)...
-        rhel76-node01: Starting Cluster (pacemaker)...
+    上面命令等同于以下两条命令：
 
-        #上面的命令会触发:
-        # systemctl start corosync.service
-        # systemctl start pacemaker.service
+    ```sh
+    systemctl start corosync.service
+    systemctl start pacemaker.service
+    ```
 
-        ~] systemctl enable corosync.service pacemaker.service
-        ```
+    (3) 设置自启动
 
-* 状态检查
+    ```sh
+    systemctl enable corosync.service pacemaker.service
+    ```
 
-    * 检查 `corosync` 状态
+* 1.7.4 状态检查
+
+    * (1) 检查 `corosync` 状态
 
         * `corosync` 通信状态: 
 
@@ -567,7 +550,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
                      2          1 rhel76-node02
             ```
 
-    * 检查 `pacemaker` 状态
+    * (2) 检查 `pacemaker` 状态
 
         ```sh
         ~] ps axf |grep pacemaker
@@ -585,7 +568,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
         ~] pcs cluster cib
         ```
 
-    * 集群基础配置信息检测
+    * (3) 集群基础配置信息检测
 
         ```sh
         ~] crm_verify -L -V
@@ -609,51 +592,53 @@ mkfs.xfs /dev/mapper/rhcs02-data02
         ```
 
 
-### 配置服务托管
+### 1.8 配置服务托管
 
-查看集群资源代理标准:
+* 1.8.1 准备工作
 
-```sh
-~] pcs resource standards
-lsb            # Open cluster Framework
-ocf            # Linux standard base (legacy init scripts)
-service        # Based on Linux "service" command
-systemd        # systemd based service Management
-stonith        # Fencing Resource standard (实际测试没有该项, 不知道是不是VM的原因)
-```
+    查看集群资源代理标准：
 
-查看 `ocf` 资源代理提供程序:
+    ```sh
+    ~] pcs resource standards
+    lsb            # Open cluster Framework
+    ocf            # Linux standard base (legacy init scripts)
+    service        # Based on Linux "service" command
+    systemd        # systemd based service Management
+    stonith        # Fencing Resource standard (实际测试没有该项, 不知道是不是VM的原因)
+    ```
 
-```sh
-~] pcs resource providers
-heartbeat
-openstack
-pacemaker
-```
+    查看 `ocf` 资源代理提供程序:
 
-查看 `ocf` 标准, `heartbeat` 提供的内建类型:
+    ```sh
+    ~] pcs resource providers
+    heartbeat
+    openstack
+    pacemaker
+    ```
 
-```sh
-pcs resource agents ocf             # 查看 ocf 提供的所有内建类型
+    查看 `ocf` 标准, `heartbeat` 提供的内建类型:
 
-pcs resource agents ocf:heartbeat   # 查看 ocf 标准 heartbeat 提供的内建类型
-```
+    ```sh
+    pcs resource agents ocf             # 查看 ocf 提供的所有内建类型
 
-查看所有资源类型:
+    pcs resource agents ocf:heartbeat   # 查看 ocf 标准 heartbeat 提供的内建类型
+    ```
 
-```sh
-pcs resource list
-```
+    查看所有资源类型:
 
-查看具体资源类型的信息:
+    ```sh
+    pcs resource list
+    ```
 
-```sh
-pcs resource list IPaddr2
-pcs resource describe IPaddr2
-```
+    查看具体资源类型的信息:
+
+    ```sh
+    pcs resource list IPaddr2
+    pcs resource describe IPaddr2
+    ```
 
 
-* 添加 IP
+* 1.8.2 添加 IP
 
     ```sh
     pcs resource create IP_161.14 ocf:heartbeat:IPaddr2 ip=192.168.161.14 cidr_netmask=24 nic=eth0 op monitor interval=30s
@@ -693,11 +678,11 @@ pcs resource describe IPaddr2
     ```
 
 
-* 添加 HA-LVM
+* 1.8.3 添加 HA-LVM
 
     将卷组交由 RHCS 集群管理, 需先解除本地 LVM 对卷组的管理, 然后配置集群资源管理卷组
 
-    * 解除本地 LVM 对卷组的管理
+    * (1) 解除本地 LVM 对卷组的管理
 
         * 修改配置文件
 
@@ -731,7 +716,7 @@ pcs resource describe IPaddr2
         * 重启操作系统
 
 
-    * 配置集群资源管理卷组
+    * (2) 配置集群资源管理卷组
 
         ```sh
         pcs resource create VG_rhcs01 ocf:heartbeat:LVM volgrpname=rhcs01 exclusive=yes
@@ -784,7 +769,7 @@ pcs resource describe IPaddr2
           data02 rhcs02 -wi-a----- <10.00g  # <= a: active
         ```
 
-* 添加 FileSystem
+* 1.8.4 添加 FileSystem
 
     ```sh
     pcs resource create FS_data01 ocf:heartbeat:Filesystem device="/dev/mapper/rhcs01-data01" directory="/data01" fstype="xfs"
@@ -793,7 +778,7 @@ pcs resource describe IPaddr2
 
     > 注: (1) `ocf:heartbeat:Filesystem` 可简写成 `Filesystem`
 
-* 添加 VSFTPD 服务
+* 1.8.5 添加 VSFTPD 服务
 
     取消 Systemd 开机自启动:
 
@@ -809,14 +794,14 @@ pcs resource describe IPaddr2
     ```
 
 
-* 创建资源组
+* 1.8.6 创建资源组
 
     ```sh
     pcs resource group add VSFTPD_GROUP_01 IP_161.14 VG_rhcs01 FS_data01 VSFTPD_01
     pcs resource group add VSFTPD_GROUP_02 IP_161.15 VG_rhcs02 FS_data02 VSFTPD_02
     ```
 
-* 添加约束条件
+* 1.8.7 添加约束条件
 
     查看约束条件可使用以下格式:
 
@@ -826,7 +811,7 @@ pcs resource describe IPaddr2
         --full      # If '--full' is specified also list the constraint ids
     ```
 
-    - 添加 `order` 类约束
+    - (1) 添加 `order` 类约束
 
         语法:
 
@@ -864,7 +849,7 @@ pcs resource describe IPaddr2
         ```
 
 
-    - 添加 `colocation` 类约束
+    - (2) 添加 `colocation` 类约束
 
         > 注: 如果设置了资源组, `colocation` 类可不用设置, 因为资源组本就是只能启动在一个节点上
 
@@ -902,7 +887,7 @@ pcs resource describe IPaddr2
 
         ```
 
-    - 添加`location`类约束
+    - (3) 添加`location`类约束
 
         语法: 
 
@@ -935,7 +920,7 @@ pcs resource describe IPaddr2
         ```
 
 
-### 配置 Fence
+### 1.9 配置 Fence
 
 上面配置完成以后, VSFTPD_GROUP_01 运行在 rhel76-node01 上, VSFTPD_GROUP_02 运行在 rhel76-node02 上; 
 
@@ -960,13 +945,13 @@ pcs resource describe IPaddr2
         ```sh
         chkconfig --del acpid
         ```
-        
+
         or
 
         ```sh
         chkconfig --level 345 acpid off
         ```
-        
+
         Then `reboot` the node.
 
     * Disabling ACPI Completely in the `grub.conf` File
@@ -1012,7 +997,7 @@ pcs resource describe IPaddr2
 
 前置操作完成以后, 进行 Fence 设备的添加:
 
-* 添加 vCenter 或 Esxi 作为 Fence 设备
+* 1.9.1 添加 vCenter 或 Esxi 作为 Fence 设备
 
     ```text
     # Examples:
@@ -1027,7 +1012,7 @@ pcs resource describe IPaddr2
     Status: ON
     ```
 
-    找到虚拟机信息：  
+    找到虚拟机信息:   
 
     ```sh
     ~] fence_vmware_soap -a <vCenter/ESXi IP address> -l <vCenter/ESXi username> -p <vCenter/ESXi password> [--ssl] --ssl-insecure -o list | egrep '(node1-vm|node2-vm)'
@@ -1048,7 +1033,7 @@ pcs resource describe IPaddr2
     # pcmk_host_map 也可以写成 "node1:node1-vm;node2:node2-vm"
     ```
 
-* IPMI 设置 Fence
+* 1.9.2 IPMI 设置 Fence
 
     ```sh
     # 检查连接状态
@@ -1065,7 +1050,7 @@ pcs resource describe IPaddr2
     `pcmk_reboot_action` 用于指定 Fence 操作, 默认指令为 `reboot`, 可按需求修改, 如改成 `off` (只关机不开机)
 
 
-* KVM 虚拟机配置 Fence
+* 1.9.3 KVM 虚拟机配置 Fence
 
     * KVM 宿主机配置
 
@@ -1093,68 +1078,68 @@ pcs resource describe IPaddr2
         ~] fence_virtd -c
 
         Module search path [/usr/lib64/fence-virt/]: 
-        
+
         Available backends:
             libvirt 0.3
         Available listeners:
             vsock 0.1
             multicast 1.2
             serial 0.4
-        
+
         Listener modules are responsible for accepting requests
         from fencing clients.
-        
+
         Listener module [multicast]: 
-        
+
         The multicast listener module is designed for use environments
         where the guests and hosts may communicate over a network using
         multicast.
-        
+
         The multicast address is the address that a client will use to
         send fencing requests to fence_virtd.
-        
+
         Multicast IP Address [225.0.0.12]: 
-        
+
         Using ipv4 as family.
-        
+
         Multicast IP Port [1229]: 
-        
+
         Setting a preferred interface causes fence_virtd to listen only
         on that interface.  Normally, it listens on all interfaces.
         In environments where the virtual machines are using the host
         machine as a gateway, this *must* be set (typically to virbr0).
         Set to 'none' for no interface.
-        
+
         Interface [virbr0]: br-heartb  # <= 指定虚拟机使用的心跳网卡对应的 bridge
-        
+
         The key file is the shared key information which is used to
         authenticate fencing requests.  The contents of this file must
         be distributed to each physical host and virtual machine within
         a cluster.
-        
+
         Key File [/etc/cluster/fence_xvm.key]: 
-        
+
         Backend modules are responsible for routing requests to
         the appropriate hypervisor or management layer.
-        
+
         Backend module [libvirt]: 
-        
+
         The libvirt backend module is designed for single desktops or
         servers.  Do not use in environments where virtual machines
         may be migrated between hosts.
-        
+
         Libvirt URI [qemu:///system]: 
-        
+
         Configuration complete.
-        
+
         === Begin Configuration ===
         backends {
                 libvirt {
                         uri = "qemu:///system";
                 }
-        
+
         }
-        
+
         listeners {
                 multicast {
                         port = "1229";
@@ -1163,15 +1148,15 @@ pcs resource describe IPaddr2
                         address = "225.0.0.12";
                         key_file = "/etc/cluster/fence_xvm.key";
                 }
-        
+
         }
-        
+
         fence_virtd {
                 module_path = "/usr/lib64/fence-virt/";
                 backend = "libvirt";
                 listener = "multicast";
         }
-        
+
         === End Configuration ===
         Replace /etc/fence_virt.conf with the above [y/N]? y
         ```
@@ -1187,7 +1172,7 @@ pcs resource describe IPaddr2
         systemctl restart fence_virtd
         systemctl enable fence_virtd
         ```
-    
+
     * 节点配置
 
         1. Ensure `fence-virt` package is installed on each cluster node
@@ -1226,12 +1211,12 @@ pcs resource describe IPaddr2
 
     * 为集群节点添加 Fence 代理
 
+        ```sh
+        pcs stonith create VSFTPD_xvmfence fence_xvm key_file=/etc/cluster/fence_xvm.key
+        pcs stonith create VSFTPD_xvmfence fence_xvm pcmk_host_check=static-list pcmk_host_map="rhel76-node01:rhel76-01;rhel76-node02:rhel76-02" key_file=/etc/cluster/fence_xvm.key
+        ```
 
-pcs stonith create VSFTPD_xvmfence fence_xvm key_file=/etc/cluster/fence_xvm.key
-pcs stonith create VSFTPD_xvmfence fence_xvm pcmk_host_check=static-list pcmk_host_map="rhel76-node01:rhel76-01;rhel76-node02:rhel76-02" key_file=/etc/cluster/fence_xvm.key
-
-
-后置操作: 前文中将 `STONITH/Fencing` 暂时关闭了, 配置完成以后需要开启：
+后置操作: 前文中将 `STONITH/Fencing` 暂时关闭了, 配置完成以后需要开启: 
 
 ```sh
 ~] pcs property set stonith-enabled=true
@@ -1258,6 +1243,367 @@ Cluster Properties:
 ```
 
 
+### 1.10 配置仲裁
+
+RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" 情况，以下是关于仲裁的相关介绍：
+
+* 1.10.1 Quorum - votequorum
+
+    > Refer to: `votequorum(5)`
+
+    * (1) 查看当前集群 `Quorum` 状态
+
+        The following command shows the quorum configuration.
+
+        ```sh
+        pcs quorum [config]
+        ```
+
+        The following command shows the quorum runtime status.
+
+        ```sh
+        pcs quorum status
+        ```
+
+        ```sh
+        ~] pcs quorum status
+        Quorum information
+        ------------------
+        Date:             Sat Mar 26 23:23:35 2022
+        Quorum provider:  corosync_votequorum
+        Nodes:            2
+        Node ID:          1
+        Ring ID:          1/212
+        Quorate:          Yes
+
+        Votequorum information
+        ----------------------
+        Expected votes:   2
+        Highest expected: 2
+        Total votes:      2
+        Quorum:           1  
+        Flags:            2Node Quorate WaitForAll 
+
+        Membership information
+        ----------------------
+            Nodeid      Votes    Qdevice Name
+                1          1         NR rhel76-node01 (local)
+                2          1         NR rhel76-node02
+        ```
+
+    * (2) 修改集群 `Quorum` 选项
+
+        ```sh
+        pcs quorum update [auto_tie_breaker=[0|1]] [last_man_standing=[0|1]] [last_man_standing_window=[time-in-ms] [wait_for_all=[0|1]]
+        ```
+
+        * `two_node`
+
+            Enables two node cluster operations (default: 0).
+
+            NOTES: enabling `two_node: 1` automatically enables `wait_for_all`. It is still possible to override `wait_for_all` by explicitly setting it to 0.  If more than 2 nodes join the cluster, the `two_node` option is automatically disabled.
+
+        * `wait_for_all`
+
+            Enables Wait For All (WFA) feature (default: 0).
+
+            The general behaviour of `votequorum` is to switch a cluster from *inquorate* to *quorate* as soon as possible. For example, in an 8 node cluster, where every node has 1 vote, `expected_votes` is set to 8 and `quorum` is (50% + 1) 5. As soon as 5 (or more) nodes are visible to each other, the partition of 5 (or more) becomes *quorate* and can start operating. (As soon as 5 nodes become *quorate*, with the other 3 still offline, the remaining 3 nodes will be fenced.)
+
+            When WFA is enabled, the cluster will be quorate for the first time only after all nodes have been  visible  at  least once at the same time.
+
+        * `last_man_standing` / `last_man_standing_window: 10000`
+
+            Enables Last Man Standing (LMS) feature (default:  0). Tunable `last_man_standing_window` (default: 10 seconds expressed in ms).
+
+            Using  for example an 8 node cluster where each node has 1 vote, `expected_votes` is set to 8 and *quorate* to 5. This condition allows a total failure of 3 nodes. If a 4th node fails, the cluster becomes *inquorate* and it will stop providing services.
+
+            Enabling LMS allows the cluster to dynamically recalculate `expected_votes` and `quorum` under specific circumstances. It is essential to **enable WFA** when using LMS in High Availability clusters.
+
+            Using the above 8 node cluster example, with LMS enabled the cluster can retain quorum and continue operating by  losing, in a cascade fashion, up to 6 nodes with only 2 remaining active.
+
+            Example chain of events:
+
+            ```text
+               1) cluster is fully operational with 8 nodes.
+                  (expected_votes: 8 quorum: 5)
+
+               2) 3 nodes die, cluster is quorate with 5 nodes.
+
+               3) after last_man_standing_window timer expires,
+                  expected_votes and quorum are recalculated.
+                  (expected_votes: 5 quorum: 3)
+
+               4) at this point, 2 more nodes can die and
+                  cluster will still be quorate with 3.
+
+               5) once again, after last_man_standing_window
+                  timer expires expected_votes and quorum are
+                  recalculated.
+                  (expected_votes: 3 quorum: 2)
+
+               6) at this point, 1 more node can die and
+                  cluster will still be quorate with 2.
+
+               7) one more last_man_standing_window timer
+                  (expected_votes: 2 quorum: 2)
+            ```
+
+            NOTES: 
+
+            In order for the cluster to downgrade automatically from 2 nodes to a 1 node cluster, the `auto_tie_breaker` feature must also be enabled (see below).  
+
+            If `auto_tie_breaker` is not enabled, and one more failure occurs, the remaining node will not be quorate. 
+
+            LMS does not work with asymmetric voting schemes, each node must vote 1. 
+
+            LMS is also incompatible with quorum devices, if `last_man_standing` is specified in `corosync.conf` then the quorum device will be disabled.
+
+
+        * `auto_tie_breaker`
+
+            Enables Auto Tie Breaker (ATB) feature (default: 0).
+
+            The general behaviour of `votequorum` allows a simultaneous node failure up to 50% - 1 node, assuming each node has 1 vote.
+
+            When enabled, the cluster can suffer up to 50% of the nodes failing at the same time, in a deterministic fashion. The cluster partition, or the set of nodes that are still in contact with the `nodeid` configured in `auto_tie_breaker_node` (or `lowest` nodeid if not set), will remain *quorate*. The other nodes will be *inquorate*.
+
+        * `auto_tie_breaker_node: lowest|highest|<list of node IDs>`
+
+            节点间出现隔离时, 如果配置 `lowest`: 默认配置, 使得节点序号小的节点达到 quorate; `highest`: 使得节点序号大的节点达到 quorate;  `<list of node IDs>`: 指定的列表为优先顺序(空格分割; 此处的 `nodeid` 可以通过 `pcs quorum status` 查询)
+
+    * (3) 关闭 quorum
+
+        ```sh
+        pcs cluster quorum unblock
+        ```
+
+    * (4) 管理 quorum device
+
+        见 `1.10.2` 详解
+
+    Quorum 相关的管理命令汇总：
+
+    ```sh
+    pcs quorum [config]
+    pcs quorum status
+    pcs quorum device status [--full]
+    pcs quorum device add [<generic options>] model <device model> [<model options>]
+    pcs quorum device update [<generic options>] [model <model options>]
+    pcs quorum device remove
+    pcs quorum expectd-vote <vote>
+    pcs quorum unblock [--force]
+    pcs quorum update [auto_tie_breaker=[0|1]] [last_man_standing=[0|1]] [last_man_standing_window=[<time in ms>]] [wait_for_all=[0|1]]
+    ```
+
+* 1.10.2 Quorum Device
+
+    在 RHEL7.4/CentOS7.4 中，Pacemaker 新增了 Quorum Device 的功能，通过一个新增的服务器作为 Quorum Device，原有节点通过网络连接到Quorum Device上，由 Quorum Device 进行仲裁。
+
+    `QDevice` 和 `QNetd` 会参与仲裁决定。在仲裁方 `corosync-qnetd` 的协助下，`corosync-qdevice` 会提供一个可配置的投票数，以使群集可以承受大于标准仲裁规则所允许的节点故障数量。
+
+    `QNetd` (corosync-qnetd): 一个不属于群集的 systemd 服务, 向 corosync-qdevice 守护程序提供投票的 systemd 守护程序。
+
+    `QDevice` (corosync-qdevice): 每个群集节点上与 Corosync 一起运行的 systemd 服务。这是 corosync-qnetd 的客户端。QDevice 可以与不同的仲裁方配合工作，但目前仅支持与 QNetd 配合工作。
+
+    原有的节点保持不动，找一台新的机器搭建 Quorum Device. 注：一个集群只能连接到一个 Quorum Device, 而一个 Quorum Device 可以被多个集群所使用。所以如果有多个集群环境，有一个 Quorum Device 的机器就足够为这些集群提供服务了
+
+    > Refer to: `corosync-qdevice(8)` 
+
+    配置 Quorum device 主机：
+
+    1. 额外找一台主机 (10.168.161.14)，安装 `pcs` 和 `corosync-qnetd`
+
+        ```sh
+        yum install pcs corosync-qnetd
+        ```
+
+    2. 启动 `pcsd` 服务
+
+        ```sh
+        systemctl enable --now pcsd
+        ```
+
+    3. 防火墙配置
+
+        ```sh
+        # 放行整个 HA 服务
+        firewall-cmd --add-service=high-availability
+
+        # 或者直接关闭防火墙
+        systemctl disable --now firewalld
+        ```
+
+    4. 配置 quorum device
+
+        仲裁设备目前只支持 `net` 类型，其提供以下两种算法：
+
+        * `ffsplit`: fifty-fifty split. 为活动节点数最多的分区提供一票。
+
+        * `lms`: last-man-standing. 如果该节点是集群中唯一可以看到 qnetd 服务器(仲裁设备)的节点，那么它得到一票。
+
+        (1) 添加并启动一个 `net` 格式的仲裁设备，同时设置开机自启动
+
+        ```sh
+        ~] pcs qdevice setup model net --enable --start
+
+        Quorum device 'net' initialized
+        quorum device enabled
+        Starting quorum device...
+        quorum device started
+        ```
+
+        (2) 添加完成以后，检查仲裁设备状态
+
+        ```sh
+        ~] pcs qdevice status net --full
+
+        QNetd address:                  *:5403
+        TLS:                            Supported (client certificate required)
+        Connected clients:              0
+        Connected clusters:             0
+        Maximum send/receive size:      32768/32768 bytes
+        ```
+
+        Quorum Device 节点相关的管理命令汇总：
+
+        ```sh
+        pcs qdevice setup model <device model> [--enable] [--start]
+        pcs qdevice status <device model> [--full] [<cluster_name>]
+        pcs qdevice [start|stop|enable|disable|kill] <device model>
+        pcs qdevice destroy <device model>
+        ```
+
+    5. 添加仲裁设备到集群中
+
+        (1) 集群对仲裁设备节点认证
+
+        ```sh
+        # 修改 hacluster 用户密码
+        rhel76-qnetd ~] echo '123qweQ.' | passwd --stdin hacluster
+
+        # 配置 hosts
+        rhel76-qnetd ~] vi /etc/hosts
+        ...
+        10.168.161.12 rhel76-node01
+        10.168.161.13 rhel76-node02
+        10.168.161.14 rhel76-qnetd
+        ...
+
+        rhel76-node01 ~] vi /etc/hosts
+        ...
+        10.168.161.12 rhel76-node01
+        10.168.161.13 rhel76-node02
+        10.168.161.14 rhel76-qnetd
+        ...
+
+        rhel76-node02 ~] vi /etc/hosts
+        ...
+        10.168.161.12 rhel76-node01
+        10.168.161.13 rhel76-node02
+        10.168.161.14 rhel76-qnetd
+        ...
+
+        # 新增认证节点: 任意找一个集群节点，执行以下命令对 quorum device 节点进行认证
+        rhel76-node01 ~] pcs cluster auth rhel76-qnetd
+        ```
+
+        (2) 添加仲裁设备
+
+        ```sh
+        pcs cluster stop --all
+        pcs quorum device add model net host=rhel76-qnetd algorithm=ffsplit
+        pcs cluster start --all
+        ```
+
+        (3) 查看 quorum 配置状态
+
+        ```sh
+        ~] pcs quorum config
+
+        Options:
+        Device:
+        votes: 1
+        Model: net
+            algorithm: ffsplit
+            host: rhel76-qnetd
+        ```
+
+        (4) 查看 quorum 运行状态
+
+        ```sh
+        ~] pcs quorum status
+        
+        Quorum information
+        ------------------
+        Date:             Sun Mar 27 16:39:29 2022
+        Quorum provider:  corosync_votequorum
+        Nodes:            2
+        Node ID:          2
+        Ring ID:          1/240
+        Quorate:          Yes
+        
+        Votequorum information
+        ----------------------
+        Expected votes:   3
+        Highest expected: 3
+        Total votes:      3
+        Quorum:           2  
+        Flags:            Quorate Qdevice 
+        
+        Membership information
+        ----------------------
+            Nodeid      Votes    Qdevice Name
+                 1          1    A,V,NMW rhel76-node01 (local)
+                 2          1    A,V,NMW rhel76-node02
+                 0          1            Qdevice
+        ```
+
+        NOTES:
+
+        1. `pcs quorum status` 等同于直接执行 `corosync-quorumtool` 命令
+        2. `Quorate: Yes` 表示集群仲裁状态正常，且当前节点正常
+        3. Qdevice 状态：
+
+            | 符号      | 含义 |
+            | --------- | --------- |
+            | `A`, `NA` | (active) 显示 `QDevice` 与 `Corosync` 之间的连接状态 |
+            | `V`, `NV` | (vote) 显示仲裁设备是否已为节点投票; 两节点集群异常情况时，一个节点为 `V`，一个 `NV` |
+            | `MW`, `NMW` | (master_wins) 显示是否为主体获胜 |
+            | `NR` | (not register) 表示节点未在使用仲裁设备 |
+        
+
+        (4) 查看 quorum device 运行状态
+
+        ```sh
+        ~] pcs quorum device status 
+
+        Qdevice information
+        -------------------
+        Model:                  Net
+        Node ID:                2
+        Configured node list:
+            0   Node ID = 1
+            1   Node ID = 2
+        Membership node list:   1, 2
+
+        Qdevice-net information
+        ----------------------
+        Cluster name:           Cluster-VSFTPD
+        QNetd host:             rhel76-qnetd:5403
+        Algorithm:              Fifty-Fifty split
+        Tie-breaker:            Node with lowest node ID
+        State:                  Connected
+        ```
+
+        仲裁设备配置命令汇总：
+
+        ```sh
+        pcs quorum device status [--full]
+        pcs quorum device add [<generic options>] model <device model> [<model options>]
+        pcs quorum device update [<generic options>] [model <model options>]
+        pcs quorum device remove
+        pcs quorum device heuristics remove
+        ```
 
 
 ## Demo 2 - RHEL6.4 - 双机双业务互为冗余的 VSFTPD RHCS 集群
