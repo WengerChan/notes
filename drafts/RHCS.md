@@ -3,21 +3,34 @@
 实验目的: 
 
 * `Demo 1` 使用 RedHat Enterprise Linux 7.6 上搭建一套双机双业务互为冗余的 VSFTPD RHCS 集群
+
+    | Guest Name   |  Hostname  | Management IP  | HeartBeat IP  | Storage IP (Optional)  |
+    | ------------ | ---------- | :------------: | :-----------: | :--------------------: |
+    | rhel76-01    | rhel76-node01 | 192.168.161.12 | 10.168.161.12 | 20.168.161.12        |
+    | rhel76-02    | rhel76-node02 | 192.168.161.13 | 10.168.161.13 | 20.168.161.13        |
+    | rhel76-qnetd | rhel76-qnetd  |                | 10.168.161.14 |                      |
+
 * `Demo 2` 使用 RedHat Enterprise Linux 6.4 上搭建一套双机双业务互为冗余的 VSFTPD RHCS 集群
+
+    | Guest Name |  Hostname  | Management IP  | HeartBeat IP  | Storage IP (Optional)  |
+    | ---------- | ---------- | :------------: | :-----------: | :--------------------: |
+    | rhel64-01 | rhel64-node01 | 192.168.161.15 | 10.168.161.15 | 20.168.161.15        |
+    | rhel64-02 | rhel64-node02 | 192.168.161.16 | 10.168.161.16 | 20.168.161.16        |
 
 ## 环境准备工作
 
 ### 准备时间源
 
-    使用 `chrony` 或者 `ntp` 搭建时间源, 此处不做赘述
+使用 `chrony` 或者 `ntp` 搭建时间源, 此处不做赘述
 
 ### 准备共享存储 
 
 共享存储种类: 
 
-* 生产环境: SAN 存储或者 iSCSI 企业级软件实现共享存储 (如 `OpenFiler`)
-* 实验环境: Linux 系统 Linux-IO Target 实现 iSCSI 共享存储; 或者 KVM/VMware 等虚拟化平台虚拟的共享磁盘
-
+```text
+  生产环境: 一般使用 SAN 存储或者 iSCSI 企业级软件实现共享存储 (如 `OpenFiler`)
+  实验环境: 可使用 Linux 系统 Linux-IO Target 实现 iSCSI 共享存储; 或者 KVM/VMware 等虚拟化平台虚拟的共享磁盘
+```
 
 * Linux-IO Target
 
@@ -126,20 +139,20 @@
 
     ```sh
     # 创建
-    qemu-img create -f raw /var/lib/libvirt/images/rhel76-rhcs-10g-01.raw 10G
-    qemu-img create -f raw /var/lib/libvirt/images/rhel76-rhcs-10g-02.raw 10G
+    qemu-img create -f raw /path/to/10g-01.raw 10G
+    qemu-img create -f raw /path/to/10g-02.raw 10G
 
-    # 挂载
-    cd /var/lib/libvirt/images
-    virsh attach-disk --domain node01 --source rhel76-rhcs-10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
-    virsh attach-disk --domain node01 --source rhel76-rhcs-10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --config
-    virsh attach-disk --domain node01 --source rhel76-rhcs-10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --current
-    virsh attach-disk --domain node01 --source rhel76-rhcs-10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
+    # 为两个节点挂载上共享磁盘
+    # 此处两个节点假设为 node01 和 node02
+    virsh attach-disk --domain node01 --source /path/to/10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
+    virsh attach-disk --domain node01 --source /path/to/10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --config
+    virsh attach-disk --domain node01 --source /path/to/10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --current
+    virsh attach-disk --domain node01 --source /path/to/10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
 
-    virsh attach-disk --domain node02 --source rhel76-rhcs-10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
-    virsh attach-disk --domain node02 --source rhel76-rhcs-10g-01.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
-    virsh attach-disk --domain node02 --source rhel76-rhcs-10g-02.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
-    virsh attach-disk --domain node02 --source rhel76-rhcs-10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
+    virsh attach-disk --domain node02 --source /path/to/10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
+    virsh attach-disk --domain node02 --source /path/to/10g-01.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
+    virsh attach-disk --domain node02 --source /path/to/10g-02.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
+    virsh attach-disk --domain node02 --source /path/to/10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
     ```
 
 * VMware 虚拟机使用共享磁盘
@@ -147,15 +160,6 @@
     Workstation/vSphere 等可创建使用共享磁盘
 
 ## Demo 1: RHCS via RHEL 6.7
-
-
-|  Hostname  | Management IP  | HeartBeat IP  | Storage IP (Optional)  |
-| ---------- | :------------: | :-----------: | :--------------------: |
-| node01     | 192.168.161.12 | 10.168.161.12 | 20.168.161.12          |
-| node02     | 192.168.161.13 | 10.168.161.13 | 20.168.161.13          |
-
-> *主要内容: 配置时间同步, 添加主机解析记录, 网卡绑定, 挂载共享存储, 创建文件系统, 配置 VSFTPD 服务*
-
 
 ### 1.1 配置时间同步
 
@@ -295,7 +299,12 @@ mkfs.xfs /dev/mapper/rhcs02-data02
       data02 rhcs02 -wi-a----- <10.00g
     ```
 
-* 正常识别后, 将所有节点将卷组激活
+* 正常识别后, 将所有节点将卷组取消激活
+
+    ```sh
+    vgchange -an rhcs01
+    vgchange -an rhcs02
+    ```
 
 
 ### 1.6 配置 VSFTPD 服务
@@ -318,10 +327,10 @@ mkfs.xfs /dev/mapper/rhcs02-data02
 
 * 1.6.2 修改 VSFTPD 配置文件
 
-    两个节点都需要添加这两个配置文件 `/etc/vsftpd/vsftpd_ftp01.conf`, `/etc/vsftpd/vsftpd_ftp02.conf`, 分别配置两个 VSFTPD 实例: 
+    两个节点都需要添加这两个配置文件 `/etc/vsftpd/vsftpd_01.conf`, `/etc/vsftpd/vsftpd_02.conf`, 分别配置两个 VSFTPD 实例: 
 
     ```sh
-    ~] vi /etc/vsftpd/vsftpd_ftp01.conf
+    ~] vi /etc/vsftpd/vsftpd_01.conf
 
     anonymous_enable=NO
 
@@ -336,6 +345,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     dirmessage_enable=YES
     connect_from_port_20=YES
     listen=YES
+    listen_address=192.168.161.14
     listen_ipv6=NO
     pam_service_name=vsftpd
     userlist_enable=YES
@@ -352,7 +362,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     ```
 
     ```sh
-    ~] vi /etc/vsftpd/vsftpd_ftp02.conf
+    ~] vi /etc/vsftpd/vsftpd_02.conf
 
     anonymous_enable=NO
 
@@ -367,6 +377,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     dirmessage_enable=YES
     connect_from_port_20=YES
     listen=YES
+    listen_address=192.168.161.15
     listen_ipv6=NO
     pam_service_name=vsftpd
     userlist_enable=YES
@@ -382,12 +393,11 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     vsftpd_log_file=/var/log/vsftpd02.log
     ```
 
-    两个节点添加 `user_list` 和 `chroot_list` 共四个文件, 和主配置文件中相应配置项保持一致:
+    两个节点都需要在 `/etc/vsftpd/` 下添加 `user_list` 和 `chroot_list` 共四个文件, 和主配置文件中相应配置项保持一致:
 
     ```sh
     ~] vi user_list01
-    ftpuser01
-    ftpuser0101
+    ——
 
     ~] vi user_list02
     ftpuser02
@@ -456,7 +466,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
         echo '123qweQ' | passwd hacluster  --stdin
         ```
 
-    * (3) 点认证
+    * (3) 节点认证
 
         ```sh
         pcs cluster auth [node] [...] [-u username] [-p password]
@@ -485,7 +495,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     pcs cluster setup --name Cluster-VSFTPD rhel76-node01 rhel76-node02
     ```
 
-    创建完以后可查看集群状态，此时集群未启动
+    创建完以后可查看集群状态, 此时集群未启动
 
     ```sh
     ~] pcs status
@@ -922,82 +932,104 @@ mkfs.xfs /dev/mapper/rhcs02-data02
 
 ### 1.9 配置 Fence
 
-上面配置完成以后, VSFTPD_GROUP_01 运行在 rhel76-node01 上, VSFTPD_GROUP_02 运行在 rhel76-node02 上; 
+* 1.9.1 引言
 
-如果 down 掉 rhel76-node01 的心跳网卡 eth1, 此时 rhel76-node02 认为 rhel76-node01 失联, 开始接管 VSFTPD_GROUP_01 服务; 而 rhel76-node01 会认为 rhel76-node02 失联, 开始接管 VSFTPD_GROUP_02; 由此很容易造成相互抢占资源, 造成 "脑裂", 验证情况下可能会导致数据丢失, 磁盘损坏等, 因此需要给集群各节点配置 Fence 监控节点状态, 如果节点出现故障而未释放资源时, 做出预设的操作来保证集群正常工作
+    上面配置完成以后: `VSFTPD_GROUP_01` 运行在 `rhel76-node01` 上, `VSFTPD_GROUP_02` 运行在 `rhel76-node02` 上; 
 
-生产环境下, 如果使用的是 VMware vSphere 虚拟机来搭建的 RHCS 集群, 可使用 vCenter/ESXi 的接口来配置 Fence; 如果使用的是 KVM 类的虚拟机搭建 RHCS 集群, 可调用宿主机的相应软 Fence 来操作节点; 物理机搭建 RHCS 时, 可配置通过 带外/管理口/IPMI 来配置 Fence.
+    如果 down 掉 `rhel76-node01` 的心跳网卡 eth1, 模拟节点网卡故障：
 
-触发 Fence 操作时, 主机应该立刻 "断电关机/重启" (powered off immediately), 而不是执行普通的 "系统关机" (shutdown gracefully); 为了达到此要求, 需要对集群节点做些前置配置:
+    * rhel76-node02 "认为" rhel76-node01 失联 - 开始接管 `VSFTPD_GROUP_01` 服务
+    * rhel76-node01 同样 "认为" rhel76-node02 失联 - 开始接管 `VSFTPD_GROUP_02` 服务
+    
+    上面的情形很容易造成相互抢占资源, 而且不释放已经争抢到的资源; 严重情况下可能会导致数据丢失, 磁盘损坏等.
 
-* RHEL 5,6:
+    为了避免上因此需要给集群各节点配置 Fence 监控节点状态, 如果节点出现故障而未释放资源时, 做出预设的操作来保证集群正常工作; 偶数节点/两节点的集群, 同时搭配仲裁设备来完善.
 
-    The preferred method of disabling ACPI Soft-Off is with `chkconfig` management. If the preferred method is not effective for your cluster, you can disable ACPI Soft-Off with the BIOS power management. If neither of those methods is effective for your cluster, you can disable ACPI completely by appending `acpi=off` to the kernel boot command line in the grub.conf file.
+* 1.9.2 Fence 类型
 
-    * Disabling ACPI Soft-Off with the BIOS
+    1. 如果使用的是 VMware vSphere 虚拟化平台的虚拟机来搭建的 RHCS 集群, 可使用 vCenter/ESXi 的接口来配置 Fence (`fence_vmware_soap`)
+    2. 如果使用的是 KVM 类虚拟化平台的虚拟机搭建 RHCS 集群, 可在宿主机配置 `fence_virtd` 来执行节点 Fence (`fence_xvm`)
+    3. 物理机搭建 RHCS 时, 可配置通过 带外/管理口/IPMI 来配置 Fence (`fence_ipmilan`).
 
-        BIOS CMOS Setup Utility, `Soft-Off by PWR-BTTN` set to `Instant-Off`
 
-        *[Refer to Redhat Document ->](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/cluster_administration/s1-acpi-ca)*
+* 1.9.3 前置配置
 
-    * Disabling ACPI Soft-Off with `chkconfig`
+    触发 Fence 操作时, 节点主机应该立刻 "断电关机/重启", 即 *powered off immediately*, 而不是执行普通的 "系统关机", 即 *shutdown gracefully*。
+    
+    为了达到此要求, 需要关闭 主机/操作系统 的 ACPI Soft-Off 功能：
+    
+    1. 主机层面，可以在 BIOS 中关闭
+    2. 操作系统层面，可以通过 禁用对应服务 或者配置内核参数彻底禁用此功能。
 
-        ```sh
-        chkconfig --del acpid
-        ```
+    具体操作如下：
 
-        or
+    * RHEL 5,6:
 
-        ```sh
-        chkconfig --level 345 acpid off
-        ```
+        The preferred method of disabling ACPI Soft-Off is with `chkconfig` management. If the preferred method is not effective for your cluster, you can disable ACPI Soft-Off with the BIOS power management. If neither of those methods is effective for your cluster, you can disable ACPI completely by appending `acpi=off` to the kernel boot command line in the grub.conf file.
 
-        Then `reboot` the node.
+        * Disabling ACPI Soft-Off with the BIOS
 
-    * Disabling ACPI Completely in the `grub.conf` File
+            BIOS CMOS Setup Utility, `Soft-Off by PWR-BTTN` set to `Instant-Off`
 
-        ```sh
-        ~] vi /boot/grub/grub.conf
-        ...
-        title Red Hat Enterprise Linux Server (2.6.32-193.el6.x86_64)
-                root (hd0,0)
-                kernel /vmlinuz-2.6.32-193.el6.x86_64 ... acpi=off   # <= 添加 acpi=off
-        ...
+            *[Refer to Redhat Document ->](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/cluster_administration/s1-acpi-ca)*
 
-        ~] reboot
-        ```
+        * Disabling ACPI Soft-Off with `chkconfig`
 
-* RHEL 7,8:
+            ```sh
+            chkconfig --del acpid
+            ```
 
-    You can disable ACPI Soft-Off with one of the following alternate methods:
+            or
 
-    * Disabling ACPI Soft-Off with the BIOS
+            ```sh
+            chkconfig --level 345 acpid off
+            ```
 
-        BIOS CMOS Setup Utility, `Soft-Off by PWR-BTTN` set to `Instant-Off`
+            Then `reboot` the node.
 
-        *[Refer to Redhat Document ->](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/high_availability_add-on_reference/s1-acpi-ca)*
+        * Disabling ACPI Completely in the `grub.conf` File
 
-    * Disabling ACPI Soft-Off in the `logind.conf` file
+            ```sh
+            ~] vi /boot/grub/grub.conf
+            ...
+            title Red Hat Enterprise Linux Server (2.6.32-193.el6.x86_64)
+                    root (hd0,0)
+                    kernel /vmlinuz-2.6.32-193.el6.x86_64 ... acpi=off   # <= 添加 acpi=off
+            ...
 
-        ```sh
-        ~] vi /etc/systemd/logind.conf
-        HandlePowerKey=ignore
+            ~] reboot
+            ```
 
-        ~] systemctl daemon-reload
-        ~] systemctl restart systemd-logind.service
+    * RHEL 7,8:
 
-    * Disabling ACPI Completely in the `GRUB 2` File
+        You can disable ACPI Soft-Off with one of the following alternate methods:
 
-        This method completely disables ACPI; some computers do not boot correctly if ACPI is completely disabled. Use this method *only* if the other methods are not effective for your cluster.
+        * Disabling ACPI Soft-Off with the BIOS
 
-        ```sh
-        ~] grubby --args=acpi=off --update-kernel=ALL
-        ~] reboot
-        ```
+            BIOS CMOS Setup Utility, `Soft-Off by PWR-BTTN` set to `Instant-Off`
 
-前置操作完成以后, 进行 Fence 设备的添加:
+            *[Refer to Redhat Document ->](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/high_availability_add-on_reference/s1-acpi-ca)*
 
-* 1.9.1 添加 vCenter 或 Esxi 作为 Fence 设备
+        * Disabling ACPI Soft-Off in the `logind.conf` file
+
+            ```sh
+            ~] vi /etc/systemd/logind.conf
+            HandlePowerKey=ignore
+
+            ~] systemctl daemon-reload
+            ~] systemctl restart systemd-logind.service
+
+        * Disabling ACPI Completely in the `GRUB 2` File
+
+            This method completely disables ACPI; some computers do not boot correctly if ACPI is completely disabled. Use this method *only* if the other methods are not effective for your cluster.
+
+            ```sh
+            ~] grubby --args=acpi=off --update-kernel=ALL
+            ~] reboot
+            ```
+
+
+* 1.9.4 添加 vCenter 或 Esxi 作为 Fence 设备
 
     ```text
     # Examples:
@@ -1033,7 +1065,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     # pcmk_host_map 也可以写成 "node1:node1-vm;node2:node2-vm"
     ```
 
-* 1.9.2 IPMI 设置 Fence
+* 1.9.5 IPMI 设置 Fence
 
     ```sh
     # 检查连接状态
@@ -1050,7 +1082,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     `pcmk_reboot_action` 用于指定 Fence 操作, 默认指令为 `reboot`, 可按需求修改, 如改成 `off` (只关机不开机)
 
 
-* 1.9.3 KVM 虚拟机配置 Fence
+* 1.9.6 KVM 虚拟机配置 Fence
 
     * KVM 宿主机配置
 
@@ -1058,156 +1090,85 @@ mkfs.xfs /dev/mapper/rhcs02-data02
 
         1. Install:
 
-        ```sh
-        yum install fence-virt fence-virtd fence-virtd-libvirt fence-virtd-multicast fence-virtd-serial
-        ```
+            ```sh
+            yum install fence-virt fence-virtd fence-virtd-libvirt fence-virtd-multicast fence-virtd-serial
+            ```
 
         2. Create and distribute fence key:
 
-        ```sh
-        mkdir -p /etc/cluster
-        dd if=/dev/urandom of=/etc/cluster/fence_xvm.key bs=4k count=1
+            ```sh
+            mkdir -p /etc/cluster
+            dd if=/dev/urandom of=/etc/cluster/fence_xvm.key bs=4k count=1
 
-        # copy key to all nodes
-        scp /etc/cluster/fence_xvm.key nodeX:/etc/cluster/
-        ```
+            # copy key to all nodes
+            scp /etc/cluster/fence_xvm.key nodeX:/etc/cluster/
+            ```
 
         3. Create `/etc/fence_virt.conf` file:
 
-        ```sh
-        ~] fence_virtd -c
+            ```sh
+            ~] fence_virtd -c
 
-        Module search path [/usr/lib64/fence-virt/]: 
-
-        Available backends:
-            libvirt 0.3
-        Available listeners:
-            vsock 0.1
-            multicast 1.2
-            serial 0.4
-
-        Listener modules are responsible for accepting requests
-        from fencing clients.
-
-        Listener module [multicast]: 
-
-        The multicast listener module is designed for use environments
-        where the guests and hosts may communicate over a network using
-        multicast.
-
-        The multicast address is the address that a client will use to
-        send fencing requests to fence_virtd.
-
-        Multicast IP Address [225.0.0.12]: 
-
-        Using ipv4 as family.
-
-        Multicast IP Port [1229]: 
-
-        Setting a preferred interface causes fence_virtd to listen only
-        on that interface.  Normally, it listens on all interfaces.
-        In environments where the virtual machines are using the host
-        machine as a gateway, this *must* be set (typically to virbr0).
-        Set to 'none' for no interface.
-
-        Interface [virbr0]: br-heartb  # <= 指定虚拟机使用的心跳网卡对应的 bridge
-
-        The key file is the shared key information which is used to
-        authenticate fencing requests.  The contents of this file must
-        be distributed to each physical host and virtual machine within
-        a cluster.
-
-        Key File [/etc/cluster/fence_xvm.key]: 
-
-        Backend modules are responsible for routing requests to
-        the appropriate hypervisor or management layer.
-
-        Backend module [libvirt]: 
-
-        The libvirt backend module is designed for single desktops or
-        servers.  Do not use in environments where virtual machines
-        may be migrated between hosts.
-
-        Libvirt URI [qemu:///system]: 
-
-        Configuration complete.
-
-        === Begin Configuration ===
-        backends {
-                libvirt {
-                        uri = "qemu:///system";
-                }
-
-        }
-
-        listeners {
-                multicast {
-                        port = "1229";
-                        family = "ipv4";
-                        interface = "br-heartb";
-                        address = "225.0.0.12";
-                        key_file = "/etc/cluster/fence_xvm.key";
-                }
-
-        }
-
-        fence_virtd {
-                module_path = "/usr/lib64/fence-virt/";
-                backend = "libvirt";
-                listener = "multicast";
-        }
-
-        === End Configuration ===
-        Replace /etc/fence_virt.conf with the above [y/N]? y
-        ```
+            ...
+            Interface [virbr0]: br-heartb   # <= br-heartb: 心跳网
+            ...
+            ...
+            Replace /etc/fence_virt.conf with the above [y/N]? y    # <= y: 确认修改
+            ```
 
         4. Start the `fence_virtd` service
 
-        ```sh
-        # <= 6
-        service fence_virtd restart
-        chkconfig fence_virtd on
+            ```sh
+            # <= 6
+            service fence_virtd restart
+            chkconfig fence_virtd on
 
-        # >= 7
-        systemctl restart fence_virtd
-        systemctl enable fence_virtd
-        ```
+            # >= 7
+            systemctl restart fence_virtd
+            systemctl enable fence_virtd
+            ```
 
     * 节点配置
 
         1. Ensure `fence-virt` package is installed on each cluster node
 
-        ```sh
-        rpm -qa fence-virt
-        ```
+            ```sh
+            rpm -qa fence-virt
+            ```
 
         2. Firewall settings
 
-        ```sh
-        # <= 6
-        iptables -I INPUT -m state --state NEW -p tcp --dport 1229 -j ACCEPT
-        service iptables save; service iptables restart
+            ```sh
+            # <= 6
+            iptables -I INPUT -m state --state NEW -p tcp --dport 1229 -j ACCEPT
+            service iptables save
+            service iptables restart
 
-        # >= 7
-        firewall-cmd --permanent --add-port=1229/tcp
-        firewall-cmd --reload
-        ```
+            # >= 7
+            firewall-cmd --permanent --add-port=1229/tcp
+            firewall-cmd --reload
+            ```
 
         3. Test fencing: In order that the fencing to be successful, below command should succeed on host as well as cluster nodes. 
 
-        ```sh
-        ~] fence_xvm -o list
-        ~] fence_xvm -o reboot -H <cluster-node>
-        ```
+            ```sh
+            fence_xvm -o list
+            fence_xvm -o reboot -H <cluster-node>
+            ```
 
-        4. (Optional) Edit `/etc/hosts`: 按需决定是否添加 IP 到虚拟机名称的解析记录
+        4. (Optional) Edit `/etc/hosts`: 按需决定是否添加 Fence 使用的网络到虚拟机名称的解析记录(最好使用与心跳IP不同网段)
 
-        ```sh
-        ~] vi /etc/hosts
+            > 配置了解析以后, 添加 Fence 设备时, 可以直接使用 IP 配置, 而不用指定主机的 Guest Name (虚拟机名字)
 
-        10.168.161.12 rhel76-node01 rhel76-01
-        10.168.161.13 rhel76-node02 rhel76-02
-        ```
+            ```sh
+            ~] vi /etc/hosts
+
+            10.168.161.12 rhel76-node01
+            10.168.161.13 rhel76-node02
+            
+            xx.xx.xx.xx rhel76-01
+            xx.xx.xx.xx rhel76-02
+            ```
 
     * 为集群节点添加 Fence 代理
 
@@ -1216,36 +1177,38 @@ mkfs.xfs /dev/mapper/rhcs02-data02
         pcs stonith create VSFTPD_xvmfence fence_xvm pcmk_host_check=static-list pcmk_host_map="rhel76-node01:rhel76-01;rhel76-node02:rhel76-02" key_file=/etc/cluster/fence_xvm.key
         ```
 
-后置操作: 前文中将 `STONITH/Fencing` 暂时关闭了, 配置完成以后需要开启: 
+* 1.9.7 后置操作
 
-```sh
-~] pcs property set stonith-enabled=true
+    前文中将 `STONITH/Fencing` 暂时关闭了, 配置完成以后需要开启: 
 
-~] pcs property show
+    ```sh
+    ~] pcs property set stonith-enabled=true
 
-Cluster Properties:
- cluster-infrastructure: corosync
- cluster-name: Cluster-VSFTPD
- dc-version: 1.1.19-8.el7-c3c624ea3d
- have-watchdog: false
- last-lrm-refresh: 1647849911
- stonith-enabled: true  # <= 此处已经变成 true
-```
+    ~] pcs property show
 
-查看 Fence 配置情况:
+    Cluster Properties:
+     cluster-infrastructure: corosync
+     cluster-name: Cluster-VSFTPD
+     dc-version: 1.1.19-8.el7-c3c624ea3d
+     have-watchdog: false
+     last-lrm-refresh: 1647849911
+     stonith-enabled: true   # <= 此处已修改成 true
+    ```
 
-```
-~] pcs stonith show --full
+* 1.9.7 查看 Fence 配置
 
- Resource: FTP_fence_vmware (class=stonith type=fence_vmware_soap)
-  Attributes: inet4_only=1 ipaddr=192.168.163.252 ipport=443 login=administrator@vsphere.local passwd=1qaz@WSX4rfv pcmk_host_check=static-list pcmk_host_list=node01,node02 pcmk_host_map=node01:422a97b9-5f92-a095-db50-c6a08eccda73;node02:422aa805-fe81-638a-02a5-a1985085f68e ssl_insecure=1
-  Operations: monitor interval=60s (FTP_fence_vmware-monitor-interval-60s)
-```
+    ```
+    ~] pcs stonith show --full
+
+    Resource: FTP_fence_vmware (class=stonith type=fence_vmware_soap)
+    Attributes: inet4_only=1 ipaddr=192.168.163.252 ipport=443 login=administrator@vsphere.local passwd=1qaz@WSX4rfv pcmk_host_check=static-list pcmk_host_list=node01,node02 pcmk_host_map=node01:422a97b9-5f92-a095-db50-c6a08eccda73;node02:422aa805-fe81-638a-02a5-a1985085f68e ssl_insecure=1
+    Operations: monitor interval=60s (FTP_fence_vmware-monitor-interval-60s)
+    ```
 
 
 ### 1.10 配置仲裁
 
-RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" 情况，以下是关于仲裁的相关介绍：
+RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" 情况, 以下是关于仲裁的相关介绍：
 
 * 1.10.1 Quorum - votequorum
 
@@ -1397,21 +1360,21 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 
 * 1.10.2 Quorum Device
 
-    在 RHEL7.4/CentOS7.4 中，Pacemaker 新增了 Quorum Device 的功能，通过一个新增的服务器作为 Quorum Device，原有节点通过网络连接到Quorum Device上，由 Quorum Device 进行仲裁。
+    在 RHEL7.4/CentOS7.4 中, Pacemaker 新增了 Quorum Device 的功能, 通过一个新增的服务器作为 Quorum Device, 原有节点通过网络连接到Quorum Device上, 由 Quorum Device 进行仲裁。
 
-    `QDevice` 和 `QNetd` 会参与仲裁决定。在仲裁方 `corosync-qnetd` 的协助下，`corosync-qdevice` 会提供一个可配置的投票数，以使群集可以承受大于标准仲裁规则所允许的节点故障数量。
+    `QDevice` 和 `QNetd` 会参与仲裁决定。在仲裁方 `corosync-qnetd` 的协助下, `corosync-qdevice` 会提供一个可配置的投票数, 以使群集可以承受大于标准仲裁规则所允许的节点故障数量。
 
     `QNetd` (corosync-qnetd): 一个不属于群集的 systemd 服务, 向 corosync-qdevice 守护程序提供投票的 systemd 守护程序。
 
-    `QDevice` (corosync-qdevice): 每个群集节点上与 Corosync 一起运行的 systemd 服务。这是 corosync-qnetd 的客户端。QDevice 可以与不同的仲裁方配合工作，但目前仅支持与 QNetd 配合工作。
+    `QDevice` (corosync-qdevice): 每个群集节点上与 Corosync 一起运行的 systemd 服务。这是 corosync-qnetd 的客户端。QDevice 可以与不同的仲裁方配合工作, 但目前仅支持与 QNetd 配合工作。
 
-    原有的节点保持不动，找一台新的机器搭建 Quorum Device. 注：一个集群只能连接到一个 Quorum Device, 而一个 Quorum Device 可以被多个集群所使用。所以如果有多个集群环境，有一个 Quorum Device 的机器就足够为这些集群提供服务了
+    原有的节点保持不动, 找一台新的机器搭建 Quorum Device. 注：一个集群只能连接到一个 Quorum Device, 而一个 Quorum Device 可以被多个集群所使用。所以如果有多个集群环境, 有一个 Quorum Device 的机器就足够为这些集群提供服务了
 
     > Refer to: `corosync-qdevice(8)` 
 
     配置 Quorum device 主机：
 
-    1. 额外找一台主机 (10.168.161.14)，安装 `pcs` 和 `corosync-qnetd`
+    1. 额外找一台主机 (10.168.161.14), 安装 `pcs` 和 `corosync-qnetd`
 
         ```sh
         yum install pcs corosync-qnetd
@@ -1435,13 +1398,13 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 
     4. 配置 quorum device
 
-        仲裁设备目前只支持 `net` 类型，其提供以下两种算法：
+        仲裁设备目前只支持 `net` 类型, 其提供以下两种算法：
 
         * `ffsplit`: fifty-fifty split. 为活动节点数最多的分区提供一票。
 
-        * `lms`: last-man-standing. 如果该节点是集群中唯一可以看到 qnetd 服务器(仲裁设备)的节点，那么它得到一票。
+        * `lms`: last-man-standing. 如果该节点是集群中唯一可以看到 qnetd 服务器(仲裁设备)的节点, 那么它得到一票。
 
-        (1) 添加并启动一个 `net` 格式的仲裁设备，同时设置开机自启动
+        (1) 添加并启动一个 `net` 格式的仲裁设备, 同时设置开机自启动
 
         ```sh
         ~] pcs qdevice setup model net --enable --start
@@ -1452,7 +1415,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
         quorum device started
         ```
 
-        (2) 添加完成以后，检查仲裁设备状态
+        (2) 添加完成以后, 检查仲裁设备状态
 
         ```sh
         ~] pcs qdevice status net --full
@@ -1503,7 +1466,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
         10.168.161.14 rhel76-qnetd
         ...
 
-        # 新增认证节点: 任意找一个集群节点，执行以下命令对 quorum device 节点进行认证
+        # 新增认证节点: 任意找一个集群节点, 执行以下命令对 quorum device 节点进行认证
         rhel76-node01 ~] pcs cluster auth rhel76-qnetd
         ```
 
@@ -1532,7 +1495,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 
         ```sh
         ~] pcs quorum status
-        
+
         Quorum information
         ------------------
         Date:             Sun Mar 27 16:39:29 2022
@@ -1541,7 +1504,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
         Node ID:          2
         Ring ID:          1/240
         Quorate:          Yes
-        
+
         Votequorum information
         ----------------------
         Expected votes:   3
@@ -1549,7 +1512,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
         Total votes:      3
         Quorum:           2  
         Flags:            Quorate Qdevice 
-        
+
         Membership information
         ----------------------
             Nodeid      Votes    Qdevice Name
@@ -1561,16 +1524,16 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
         NOTES:
 
         1. `pcs quorum status` 等同于直接执行 `corosync-quorumtool` 命令
-        2. `Quorate: Yes` 表示集群仲裁状态正常，且当前节点正常
+        2. `Quorate: Yes` 表示集群仲裁状态正常, 且当前节点正常
         3. Qdevice 状态：
 
             | 符号      | 含义 |
             | --------- | --------- |
             | `A`, `NA` | (active) 显示 `QDevice` 与 `Corosync` 之间的连接状态 |
-            | `V`, `NV` | (vote) 显示仲裁设备是否已为节点投票; 两节点集群异常情况时，一个节点为 `V`，一个 `NV` |
+            | `V`, `NV` | (vote) 显示仲裁设备是否已为节点投票; 两节点集群异常情况时, 一个节点为 `V`, 一个 `NV` |
             | `MW`, `NMW` | (master_wins) 显示是否为主体获胜 |
             | `NR` | (not register) 表示节点未在使用仲裁设备 |
-        
+
 
         (4) 查看 quorum device 运行状态
 
@@ -1610,5 +1573,977 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 
 |  Hostname  | Management IP  | HeartBeat IP  | Storage IP (Optional)  |
 | ---------- | :------------: | :-----------: | :--------------------: |
-| node01     | 192.168.161.14 | 10.168.161.14 | 20.168.161.14          |
-| node02     | 192.168.161.15 | 10.168.161.15 | 20.168.161.15          |
+| rhel64-node01 | 192.168.161.16 | 10.168.161.16 | 20.168.161.16       |
+| rhel64-node02 | 192.168.161.17 | 10.168.161.17 | 20.168.161.17       |
+
+### 2.1 配置时间同步
+
+两个节点配置到同一时间源, 使用 `ntpd` 同步或者定时执行 `ntpupdate` 均可。
+
+### 2.2 配置主机解析记录
+
+两个节点都需要配置, 在 `/etc/hosts` 添加以下两行; 注意使用的 IP 是心跳 IP, 如果资源不足也可和管理 IP 共用
+
+```sh
+~] vi /etc/hosts
+
+10.168.161.16 rhel64-node01
+10.168.161.17 rhel64-node02
+```
+
+### 2.3 配置网卡绑定
+
+有网络冗余要求, 可配置 `Team` 或者 `Bonding`, Refer to: *[Bonding](Bonding.md)* or *[Team](Team.md)*
+
+### 2.4 配置共享存储
+
+下文使用 KVM 虚拟机进行实验，参照 [准备共享存储](#准备共享存储) 为两个节点添加两块共享存储; 如果需要使用 ISCSI 共享存储，配置方法参见 [1.4 配置共享存储](#14-配置共享存储)
+
+
+在宿主机执行：
+
+```sh
+# 创建
+qemu-img create -f raw /var/lib/libvirt/images/rhel64-rhcs-10g-01.raw 10G
+qemu-img create -f raw /var/lib/libvirt/images/rhel64-rhcs-10g-02.raw 10G
+
+# 挂载
+virsh attach-disk --domain rhel64-01 --source /var/lib/libvirt/images/rhel64-rhcs-10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
+virsh attach-disk --domain rhel64-01 --source /var/lib/libvirt/images/rhel64-rhcs-10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --config
+virsh attach-disk --domain rhel64-01 --source /var/lib/libvirt/images/rhel64-rhcs-10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --current
+virsh attach-disk --domain rhel64-01 --source /var/lib/libvirt/images/rhel64-rhcs-10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
+
+virsh attach-disk --domain rhel64-02 --source /var/lib/libvirt/images/rhel64-rhcs-10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --current
+virsh attach-disk --domain rhel64-02 --source /var/lib/libvirt/images/rhel64-rhcs-10g-01.raw --target vdb --targetbus virtio --driver qemu --subdriver raw --shareable --config
+virsh attach-disk --domain rhel64-02 --source /var/lib/libvirt/images/rhel64-rhcs-10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --current
+virsh attach-disk --domain rhel64-02 --source /var/lib/libvirt/images/rhel64-rhcs-10g-02.raw --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --config
+```
+
+两个节点均发现磁盘, 表明配置正常: 
+
+```sh
+~] lsblk
+
+NAME                         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sr0                           11:0    1 1024M  0 rom  
+vda                          252:0    0   20G  0 disk 
+├─vda1                       252:1    0  500M  0 part /boot
+└─vda2                       252:2    0 19.5G  0 part 
+  ├─vg_rhel64-lv_root (dm-0) 253:0    0 17.6G  0 lvm  /
+  └─vg_rhel64-lv_swap (dm-1) 253:1    0    2G  0 lvm  [SWAP]
+vdb                          252:16   0   10G  0 disk 
+vdc                          252:32   0   10G  0 disk 
+```
+
+### 2.5 配置文件系统
+
+任一节点执行创建操作:
+
+```sh
+pvcreate /dev/vdb
+vgcreate rhcs01 /dev/vdb
+lvcreate -n data01 -l 100%FREE rhcs01
+mkfs.ext4 /dev/mapper/rhcs01-data01
+
+pvcreate /dev/vdc
+vgcreate rhcs02 /dev/vdc
+lvcreate -n data02 -l 100%FREE rhcs02
+mkfs.ext4 /dev/mapper/rhcs02-data02
+```
+
+执行导入导出, 让两个节点都能识别 LVM 信息:
+
+* 当前节点将卷组失活, 然后导出卷组:
+
+    ```sh
+    vgchange -an rhcs01 rhcs02
+    vgexport rhcs01 rhcs02
+    ```
+
+* 另一节点导入, 并激活卷组:
+
+    ```sh
+    vgimport rhcs01 rhcs02
+    vgchange -ay rhcs01 rhcs02
+    ```
+
+    查看
+
+    ```sh
+    ~] lvs
+      LV     VG     Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+      data01 rhcs01 -wi-a----- <10.00g
+      data02 rhcs02 -wi-a----- <10.00g
+    ```
+
+* 正常识别后, 将所有节点将卷组取消激活
+
+    ```sh
+    vgchange -an rhcs01
+    vgchange -an rhcs02
+    ```
+
+### 2.6 配置 VSFTPD 服务
+
+参照 [1.6 配置 VSFTPD 服务](#16-配置-vsftpd-服务); 如果需要 "防火墙配置" 时, 则需要保证 iptables 中包含以下规则: 
+
+```sh
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p tcp --dport 21 -j ACCEPT
+-A OUTPUT -p tcp --sport 20 -j ACCEPT
+```
+
+
+### 2.7 配置集群
+
+
+* 2.7.1 安装集群套件
+
+    ```sh
+    yum groupinstall 'High Availability'
+    yum install -y luci             # 若要使用 luci/conga 用户界面，需要安装此包(按需安装，不要求每个节点都安装)
+    yum install -y lvm2-cluster     # 若使用 clvm，则需要安装此包(每个节点都需要)
+    ```
+
+    如果启用了防火墙, 则需要添加规则。配置防火墙有两种方法：
+
+    * 第一种取巧的配置，集群节点之间全部端口都放开，不做任何限制
+
+        ```sh
+        # 192.168.161.16 上配置信任 192.168.161.17
+        -A INPUT -s 192.168.161.16 -j ACCEPT
+        -A OUTPUT -s 192.168.161.17 -j ACCEPT
+
+        # 192.168.161.17 上配置信任 192.168.161.16
+        -A INPUT -s 192.168.161.17 -j ACCEPT
+        -A OUTPUT -s 192.168.161.16 -j ACCEPT
+        ```
+
+    * 第二种配置具体端口
+
+        |端口|协议|组件|
+        |--|--|--|
+        |`5404`,`5405`| UDP | corosync/cman(集群管理器) |
+        |`21064`| TCP |	dlm |
+        |`16851`| TCP |	modclusterd |
+        |`11111`| TCP |	ricci(为 luci 提供接口) |
+        |`8084`<sup id="a1">[1](#f1)</sup>| TCP | luci (conga用户界面)|
+
+        按照上表列出的端口，则节点在 node01 上可以配置 node02 的访问策略 (node02 上配置类似)：
+
+        ```sh
+        -A INPUT -m state --state NEW -p udp -s <node02> -d <node01> -m multiport --dports 5404,5405 -j ACCEPT
+        -A INPUT -m addrtype --dst-type MULTICAST -m state --state NEW -p udp -m multiport -s <node02> --dports 5404,5405 -j ACCEPT
+        -A INPUT -m state --state NEW -p tcp -s <node02> -d <node01> -m multiport --dports 11111,21064,16851 -j ACCEPT
+        -A INPUT -m state --state NEW -p tcp -s <IP_of_Luci_CLient> -d <IP_of_Luci_Listen> --dport 8084 -j ACCEPT
+        -A INPUT -p igmp -j ACCEPT  # For igmp (Internet Group Management Protocol)
+        ```
+
+        上面的规则摘自红帽官方文档，可以适当的简略一下：
+
+        ```sh
+        -A INPUT -p udp -s <node02> -m multiport --dports 5404,5405 -j ACCEPT
+        -A INPUT -p tcp -s <node02> -m multiport --dports 11111,21064,16851 -j ACCEPT
+        -A INPUT -p igmp -j ACCEPT       # For igmp (Internet Group Management Protocol)
+
+        -A INPUT -p tcp --dport 8084 -j ACCEPT  # 如果有安装 luci
+        ```
+
+        --- 
+
+        <b id="f1"><font size=1>1 luci 配置文件 "/etc/sysconfig/luci" 中的 "port = 8084" 可以修改端口 </font></b> [↺](#a11)
+
+
+* 2.7.2 初始化集群
+
+   * (1) 启动 `ricci` 服务
+
+        设置开机自启:
+
+        ```sh
+        chkconfig ricci on
+        service ricci start
+        ```
+
+    * (2) 修改 `ricci` 服务用户密码
+
+        `ricci` 用户是集群认证需要使用的用户; 添加节点到集群时, 需要验证此用户的密码
+
+        ```sh
+        echo '123qweQ' | passwd ricci --stdin
+        ```
+
+    * (3) 节点认证
+
+        与 RHCS 7 不同，在后续创建集群、添加节点、同步配置文件等操作时才会需要输入密码做节点认证。
+
+* 2.7.3 创建集群
+
+    ```sh
+    Cluster Operations:
+          --createcluster <cluster>
+                            Create a new cluster.conf (removing old one if it exists)
+          --getversion      Get the current cluster.conf version
+          --setversion <n>  Set the cluster.conf version
+          --incversion      Increment the cluster.conf version by 1
+          --startall        Start *AND* enable cluster services on reboot for all nodes
+          --stopall         Stop *AND* disable cluster services on reboot for all nodes
+          --start           Start *AND* enable cluster services on reboot for host specified with -h
+          --stop            Stop *AND* disable cluster services on reboot for host specified with -h
+    Node Operations:
+          --lsnodes         List all nodes in the cluster
+          --addnode <node>  Add node <node> to the cluster
+          --rmnode <node>
+                            Remove a node from the cluster
+          --nodeid <nodeid> Specify nodeid when adding a node
+          --votes <votes>   Specify number of votes when adding a node
+          --addalt <node name> <alt name> [alt options]
+                            Add an altname to a node for RRP
+          --rmalt <node name>
+                            Remove an altname from a node for RRP
+    ```
+
+    (1) 创建
+
+    在其中一个节点上执行命令创建集群：
+
+    ```sh
+    # css -h <host> --createcluster <cluster_name>
+    css -h rhel64-node01 --createcluster Cluster-VSFTPD  # <= 输入 rhel64-node01 上 ricci 用户密码
+    ```
+
+    上面的操作实际上是在 rhel64-node01 节点上新建一个配置文件 `/etc/cluster/cluster.conf`
+
+    ```sh
+    ~] cat /etc/cluster/cluster.conf
+    ~] ccs -f /etc/cluster/cluster.conf --getconf   # 查看指定配置文件
+    ~] ccs -h rhel64-node01 --getconf               # 查看指定节点的配置文件
+
+    <?xml version="1.0"?>
+    <cluster config_version="1" name="Cluster-VSFTPD">  
+      <fence_daemon/>   
+      <clusternodes/>  
+      <cman/>  
+      <fencedevices/>  
+      <rm>    
+        <failoverdomains/>    
+        <resources/>    
+      </rm>  
+    </cluster>
+    ```
+
+    (2) 添加节点
+
+    ```sh
+    # ccs -h <host> --addnode <host> [--nodeid <node_id>] [--votes <votes>]
+    # "--addnode": 添加节点，一次只能添加一个节点; 如果要删除节点, 使用 "--rmnode"
+    # "--nodeid": 指定节点的 id
+    # "--votes": 指定节点的投票权
+
+    ccs -h rhel64-node01 --addnode rhel64-node01
+    ccs -h rhel64-node01 --addnode rhel64-node02
+    ```
+
+    ```sh
+    ~] ccs -h localhost --lsnodes
+
+    rhel64-node01: nodeid=1
+    rhel64-node02: nodeid=2
+
+    ~] ccs -h rhel64-node01 --getconf
+
+    <cluster config_version="3" name="Cluster-VSFTPD">  
+      <fence_daemon/>  
+      <clusternodes>    
+        <clusternode name="rhel64-node01" nodeid="1"/>    # < 新增的行
+        <clusternode name="rhel64-node02" nodeid="2"/>    # < 新增的行
+      </clusternodes>  
+      <cman/>  
+      <fencedevices/>  
+      <rm>    
+        <failoverdomains/>    
+        <resources/>    
+      </rm>  
+    </cluster>
+    ```
+
+    > NOTES：查看 `/etc/cluster/cluster.conf` 文件可以发现：多了两行 `clusternode` 配置，而且 `config_version` 由 `1` 变成 `3`。这是因为任何一个节点对集群配置文件进行修改，这个值都会自增 1，后续集群间配置文件同步时，也是由 `config_version` 的值决定谁是 "最新" 的。
+
+
+### 2.8 配置资源
+
+```text
+Service Operations:
+      --lsserviceopts [service type]
+                        List available services.  If a service type is
+                        specified, then list options for the specified
+                        service type
+      --lsservices      List currently configured services and resources in
+                        the cluster
+      --addresource <resource type> [resource options] ...
+                        Add global cluster resources to the cluster
+                        Resource types and variables can be found in the
+                        online documentation under 'HA Resource Parameters'
+      --rmresource <resource type> [resource options]
+                        Remove specified resource with resource options
+      --addservice <servicename> [service options] ...
+                        Add service to cluster
+      --rmservice <servicename>
+                        Removes a service and all of its subservices
+      --addvm <virtual machine name> [vm options] ...
+                        Add a virtual machine to the cluster
+      --rmvm <virtual machine name>
+                        Removes named virtual machine from the cluster
+      --addsubservice <servicename> <subservice> [service options] ...
+                        Add individual subservices, if adding child services,
+                        use ':' to separate parent and child subservices
+                        and brackets to identify subservices of the same type
+
+                        Subservice types and variables can be found in the
+                        online documentation in 'HA Resource Parameters'
+
+                        To add a nfsclient subservice as a child of the 2nd
+                        nfsclient subservice in the 'service_a' service use
+                        the following example: --addsubservice service_a \
+                                               nfsclient[1]:nfsclient \
+                                               ref=/test
+      --rmsubservice <servicename> <subservice>
+                        Removes a specific subservice specified by the
+                        subservice, using ':' to separate elements and
+                        brackets to identify between subservices of the
+                        same type.
+                        To remove the 1st nfsclient child subservice
+                        of the 2nd nfsclient subservice in the 'service_a'
+                        service, use the following example:
+                                            --rmsubservice service_a \
+                                            nfsclient[1]:nfsclient
+```
+
+* 2.8.1 准备工作
+
+    > 关于 `resource` 和 `service`：可以将多个 `resource` 绑定在一起，创建成一个 `service`，类似于 RHCS 7 中的 "资源组"。
+
+    ```sh
+    ccs -h <host> --lsresourceopt       # 列出所有支持的 resource
+    ccs -h <host> --lsresourceopt ip    # 列出指定 resource 的配置选项
+
+    ccs -h <host> --lsservices          # 列出所有已经配置的 resource 和 service
+    ccs -h <host> --addresource resourcetype [resource options]   # 添加
+    ccs -h <host> --rmresource resourcetype [resource options]    # 删除
+    ```
+
+    ```sh
+    ~] ccs -h rhel64-node01 --lsresourceopt
+
+    service - Defines a service (resource group).
+    ASEHAagent - Sybase ASE Failover Instance
+    SAPDatabase - Manages any SAP database (based on Oracle, MaxDB, or DB2)
+    SAPInstance - SAP instance resource agent
+    apache - Defines an Apache web server
+    clusterfs - Defines a cluster file system mount.
+    fs - Defines a file system mount.
+    ip - This is an IP address.
+    lvm - LVM Failover script
+    mysql - Defines a MySQL database server
+    named - Defines an instance of named server
+    netfs - Defines an NFS/CIFS file system mount.
+    nfsclient - Defines an NFS client.
+    nfsexport - This defines an NFS export.
+    nfsserver - This defines an NFS server resource.
+    openldap - Defines an Open LDAP server
+    oracledb - Oracle 10g Failover Instance
+    orainstance - Oracle 10g Failover Instance
+    oralistener - Oracle 10g Listener Instance
+    postgres-8 - Defines a PostgreSQL server
+    samba - Dynamic smbd/nmbd resource agent
+    script - LSB-compliant init script as a clustered resource.
+    tomcat-6 - Defines a Tomcat server
+    vm - Defines a Virtual Machine
+    ```
+
+* 2.8.2 添加 IP
+
+    ```sh
+    ~] ccs -h rhel64-node01 --lsserviceopt ip
+
+    ip - This is an IP address.
+      Required Options:
+        address: IP Address
+      Optional Options:
+        family: Family
+        monitor_link: Monitor NIC Link
+        nfslock: Enable NFS lock workarounds
+        sleeptime: Amount of time (seconds) to sleep.
+        disable_rdisc: Disable updating of routing using RDISC protocol
+        prefer_interface: Network interface
+        __independent_subtree: Treat this and all children as an independent subtree.
+        __enforce_timeouts: Consider a timeout for operations as fatal.
+        __max_failures: Maximum number of failures before returning a failure to a status check.
+        __failure_expire_time: Amount of time before a failure is forgotten.
+        __max_restarts: Maximum number restarts for an independent subtree before giving up.
+        __restart_expire_time: Amount of time before a failure is forgotten for an independent subtree.
+    ```
+
+    使用以下命令 添加/删除 IP 资源：
+
+    ```sh
+    # 添加
+    ccs -h rhel64-node01 --addresource ip address="192.168.161.18/24" family=ipv4 monitor_link=1 sleeptime=10 prefer_interface=eth0
+    ccs -h rhel64-node01 --addresource ip address="192.168.161.19/24" family=ipv4 monitor_link=1 sleeptime=10 prefer_interface=eth0
+
+    # 删除
+    # ccs -h <host> --rmresource <resourcetype> [resource options]
+    ccs -h rhel64-node01 --rmresource ip address="192.168.161.18/24"
+    ccs -h rhel64-node01 --rmresource ip address="192.168.161.19/24"
+    ```
+
+* 2.8.3 添加 HA-LVM
+ 
+    ```sh
+    ~] ccs -h rhel64-node01 --lsserviceopt lvm
+    vm - LVM Failover script
+     Required Options:
+       name: Name
+       vg_name: Volume group name
+     Optional Options:
+       lv_name: Logical Volume name (optional).
+       self_fence: Fence the node if it is not able to clean up LVM tags
+       nfslock: Enable NFS lock workarounds
+       __independent_subtree: Treat this and all children as an independent subtree.
+       __enforce_timeouts: Consider a timeout for operations as fatal.
+       __max_failures: Maximum number of failures before returning a failure to a status check.
+       __failure_expire_time: Amount of time before a failure is forgotten.
+       __max_restarts: Maximum number restarts for an independent subtree before giving up.
+       __restart_expire_time: Amount of time before a failure is forgotten for an independent subtree.
+
+
+    ~] ccs -h rhel64-node01 --addresource lvm name="LVM_RHCS01" vg_name="rhcs01" lv_name="data01" self_fence=1
+    ~] ccs -h rhel64-node01 --addresource lvm name="LVM_RHCS02" vg_name="rhcs02" lv_name="data02" self_fence=1
+    ```
+
+* 2.8.4 添加 FileSystem
+
+    ```sh
+    ~] ccs -h rhel64-node01 --lsserviceopt fs
+
+    fs - Defines a file system mount.
+      Required Options:
+        name: File System Name
+        mountpoint: Mount Point
+        device: Device or Label
+      Optional Options:
+        fstype: File system type
+        force_unmount: Force Unmount
+        quick_status: Quick/brief status checks.
+        self_fence: Seppuku Unmount
+        nfslock: Enable NFS lock workarounds
+        nfsrestart: Enable NFS daemon and lockd workaround
+        fsid: NFS File system ID
+        force_fsck: Force fsck support
+        options: Mount Options
+        __independent_subtree: Treat this and all children as an independent subtree.
+        __enforce_timeouts: Consider a timeout for operations as fatal.
+        __max_failures: Maximum number of failures before returning a failure to a status check.
+        __failure_expire_time: Amount of time before a failure is forgotten.
+        __max_restarts: Maximum number restarts for an independent subtree before giving up.
+        __restart_expire_time: Amount of time before a failure is forgotten for an independent subtree.
+
+
+    ~] ccs -h rhel64-node01 --addresource fs name="FS_data01" mountpoint="/data01" device="/dev/mapper/rhcs01-data01" fst
+    ype="ext4" self_fence=1
+    ~] ccs -h rhel64-node01 --addresource fs name="FS_data02" mountpoint="/data02" device="/dev/mapper/rhcs02-data02" fstype="ext4" self_fence=1
+    ```
+
+* 2.8.5 添加 VSFTPD
+
+    RHCS 6 中没有办法将一个系统服务添加到集群，需要使用 script 来替代。
+
+    1. 从 /etc/init.d/vsftpd 复制两份出来，分别作为两个节点 VSFTPD 服务的服务文件(启动脚本)
+
+        ```sh
+        cp -a /etc/init.d/vsftpd /etc/init.d/vsftpd_01
+        cp -a /etc/init.d/vsftpd /etc/init.d/vsftpd_02
+        ```
+
+    2. 修改服务文件，保证只按指定的配置文件启动 VSFTPD
+
+        将原有的 `CONFS` 行注释，新增一行 `CONFS`: 
+
+        ```sh
+        ~] vi /etc/init.d/vsftpd_01
+        ...
+        # CONFS=`ls /etc/vsftpd/*.conf 2>/dev/null`
+        CONFS=`ls /etc/vsftpd/vsftpd_01.conf 2>/dev/null`
+        ...
+
+        ~] vi /etc/init.d/vsftpd_02
+        ...
+        # CONFS=`ls /etc/vsftpd/*.conf 2>/dev/null`
+        CONFS=`ls /etc/vsftpd/vsftpd_02.conf 2>/dev/null`
+        ...
+        ```
+
+    3. 添加 script 到集群
+
+        ```sh
+        ~] ccs -h rhel64-node01 --lsserviceopt script
+        script - LSB-compliant init script as a clustered resource.
+          Required Options:
+            name: Name
+            file: Path to script
+          Optional Options:
+            service_name: Inherit the service name.
+            __independent_subtree: Treat this and all children as an independent subtree.
+            __enforce_timeouts: Consider a timeout for operations as fatal.
+            __max_failures: Maximum number of failures before returning a failure to a status check.
+            __failure_expire_time: Amount of time before a failure is forgotten.
+            __max_restarts: Maximum number restarts for an independent subtree before giving up.
+            __restart_expire_time: Amount of time before a failure is forgotten for an independent subtree.
+
+
+        ~] ccs -h rhel64-node01 --addresource script name="VSFTPD_01" file="/etc/init.d/vsftpd_01"
+        ~] ccs -h rhel64-node01 --addresource script name="VSFTPD_02" file="/etc/init.d/vsftpd_02"
+        ```
+
+    添加完 IP，LVM，FS 和 SCRIPT 后，配置文件内容如下：
+
+    ```html
+    ~] ccs -h rhel64-node01 --getconf
+
+    <cluster config_version="15" name="Cluster-VSFTPD">  
+      <fence_daemon/>  
+      <clusternodes>    
+        <clusternode name="rhel64-node01" nodeid="1"/>    
+        <clusternode name="rhel64-node02" nodeid="2"/>    
+      </clusternodes>  
+      <cman/>  
+      <fencedevices/>  
+      <rm>    
+        <failoverdomains/>    
+        <resources>      
+          <ip address="192.168.161.18/24" family="ipv4" monitor_link="1" prefer_interface="eth0" sleeptime="10"/>      # <= IP
+          <ip address="192.168.161.19/24" family="ipv4" monitor_link="1" prefer_interface="eth0" sleeptime="10"/>      # <= IP
+          <lvm lv_name="data01" name="LVM_RHCS01" self_fence="1" vg_name="rhcs01"/>      # <= LVM
+          <lvm lv_name="data02" name="LVM_RHCS02" self_fence="1" vg_name="rhcs02"/>      # <= LVM
+          <fs device="/dev/mapper/rhcs01-data01" fstype="ext4" mountpoint="/data01" name="FS_data01" self_fence="1"/>      # <= FS
+          <fs device="/dev/mapper/rhcs02-data02" fstype="ext4" mountpoint="/data02" name="FS_data02" self_fence="1"/>      # <= FS
+          <script file="/etc/init.d/vsftpd_01" name="VSFTPD_01"/>      # <= SCRIPT
+          <script file="/etc/init.d/vsftpd_02" name="VSFTPD_02"/>      # <= SCRIPT
+        </resources>    
+      </rm>  
+    </cluster>
+    ```
+
+    ```sh
+    ~] ccs -h rhel64-node01 --lsservices
+
+    resources: 
+      ip: monitor_link=1, sleeptime=10, prefer_interface=eth0, family=ipv4, address=192.168.161.18/24
+      ip: monitor_link=1, sleeptime=10, prefer_interface=eth0, family=ipv4, address=192.168.161.19/24
+      lvm: name=LVM_RHCS01, self_fence=1, vg_name=rhcs01, lv_name=data01
+      lvm: name=LVM_RHCS02, self_fence=1, vg_name=rhcs02, lv_name=data02
+      fs: name=FS_data01, device=/dev/mapper/rhcs01-data01, mountpoint=/data01, self_fence=1, fstype=ext4
+      fs: name=FS_data02, device=/dev/mapper/rhcs02-data02, mountpoint=/data02, self_fence=1, fstype=ext4
+      script: name=VSFTPD_01, file=/etc/init.d/vsftpd_01
+      script: name=VSFTPD_02, file=/etc/init.d/vsftpd_02
+    ```
+
+### 2.9 配置 Fence
+
+
+* 前沿 
+
+    RHCS 6 配置 Fence 时，有两种配置方式。以双节点为例：
+
+    * 方式一：配置一个 Fence 设备，两个节点作为两个实例添加到该 Fence 设备。适用于选择 vCenter/ESXi/KVM 等虚拟化平台或者集中式电源管理作为 Fence 设备的情况。配置示例：
+
+        ```html
+            <clusternode name="rhel64-node01" nodeid="1">      
+                <fence>        
+                    <method name="xvm_method">          
+                        <device name="XVM_FENCE" port="rhel64-01"/>          
+                    </method>        
+                </fence>      
+            </clusternode>    
+            <clusternode name="rhel64-node02" nodeid="2">      
+                <fence>        
+                    <method name="xvm_method">          
+                        <device name="XVM_FENCE" port="rhel64-02"/>          
+                    </method>        
+                </fence>      
+            </clusternode> 
+        ...
+        <fencedevices>    
+                <fencedevice agent="fence_xvm" name="XVM_FENCE"/>    
+        </fencedevices> 
+        ```
+
+    * 方式二：配置两个 Fence 设备，两个节点分别使用不同的 Fence 设备。适用于使用物理机 IPMI/带外/管理 接口作为 Fence 设备的情况。vCenter/ESXi/KVM 同样适用。配置示例：
+
+        ```html
+            <clusternode name="rhel64-node01" nodeid="1" votes="1">
+                <fence>
+                    <method name="xvm_method">
+                        <device delay="5" name="fencedev1"/>
+                    </method>
+                </fence>
+                </clusternode>
+            <clusternode name="rhel64-node02" nodeid="2" votes="1">
+                <fence>
+                    <method name="xvm_method">
+                        <device name="fencedev2"/>
+                    </method>
+                </fence>
+            </clusternode>
+        ...
+        <fencedevices>
+            <fencedevice agent="fence_xvm" name="XVM_FENCE_1" port="rhel64-01"/>
+            <fencedevice agent="fence_xvm" name="XVM_FENCE_2" port="rhel64-02"/>
+        </fencedevices>
+        ```
+        .,bvcx
+
+```text
+Fencing Operations:
+      --lsfenceopts [fence type]
+                        List available fence devices.  If a fence type is
+                        specified, then list options for the specified
+                        fence type
+      --lsfencedev      List all of the fence devices configured
+      --lsfenceinst [<node>]
+                        List all of the fence methods and instances on the
+                        specified node or all nodes if no node is specified
+      --addmethod <method> <node>
+                        Add a fence method to a specific node
+      --rmmethod <method> <node>
+                        Remove a fence method from a specific node
+      --addfencedev <device name> [fence device options]
+                        Add fence device. Fence devices and parameters can be
+                        found in online documentation in 'Fence Device
+                        Parameters'
+      --rmfencedev <fence device name>
+                        Remove fence device
+      --addfenceinst <fence device name> <node> <method> [options]
+                        Add fence instance. Fence instance parameters can be
+                        found in online documentation in 'Fence Device
+                        Parameters'
+      --rmfenceinst <fence device name> <node> <method>
+                        Remove all instances of the fence device listed from
+                        the given method and node
+      --addunfenceinst <fence device name> <node> [options]
+                        Add an unfence instance
+      --rmunfenceinst <fence device name> <node>
+                        Remove all instances of the fence device listed from
+                        the unfence section of the node
+```
+
+
+常用的 Fence 设备：
+
+```sh
+~] ccs -h rhel64-node01 --lsfenceopt
+
+...
+fence_ipmilan - Fence agent for IPMI over LAN
+fence_vmware_soap - Fence agent for VMWare over SOAP API
+fence_xvm - Fence agent for virtual machines
+```
+
+ * 前置操作
+
+     参考 [1.9 配置 Fence](#19-配置-fence) `1.9.3 前置配置` 中的前置操作
+
+* 使用 vCenter 作为 Fence 设备
+
+    ```sh
+    ]# ccs -h rhel64-node01 --lsfenceopt fence_vmware_soap
+    fence_vmware_soap - Fence agent for VMWare over SOAP API
+      Required Options:
+      Optional Options:
+        option: No description available
+        action: Fencing Action
+        ipaddr: IP Address or Hostname
+        login: Login Name
+        passwd: Login password or passphrase
+        passwd_script: Script to retrieve password
+        ssl: SSL connection
+        port: Physical plug number or name of virtual machine
+        uuid: The UUID of the virtual machine to fence.
+        ipport: TCP port to use for connection with device
+        verbose: Verbose mode
+        debug: Write debug information to given file
+        version: Display version information and exit
+        help: Display help and exit
+        separator: Separator for CSV created by operation list
+        power_timeout: Test X seconds for status change after ON/OFF
+        shell_timeout: Wait X seconds for cmd prompt after issuing command
+        login_timeout: Wait X seconds for cmd prompt after login
+        power_wait: Wait X seconds after issuing ON/OFF
+        delay: Wait X seconds before fencing is started
+        retry_on: Count of attempts to retry power on
+    ```
+
+    ```sh
+    # Example
+    # Hostname: node01,node02; 
+    # VM name: vm-node01,vm-node02
+
+    # 找到虚拟机
+    ~] fence_vmware_soap -a 192.168.163.252 -z -l administrator@vsphere.local -p 1qaz@WSX4rfv -o list
+    ...
+    vm-node01,422ad512-3ce5-c046-0046-9516094be718
+    vm-node02,422ac3f0-e2f9-31a7-1816-7980e4757b80
+    ...
+
+    # 创建 fence 设备
+    ~] ccs -h node01 --addfencedev VC_Fence agent=fence_vmware_soap ipaddr="192.168.163.252" login="administrator@vsphere.local" passwd="1qaz@WSX4rfv" action="reboot"
+
+    # 为节点添加一个 method
+    ~] ccs -h node01 --addmethod method_name node01
+    ~] ccs -h node01 --addmethod method_name node02
+
+    # 添加实例
+    ~] ccs -h node01 --addfenceinst VC_Fence node01 method_name port=vm-node01 ssl=on uuid=422ad512-3ce5-c046-0046-9516094be718
+    ~] ccs -h node01 --addfenceinst VC_Fence node02 method_name port=vm-node02 ssl=on uuid=422ac3f0-e2f9-31a7-1816-7980e4757b80
+    
+    # 删除
+    ccs -h <host> --rmmethod <method> <node>
+    ccs -h <host> --rmfenceinst --rmfenceinst <fence device name> <node> <method>
+    ```
+
+* ipmi: fence_ipmilan
+
+    ```sh
+    ~] ccs -h rhel64-node01 --lsfenceopt fence_ipmilan
+
+    fence_ipmilan - Fence agent for IPMI over LAN
+      Required Options:
+      Optional Options:
+        option: No description available
+        auth: IPMI Lan Auth type (md5, password, or none)
+        ipaddr: IPMI Lan IP to talk to
+        passwd: Password (if required) to control power on IPMI device
+        passwd_script: Script to retrieve password (if required)
+        lanplus: Use Lanplus
+        login: Username/Login (if required) to control power on IPMI device
+        action: Operation to perform. Valid operations: on, off, reboot, status, list, diag, monitor or metadata
+        timeout: Timeout (sec) for IPMI operation
+        cipher: Ciphersuite to use (same as ipmitool -C parameter)
+        method: Method to fence (onoff or cycle)
+        power_wait: Wait X seconds after on/off operation
+        delay: Wait X seconds before fencing is started
+        privlvl: Privilege level on IPMI device
+        verbose: Verbose mode
+    ```
+
+    ```sh
+    # 
+    ~] ipmitool -I lanplus -H x.x.x.x -U root -P 'Yth@2019' -v chassis power status
+
+    # 
+    ccs -h node01 --addfencedev IPMI_Fence_01 agent=fence_ipmilan ipaddr="192.168.1.10" auth="password" login="admin" passwd="passw0rd" lanplus=1 power_wait=4
+    ccs -h node01 --addfencedev IPMI_Fence_02 agent=fence_ipmilan ipaddr="192.168.1.11" auth="password" login="admin" passwd="passw0rd" lanplus=1 power_wait=4
+
+    ccs -h node01 --addmethod ipmi_method node01
+    ccs -h node01 --addmethod ipmi_method node02
+
+    ccs -h node01 --addfenceinst IPMI_Fence_01 node01 ipmi_method
+    ccs -h node01 --addfenceinst IPMI_Fence_02 node02 ipmi_method
+    ```
+
+* KVM 虚拟机： fence_xvm
+
+    1. 从 KVM 宿主机(配置了 `fence_virtd` )中过去 Key 文件
+
+        ```sh
+        rhel64-node01 ~] scp {kvm_host}:/etc/cluster/fence_xvm.key /etc/cluster/
+        rhel64-node02 ~] scp {kvm_host}:/etc/cluster/fence_xvm.key /etc/cluster/
+        ```
+
+    2. 验证本地能通过以下命令获取到各个节点信息, 并且状态 on
+
+        ```sh
+        ~] fence_xvm -o list
+        rhel64-01            1cdcf5d4-d6f6-4251-9864-ec4b516fd344 on
+        rhel64-02            999303cd-a80e-4a44-af38-b15fe7302f86 on
+        ```
+
+    3. 添加 Fence device，method，instance
+
+        ```sh
+        ~] ccs -h rhel64-node01 --addfencedev XVM_FENCE agent="fence_xvm" key_file="/etc/cluster/fence_xvm.key"
+
+        ~] ccs -h rhel64-node01 --addmethod xvm_method rhel64-node01
+        ~] ccs -h rhel64-node01 --addmethod xvm_method rhel64-node02
+
+        ~] ccs -h rhel64-node01 --addfenceinst XVM_FENCE rhel64-node01 xvm_method port="rhel64-01"
+        ~] ccs -h rhel64-node01 --addfenceinst XVM_FENCE rhel64-node02 xvm_method port="rhel64-02"
+        ```
+
+
+* 后置操作
+
+    检查/测试 fence 状态：
+
+    ```sh
+    ~] fence_check
+
+    fence_check run at Wed Oct 14 14:49:47 CST 2020 pid: 19117
+    Testing node03 method 1: success
+    Testing node04 method 1: success
+    ```
+
+    测试 Fence 某个节点：
+
+    ```sh
+    ~] fence_node node01
+    ~] fence_node -vv node01
+    ```
+
+### 2.10 配置故障切换域
+
+```text
+Failover Domain Operations:
+      --lsfailoverdomain
+                        Lists all of the failover domains and failover domain
+                        nodes configured in the cluster
+      --addfailoverdomain <name> [restricted] [ordered] [nofailback]
+                        Add failover domain
+      --rmfailoverdomain <name>
+                        Remove failover domain
+      --addfailoverdomainnode <failover domain> <node> [priority]
+                        Add node to given failover domain
+      --rmfailoverdomainnode <failover domain> <node>
+                        Remove node from failover domain
+```
+
+关于参数解释：
+
+1. `restricted`：配置此参数，集群服务限制在该故障切换域内运行；如果域中无可用成员，则服务启动失败。
+2. `ordered`：配置此参数，故障切换域成员按列表顺序排优先级，列表顶端的成员是首选成员，接下来是列表中的第二个成员，依此类推。
+3. `nofailback`：配置此参数，故障节点恢复后，服务不切回到原来节点上运行
+
+
+创建故障切换域：
+
+```sh
+ccs -h rhel64-node01 --addfailoverdomain VSFTPD_Domain_01 restricted ordered
+
+ccs -h rhel64-node01 --addfailoverdomain VSFTPD_Domain_02 restricted ordered
+```
+
+添加域成员，并指定顺序：
+
+```sh
+ccs -h rhel64-node01 --addfailoverdomainnode VSFTPD_Domain_01 rhel64-node01 1 
+ccs -h rhel64-node01 --addfailoverdomainnode VSFTPD_Domain_01 rhel64-node02 2 
+
+ccs -h rhel64-node01 --addfailoverdomainnode VSFTPD_Domain_02 rhel64-node02 1 
+ccs -h rhel64-node01 --addfailoverdomainnode VSFTPD_Domain_02 rhel64-node01 2 
+```
+
+添加完以后，查看配置情况：
+
+```html
+~] ccs -h rhel64-node01 --lsfailoverdomain
+
+VSFTPD_Domain_01: restricted=1, ordered=1, nofailback=0
+  rhel64-node01: priority=1
+  rhel64-node02: priority=2
+VSFTPD_Domain_02: restricted=1, ordered=1, nofailback=0
+  rhel64-node02: priority=1
+  rhel64-node01: priority=2
+
+~] ccs -h rhel64-node01 --getconf
+
+<cluster config_version="21" name="Cluster-VSFTPD">  
+  <fence_daemon/>  
+  <clusternodes>    
+    <clusternode name="rhel64-node01" nodeid="1"/>    
+    <clusternode name="rhel64-node02" nodeid="2"/>    
+  </clusternodes>  
+  <cman/>  
+  <fencedevices/>  
+  <rm>    
+    <failoverdomains>      
+      <failoverdomain name="VSFTPD_Domain_01" nofailback="0" ordered="1" restricted="1">        # <= Failback Domain
+        <failoverdomainnode name="rhel64-node01" priority="1"/>        
+        <failoverdomainnode name="rhel64-node02" priority="2"/>        
+      </failoverdomain>      
+      <failoverdomain name="VSFTPD_Domain_02" nofailback="0" ordered="1" restricted="1">        # <= Failback Domain
+        <failoverdomainnode name="rhel64-node02" priority="1"/>        
+        <failoverdomainnode name="rhel64-node01" priority="2"/>        
+      </failoverdomain>      
+    </failoverdomains>    
+    <resources>      
+      <ip address="192.168.161.18/24" family="ipv4" monitor_link="1" prefer_interface="eth0" sleeptime="10"/>      
+      <ip address="192.168.161.19/24" family="ipv4" monitor_link="1" prefer_interface="eth0" sleeptime="10"/>      
+      <lvm lv_name="data01" name="LVM_RHCS01" self_fence="1" vg_name="rhcs01"/>      
+      <lvm lv_name="data02" name="LVM_RHCS02" self_fence="1" vg_name="rhcs02"/>      
+      <fs device="/dev/mapper/rhcs01-data01" fstype="ext4" mountpoint="/data01" name="FS_data01" self_fence="1"/>      
+      <fs device="/dev/mapper/rhcs02-data02" fstype="ext4" mountpoint="/data02" name="FS_data02" self_fence="1"/>      
+      <script file="/etc/init.d/vsftpd_01" name="VSFTPD_01"/>      
+      <script file="/etc/init.d/vsftpd_02" name="VSFTPD_02"/>      
+    </resources>    
+  </rm>  
+</cluster>
+```
+
+
+
+## 对比 RHCS 6 和 RHCS 7
+
+* Cluster configuration file locations
+
+    Redhat Cluster Releases	|Configuration files | Description
+    --|--|--
+    Prior to Redhat Cluster 7 | /etc/cluster/cluster.conf | Stores all the configuration of cluster
+    Redhat Cluster 7 (RHEL 7) | /etc/corosync/corosync.conf | Membership and Quorum configuration
+    Redhat Cluster 7 (RHEL 7) | /var/lib/heartbeat/crm/cib.xml | Cluster node and Resource configuration.
+
+* Commands
+
+    Configuration Method | Prior to Redhat Cluster 7 | Redhat Cluster 7 (RHEL 7)
+    --|--|--
+    Command Line utiltiy | ccs | pcs
+    GUI tool | luci | PCSD – Pacemaker Web GUI Utility
+
+* Services
+
+    Redhat Cluster Releases | Services | Description
+    --|--|--
+    Prior to Redhat Cluster 7 | rgmanager	 | Cluster Resource Manager.
+    Prior to Redhat Cluster 7 | cman	     | Manages cluster quorum and cluster membership.
+    Prior to Redhat Cluster 7 | ricci	     | Cluster management and configuration daemon.
+    Redhat Cluster 7 (RHEL 7) | pcsd.service | Cluster  Resource Manager.
+    Redhat Cluster 7 (RHEL 7) | corosync.service | Manages cluster quorum and cluster membership.
+
+    NOTES: 上表中的 `cman` 服务，实际上也是由 `corosync` 提供: 
+    
+    ```sh
+    ~] service cman status
+    corosync is stopped
+    ```
+
+* Cluster user
+
+    User Access	| Prior to Redhat Cluster 7 | Redhat Cluster 7 (RHEL 7)
+    --|--|--
+    Cluster user name | ricci | hacluster
+
+* How simple to create a cluster on RHEL 7 ?
+
+    Redhat Cluster Releases | Cluster Creation | Description
+    --|--|--
+    Prior to Redhat Cluster 7 | `ccs -h node1.ua.com –createcluster uacluster` | Create cluster on first node using ccs
+    Prior to Redhat Cluster 7 | `ccs -h node1.ua.com –addnode node2.ua.com` | Add the second node  to the existing cluster
+    Redhat Cluster 7 (RHEL 7) | `pcs cluster setup uacluster node1 node2` | Create a cluster on both the nodes using pcs
+
+* Is there any pain to remove a cluster in RHEL 7 ?  No. It’s very simple.
+
+    Redhat Cluster Releases | Remove Cluster | Description
+    --|--|--
+    Prior to Redhat Cluster 7 | `rm /etc/cluster/cluster.conf` | Remove the cluster.conf file on each cluster nodes
+    Prior to Redhat Cluster 7 | `service rgmanager stop`<br>`service cman stop`<br> `service ricci stop` | Stop the cluster services on each cluster nodes
+    Prior to Redhat Cluster 7 | `chkconfig rgmanager off`<br> `chkconfig cman off`<br>`chkconfig ricci off`| Disable the cluster services from startup
+    Redhat Cluster 7 (RHEL 7) | `pcs cluster destroy` | Destroy the cluster in one-shot using pacemaker

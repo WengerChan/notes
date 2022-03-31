@@ -25,6 +25,8 @@
     virsh shutdown VM-NAME     # 正常关机
     virsh destroy VM-NAME      # 强制关机
     ```
+    
+    NOTES: 如果 `shutdown` 无法关机, 说明虚拟机内的 `acpi`/`acpid` 服务有问题或未安装; Ubuntu 的 "关机确认" 没有关闭也会导致关机失败
 
 * 挂起
 

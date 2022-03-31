@@ -174,8 +174,6 @@
 ## 关于 VSFTPD 服务模式
 
 
-被动模式, PASV Style, passive mode
-
 * 主动模式
 
     主动模式, PORT Style, active mode
@@ -202,6 +200,8 @@
 
 
 * 被动模式
+
+    被动模式, PASV Style, passive mode
 
     * 端口
     
@@ -898,8 +898,7 @@ Upload file:
 
 ```text
 setsebool -P ftpd_full_access 1
-```
-
+```aa
 
 查看:
 
