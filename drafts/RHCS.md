@@ -159,7 +159,7 @@
 
     Workstation/vSphere 等可创建使用共享磁盘
 
-## Demo 1: RHCS via RHEL 6.7
+## Demo 1 - RHEL7.6 - 双机双业务互为冗余的 VSFTPD RHCS 集群
 
 ### 1.1 配置时间同步
 
@@ -1576,6 +1576,8 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 | rhel64-node01 | 192.168.161.16 | 10.168.161.16 | 20.168.161.16       |
 | rhel64-node02 | 192.168.161.17 | 10.168.161.17 | 20.168.161.17       |
 
+
+
 ### 2.1 配置时间同步
 
 两个节点配置到同一时间源, 使用 `ntpd` 同步或者定时执行 `ntpupdate` 均可。
@@ -1592,6 +1594,8 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 ```
 
 ### 2.3 配置网卡绑定
+
+> 需要关闭 `NetworkManager`
 
 有网络冗余要求, 可配置 `Team` 或者 `Bonding`, Refer to: *[Bonding](Bonding.md)* or *[Team](Team.md)*
 
@@ -2121,14 +2125,14 @@ Service Operations:
       <rm>    
         <failoverdomains/>    
         <resources>      
-          <ip address="192.168.161.18/24" family="ipv4" monitor_link="1" prefer_interface="eth0" sleeptime="10"/>      # <= IP
-          <ip address="192.168.161.19/24" family="ipv4" monitor_link="1" prefer_interface="eth0" sleeptime="10"/>      # <= IP
-          <lvm lv_name="data01" name="LVM_RHCS01" self_fence="1" vg_name="rhcs01"/>      # <= LVM
-          <lvm lv_name="data02" name="LVM_RHCS02" self_fence="1" vg_name="rhcs02"/>      # <= LVM
-          <fs device="/dev/mapper/rhcs01-data01" fstype="ext4" mountpoint="/data01" name="FS_data01" self_fence="1"/>      # <= FS
-          <fs device="/dev/mapper/rhcs02-data02" fstype="ext4" mountpoint="/data02" name="FS_data02" self_fence="1"/>      # <= FS
-          <script file="/etc/init.d/vsftpd_01" name="VSFTPD_01"/>      # <= SCRIPT
-          <script file="/etc/init.d/vsftpd_02" name="VSFTPD_02"/>      # <= SCRIPT
+          <ip address="192.168.161.18/24" family="ipv4" monitor_link="1" prefer_interface="eth0" sleeptime="10"/>      <!-- IP -->
+          <ip address="192.168.161.19/24" family="ipv4" monitor_link="1" prefer_interface="eth0" sleeptime="10"/>      <!-- IP -->
+          <lvm lv_name="data01" name="LVM_RHCS01" self_fence="1" vg_name="rhcs01"/>      <!-- LVM -->
+          <lvm lv_name="data02" name="LVM_RHCS02" self_fence="1" vg_name="rhcs02"/>      <!-- LVM -->
+          <fs device="/dev/mapper/rhcs01-data01" fstype="ext4" mountpoint="/data01" name="FS_data01" self_fence="1"/>      <!-- FS -->
+          <fs device="/dev/mapper/rhcs02-data02" fstype="ext4" mountpoint="/data02" name="FS_data02" self_fence="1"/>      <!-- FS -->
+          <script file="/etc/init.d/vsftpd_01" name="VSFTPD_01"/>      <!-- SCRIPT -->
+          <script file="/etc/init.d/vsftpd_02" name="VSFTPD_02"/>      <!-- SCRIPT -->
         </resources>    
       </rm>  
     </cluster>
@@ -2151,7 +2155,7 @@ Service Operations:
 ### 2.9 配置 Fence
 
 
-* 前沿 
+* 前言
 
     RHCS 6 配置 Fence 时，有两种配置方式。以双节点为例：
 
@@ -2203,55 +2207,72 @@ Service Operations:
         ```
         .,bvcx
 
-```text
-Fencing Operations:
-      --lsfenceopts [fence type]
-                        List available fence devices.  If a fence type is
-                        specified, then list options for the specified
-                        fence type
-      --lsfencedev      List all of the fence devices configured
-      --lsfenceinst [<node>]
-                        List all of the fence methods and instances on the
-                        specified node or all nodes if no node is specified
-      --addmethod <method> <node>
-                        Add a fence method to a specific node
-      --rmmethod <method> <node>
-                        Remove a fence method from a specific node
-      --addfencedev <device name> [fence device options]
-                        Add fence device. Fence devices and parameters can be
-                        found in online documentation in 'Fence Device
-                        Parameters'
-      --rmfencedev <fence device name>
-                        Remove fence device
-      --addfenceinst <fence device name> <node> <method> [options]
-                        Add fence instance. Fence instance parameters can be
-                        found in online documentation in 'Fence Device
-                        Parameters'
-      --rmfenceinst <fence device name> <node> <method>
-                        Remove all instances of the fence device listed from
-                        the given method and node
-      --addunfenceinst <fence device name> <node> [options]
-                        Add an unfence instance
-      --rmunfenceinst <fence device name> <node>
-                        Remove all instances of the fence device listed from
-                        the unfence section of the node
-```
+
+    配置语法：
+
+    ```text
+    Fencing Operations:
+          --lsfenceopts [fence type]
+                            List available fence devices.  If a fence type is
+                            specified, then list options for the specified
+                            fence type
+          --lsfencedev      List all of the fence devices configured
+          --lsfenceinst [<node>]
+                            List all of the fence methods and instances on the
+                            specified node or all nodes if no node is specified
+          --addmethod <method> <node>
+                            Add a fence method to a specific node
+          --rmmethod <method> <node>
+                            Remove a fence method from a specific node
+          --addfencedev <device name> [fence device options]
+                            Add fence device. Fence devices and parameters can be
+                            found in online documentation in 'Fence Device
+                            Parameters'
+          --rmfencedev <fence device name>
+                            Remove fence device
+          --addfenceinst <fence device name> <node> <method> [options]
+                            Add fence instance. Fence instance parameters can be
+                            found in online documentation in 'Fence Device
+                            Parameters'
+          --rmfenceinst <fence device name> <node> <method>
+                            Remove all instances of the fence device listed from
+                            the given method and node
+          --addunfenceinst <fence device name> <node> [options]
+                            Add an unfence instance
+          --rmunfenceinst <fence device name> <node>
+                            Remove all instances of the fence device listed from
+                            the unfence section of the node
+    ```
 
 
-常用的 Fence 设备：
+    常用的 Fence 设备：
 
-```sh
-~] ccs -h rhel64-node01 --lsfenceopt
+    ```sh
+    ~] ccs -h rhel64-node01 --lsfenceopt
 
-...
-fence_ipmilan - Fence agent for IPMI over LAN
-fence_vmware_soap - Fence agent for VMWare over SOAP API
-fence_xvm - Fence agent for virtual machines
-```
+    ...
+    fence_ipmilan - Fence agent for IPMI over LAN
+    fence_vmware_soap - Fence agent for VMWare over SOAP API
+    fence_xvm - Fence agent for virtual machines
+    ```
 
- * 前置操作
+* 前置操作
 
      参考 [1.9 配置 Fence](#19-配置-fence) `1.9.3 前置配置` 中的前置操作
+
+    > When using SELinux with the High Availability Add-On in a VM environment, you should ensure that the SELinux boolean `fenced_can_network_connect` is persistently set to on. This allows the `fence_xvm` fencing agent to work properly, enabling the system to fence virtual machines.
+
+    关于`post_fail_delay`,`post_join_delay`两个参数
+
+    - `post_fail_delay`: the number of seconds the fence daemon ( `fenced` ) waits before fencing a node (a member of the fence domain) after the node has failed (default 0) .
+    - `post_join_delay`: the number of seconds the fence daemon ( `fenced` ) waits before fencing a node after the node joins the fence domain. The `post_join_delay` default value is 6. A typical setting for `post_join_delay` is between 20 and 30 seconds, but can vary according to cluster and network performance.
+
+    这两个参数需要同时设置，如果只单独设置一个，另一个会重置为默认值  
+
+    ```sh
+    ccs -h node01 --setfencedaemon post_fail_delay=5 post_join_delay=25
+    ```
+
 
 * 使用 vCenter 作为 Fence 设备
 
@@ -2337,13 +2358,14 @@ fence_xvm - Fence agent for virtual machines
     ```
 
     ```sh
-    # 
+    # 验证
     ~] ipmitool -I lanplus -H x.x.x.x -U root -P 'Yth@2019' -v chassis power status
 
-    # 
+    # 创建 Fence 设备
     ccs -h node01 --addfencedev IPMI_Fence_01 agent=fence_ipmilan ipaddr="192.168.1.10" auth="password" login="admin" passwd="passw0rd" lanplus=1 power_wait=4
     ccs -h node01 --addfencedev IPMI_Fence_02 agent=fence_ipmilan ipaddr="192.168.1.11" auth="password" login="admin" passwd="passw0rd" lanplus=1 power_wait=4
 
+    # 添加 method 和 instances
     ccs -h node01 --addmethod ipmi_method node01
     ccs -h node01 --addmethod ipmi_method node02
 
@@ -2386,7 +2408,7 @@ fence_xvm - Fence agent for virtual machines
     检查/测试 fence 状态：
 
     ```sh
-    ~] fence_check
+    ~] fence_check     # 需要启动集群才能验证
 
     fence_check run at Wed Oct 14 14:49:47 CST 2020 pid: 19117
     Testing node03 method 1: success
@@ -2466,11 +2488,11 @@ VSFTPD_Domain_02: restricted=1, ordered=1, nofailback=0
   <fencedevices/>  
   <rm>    
     <failoverdomains>      
-      <failoverdomain name="VSFTPD_Domain_01" nofailback="0" ordered="1" restricted="1">        # <= Failback Domain
+      <failoverdomain name="VSFTPD_Domain_01" nofailback="0" ordered="1" restricted="1">        <!-- Failback Domain -->
         <failoverdomainnode name="rhel64-node01" priority="1"/>        
         <failoverdomainnode name="rhel64-node02" priority="2"/>        
       </failoverdomain>      
-      <failoverdomain name="VSFTPD_Domain_02" nofailback="0" ordered="1" restricted="1">        # <= Failback Domain
+      <failoverdomain name="VSFTPD_Domain_02" nofailback="0" ordered="1" restricted="1">        <!-- Failback Domain -->
         <failoverdomainnode name="rhel64-node02" priority="1"/>        
         <failoverdomainnode name="rhel64-node01" priority="2"/>        
       </failoverdomain>      
@@ -2488,6 +2510,128 @@ VSFTPD_Domain_02: restricted=1, ordered=1, nofailback=0
   </rm>  
 </cluster>
 ```
+
+
+### 2.11 配置仲裁
+
+> Quorum Disk is a disk-based quorum daemon, `qdiskd`, that provides supplemental heuristics to determine node fitness. With heuristics you can determine factors that are important to the operation of the node in the event of a network partition. For example, in a four-node cluster with a 3:1 split, ordinarily, the three nodes automatically "win" because of the three-to-one majority. Under those circumstances, the one node is fenced. With `qdiskd` however, you can set up heuristics that allow the one node to win based on access to a critical resource (for example, a critical network path). If your cluster requires additional methods of determining node health, then you should configure qdiskd to meet those needs.<sup>仲裁磁盘是使用磁盘的仲裁守护进程 qdiskd，它可提供补充的试探法（heuristics）以确定节点是否正常运作。使用这些试探法，您可以确定在网络分区事件中对节点操作十分重要的因素。例如：在一个按 3:1 分割的有四个节点的集群中，最初三个节点自动“获胜”，因为三对一的占优。在那些情况下，只有一个节点被 fence。但使用 qdiskd，您可以设定试探法以便允许一个节点因访问重要资源获胜（例如：关键网络路径）。如果您的集群需要额外的方法确定节点工作正常，那么您应该将 qdiskd 配置为满足那些要求。</sup>
+
+配置仲裁的一些要求:
+
+1. 每个集群节点投票权 (vote) 相同, 且都为 1;
+2. 仲裁设备成员超时值是根据 CMAN 成员超时值 ( 即 CMAN 认为节点已死，并不再是成员前该节点不响应的时间 ) 自动配置的; 如果要修改这个值, 应当保证 CMAN 超时值至少是 仲裁设备的 2 倍;
+3. Fence 可用;
+4. 最多支持 16 节点;
+5. 最小 10Mb 的共享磁盘作为仲裁盘。
+
+```sh
+Quorum Operations:
+      --lsquorum        List quorum options and heuristics
+      --setquorumd [quorumd options] ...
+                        Add quorumd options
+      --addheuristic [heuristic options] ...
+                        Add heuristics to quorumd
+      --rmheuristic [heuristic options] ...
+                        Remove heuristic specified by heurstic options
+```
+
+
+* 2.11.1 为节点添加一块共享磁盘, 映射为 "vdd"
+
+    ```sh
+    kvm-host ~] qemu-img create -f raw rhel64-rhcs-100m.raw 100M
+
+    kvm-host ~] virsh attach-disk --domain rhel64-01 --source /var/lib/libvirt/images/rhel64-rhcs-100m.raw --target vdd --targetbus virtio --driver qemu --subdriver raw --shareable --current
+    kvm-host ~] virsh attach-disk --domain rhel64-01 --source /var/lib/libvirt/images/rhel64-rhcs-100m.raw --target vdd --targetbus virtio --driver qemu --subdriver raw --shareable --config
+
+    kvm-host ~] virsh attach-disk --domain rhel64-02 --source /var/lib/libvirt/images/rhel64-rhcs-100m.raw --target vdd --targetbus virtio --driver qemu --subdriver raw --shareable --current
+    kvm-host ~] virsh attach-disk --domain rhel64-02 --source /var/lib/libvirt/images/rhel64-rhcs-100m.raw --target vdd --targetbus virtio --driver qemu --subdriver raw --shareable --config
+    ```
+
+* 2.11.2 格式化磁盘为仲裁盘
+
+    ```sh
+    usage: mkqdisk -L | -f <label> | -c <device> -l <label> [-d]
+
+    ~] mkqdisk -c /dev/vdd -l rhel64-rhcs-qdisk
+
+    ~] mkqdisk -L       # 检查创建结果, 两个节点都检查一下
+    mkqdisk v3.0.12.1
+    
+    /dev/block/252:48:
+    /dev/disk/by-path/pci-0000:00:0c.0-virtio-pci-virtio7:
+    /dev/vdd:
+            Magic:                eb7a62c2
+            Label:                rhel64-rhcs-qdisk
+            Created:              Fri Apr  1 15:21:06 2022
+            Host:                 rhel64-node01
+            Kernel Sector Size:   512
+            Recorded Sector Size: 512
+    ```
+
+* 2.11.3 添加仲裁盘到集群, 并配置启发式 (`heuristic`, 即检测脚本, 频率等)
+
+    ```sh
+    # ccs -h host --setquorumd [quorumd options]
+    
+    ccs -h rhel64-node01 --setquorumd label=rhel64-rhcs-qdisk device=/dev/vdd
+    ```
+
+    quorum disk options: 
+
+    Parameter | Description 
+    -- | --
+    `interval` | The frequency of read/write cycles, in seconds. 
+    `votes` | The number of votes the quorum daemon advertises to cman when it has a high enough score. 
+    `tko` | The number of cycles a node must miss to be declared dead. 
+    `min_score` | The minimum score for a node to be considered "alive". <br>If omitted or set to 0, the default function, ***floor((n+1)/2)***, is used, where *n* is the sum of the heuristics scores. <br>The **Minimum Score** value must never exceed the sum of the heuristic scores; otherwise, the quorum disk cannot be available. 
+    `device` | The storage device the quorum daemon uses. The device must be the same on all nodes. 
+    `label` | Specifies the quorum disk label created by the mkqdisk utility. <br>If this field contains an entry, the label overrides the Device field. <br>If this field is used, the quorum daemon reads `/proc/partitions` and checks for qdisk signatures on every block device found, comparing the label against the specified label. <br>This is useful in configurations where the quorum device name differs among nodes.
+
+
+    ```sh
+    # ccs -h host --addheuristic [heuristic options]
+
+    ccs -h rhel64-node01 --addheuristic program="/bin/ping -c1 -t2 10.168.161.1" interval=2 score=1 tko=2
+    ```
+
+    quorum disk heuristic: 
+
+    Parameter | Description 
+    --|--
+    `program` | The path to the program used to determine if this heuristic is available. <br>This can be anything that can be executed by /bin/sh -c. A return value of 0 indicates success; anything else indicates failure. <br>This parameter is required to use a quorum disk.   
+    `interval` | The frequency (in seconds) at which the heuristic is polled. The default interval for every heuristic is 2 seconds.   
+    `score` | The weight of this heuristic. Be careful when determining scores for heuristics. The default score for each heuristic is 1.   
+    `tko` | The number of consecutive failures required before this heuristic is declared unavailable.  
+
+* 2.11.4 添加后检查
+
+    ```sh
+    ~] ccs -h rhel64-node01 --lsquorum
+
+    Quorumd: device=/dev/vdd, label=rhel64-rhcs-qdisk
+      heuristic: program=/bin/ping -c1 -t2 10.168.161.1, interval=2, score=1, tko=2
+
+
+    ~] ccs -h rhel64-node01 --getconf
+
+      <quorumd device="/dev/vdd" label="rhel64-rhcs-qdisk">    
+        <heuristic interval="2" program="/bin/ping -c1 -t2 10.168.161.1" score="1" tko="2"/>    
+      </quorumd> 
+    ```
+
+
+### 2.12 配置服务
+
+```sh
+~] ccs -h host --addservice <servicename> [service options]
+
+autostart — Specifies whether to autostart the service when the cluster starts. 
+            Use "1" to enable and "0" to disable; the default is enabled.
+   domain — Specifies a failover domain (if required).
+exclusive — Specifies a policy wherein the service only runs on nodes that have no other services running on them.
+ recovery — Specifies a recovery policy for the service. The options are to relocate, restart, disable, or restart-disable the service. The restart recovery policy indicates that the system should attempt to restart the failed service before trying to relocate the service to another node. The relocate policy indicates that the system should try to restart the service in a different node. The disable policy indicates that the system should disable the resource group if any component fails. The restart-disable policy indicates that the system should attempt to restart the service in place if it fails, but if restarting the service fails the service will be disabled instead of being moved to another host in the cluster.
+If you select Restart or Restart-Disable as the recovery policy for the service, you can specify the maximum number of restart failures before relocating or disabling the service, and you can specify the length of time in seconds after which to forget a restart.
 
 
 
