@@ -1018,3 +1018,87 @@ See man page for examples and full option syntax.
         ip link set dev eth0 master br0
         ip addr add 192.168.3.101/24 dev br0
         ```
+
+## Other
+
+### 获取当前宿主机上运行的虚拟机的 IP: `get_vm_ip.sh`
+
+脚本：
+
+```sh
+#!/bin/bash
+
+ip_head1='192.168.161'
+ip_head2='10.168.161'
+
+if [ "$1" == "all" ]; then
+    vm_list=$(virsh list --name)
+else
+    vm_list="$1"
+fi
+
+function ping_ip () {
+
+    for i in $(seq 1 255); do 
+        {
+            ping ${ip_head1}.${i} -c 1 -w 1 > /dev/null  2>&1
+            ping ${ip_head2}.${i} -c 1 -w 1 > /dev/null  2>&1
+        } &
+    done
+    wait
+
+}
+
+function find_vm () {
+
+    for vm in ${vm_list}; do
+        echo "${vm}"
+        vm_mac=$(virsh domiflist ${vm} | grep -Ew 'br0|br-heartb' | awk '{print $NF}')
+        for mac in ${vm_mac}; do
+            arp -n | grep -i ${mac} | awk '{print "\t" "IP:"$1 "\t" "MAC:"$3}'
+        done
+    done
+
+}
+
+function main () {
+
+    ping_ip
+    find_vm
+}
+
+main
+```
+
+实现效果：
+
+* 获取全部虚拟机的 IP
+
+    ```sh
+    ~] bash get_vm_ip.sh all
+
+    centos7.6
+            IP:192.168.161.2        MAC:52:54:00:b7:33:03
+            IP:192.168.161.111      MAC:52:54:00:b7:33:03
+    rhel7.6
+            IP:192.168.161.7        MAC:52:54:00:03:20:e1
+    rhel76-qnetd
+            IP:192.168.161.11       MAC:52:54:00:62:d1:05
+            IP:10.168.161.14        MAC:52:54:00:a6:8a:13
+    rhel76-01
+            IP:192.168.161.14       MAC:52:54:00:e6:3d:8f
+            IP:192.168.161.12       MAC:52:54:00:e6:3d:8f
+            IP:10.168.161.12        MAC:52:54:00:af:5a:d8
+    rhel76-02
+            IP:192.168.161.15       MAC:52:54:00:0e:95:37
+            IP:192.168.161.13       MAC:52:54:00:0e:95:37
+            IP:10.168.161.13        MAC:52:54:00:84:f3:fd
+
+* 获取指定虚拟机的 IP
+
+    ```sh
+    ~] bash get_vm_ip.sh centos7.6
+    centos7.6
+            IP:192.168.161.2        MAC:52:54:00:b7:33:03
+            IP:192.168.161.111      MAC:52:54:00:b7:33:03
+    ```
