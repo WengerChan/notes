@@ -508,7 +508,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
     pcs cluster start --all
     ```
 
-    上面命令等同于以下两条命令：
+    上面命令等同于以下两条命令: 
 
     ```sh
     systemctl start corosync.service
@@ -606,7 +606,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
 
 * 1.8.1 准备工作
 
-    查看集群资源代理标准：
+    查看集群资源代理标准: 
 
     ```sh
     ~] pcs resource standards
@@ -936,7 +936,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
 
     上面配置完成以后: `VSFTPD_GROUP_01` 运行在 `rhel76-node01` 上, `VSFTPD_GROUP_02` 运行在 `rhel76-node02` 上; 
 
-    如果 down 掉 `rhel76-node01` 的心跳网卡 eth1, 模拟节点网卡故障：
+    如果 down 掉 `rhel76-node01` 的心跳网卡 eth1, 模拟节点网卡故障: 
 
     * rhel76-node02 "认为" rhel76-node01 失联 - 开始接管 `VSFTPD_GROUP_01` 服务
     * rhel76-node01 同样 "认为" rhel76-node02 失联 - 开始接管 `VSFTPD_GROUP_02` 服务
@@ -956,12 +956,12 @@ mkfs.xfs /dev/mapper/rhcs02-data02
 
     触发 Fence 操作时, 节点主机应该立刻 "断电关机/重启", 即 *powered off immediately*, 而不是执行普通的 "系统关机", 即 *shutdown gracefully*。
     
-    为了达到此要求, 需要关闭 主机/操作系统 的 ACPI Soft-Off 功能：
+    为了达到此要求, 需要关闭 主机/操作系统 的 ACPI Soft-Off 功能: 
     
-    1. 主机层面，可以在 BIOS 中关闭
-    2. 操作系统层面，可以通过 禁用对应服务 或者配置内核参数彻底禁用此功能。
+    1. 主机层面, 可以在 BIOS 中关闭
+    2. 操作系统层面, 可以通过 禁用对应服务 或者配置内核参数彻底禁用此功能。
 
-    具体操作如下：
+    具体操作如下: 
 
     * RHEL 5,6:
 
@@ -1208,7 +1208,7 @@ mkfs.xfs /dev/mapper/rhcs02-data02
 
 ### 1.10 配置仲裁
 
-RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" 情况, 以下是关于仲裁的相关介绍：
+RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" 情况, 以下是关于仲裁的相关介绍: 
 
 * 1.10.1 Quorum - votequorum
 
@@ -1344,7 +1344,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 
         见 `1.10.2` 详解
 
-    Quorum 相关的管理命令汇总：
+    Quorum 相关的管理命令汇总: 
 
     ```sh
     pcs quorum [config]
@@ -1368,11 +1368,11 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 
     `QDevice` (corosync-qdevice): 每个群集节点上与 Corosync 一起运行的 systemd 服务。这是 corosync-qnetd 的客户端。QDevice 可以与不同的仲裁方配合工作, 但目前仅支持与 QNetd 配合工作。
 
-    原有的节点保持不动, 找一台新的机器搭建 Quorum Device. 注：一个集群只能连接到一个 Quorum Device, 而一个 Quorum Device 可以被多个集群所使用。所以如果有多个集群环境, 有一个 Quorum Device 的机器就足够为这些集群提供服务了
+    原有的节点保持不动, 找一台新的机器搭建 Quorum Device. 注: 一个集群只能连接到一个 Quorum Device, 而一个 Quorum Device 可以被多个集群所使用。所以如果有多个集群环境, 有一个 Quorum Device 的机器就足够为这些集群提供服务了
 
     > Refer to: `corosync-qdevice(8)` 
 
-    配置 Quorum device 主机：
+    配置 Quorum device 主机: 
 
     1. 额外找一台主机 (10.168.161.14), 安装 `pcs` 和 `corosync-qnetd`
 
@@ -1398,7 +1398,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 
     4. 配置 quorum device
 
-        仲裁设备目前只支持 `net` 类型, 其提供以下两种算法：
+        仲裁设备目前只支持 `net` 类型, 其提供以下两种算法: 
 
         * `ffsplit`: fifty-fifty split. 为活动节点数最多的分区提供一票。
 
@@ -1427,7 +1427,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
         Maximum send/receive size:      32768/32768 bytes
         ```
 
-        Quorum Device 节点相关的管理命令汇总：
+        Quorum Device 节点相关的管理命令汇总: 
 
         ```sh
         pcs qdevice setup model <device model> [--enable] [--start]
@@ -1525,7 +1525,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 
         1. `pcs quorum status` 等同于直接执行 `corosync-quorumtool` 命令
         2. `Quorate: Yes` 表示集群仲裁状态正常, 且当前节点正常
-        3. Qdevice 状态：
+        3. Qdevice 状态: 
 
             | 符号      | 含义 |
             | --------- | --------- |
@@ -1558,7 +1558,7 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
         State:                  Connected
         ```
 
-        仲裁设备配置命令汇总：
+        仲裁设备配置命令汇总: 
 
         ```sh
         pcs quorum device status [--full]
@@ -1601,10 +1601,10 @@ RHEL 使用 `votequorum` 服务配合 `fencing` 来避免集群出现 "脑裂" �
 
 ### 2.4 配置共享存储
 
-下文使用 KVM 虚拟机进行实验，参照 [准备共享存储](#准备共享存储) 为两个节点添加两块共享存储; 如果需要使用 ISCSI 共享存储，配置方法参见 [1.4 配置共享存储](#14-配置共享存储)
+下文使用 KVM 虚拟机进行实验, 参照 [准备共享存储](#准备共享存储) 为两个节点添加两块共享存储; 如果需要使用 ISCSI 共享存储, 配置方法参见 [1.4 配置共享存储](#14-配置共享存储)
 
 
-在宿主机执行：
+在宿主机执行: 
 
 ```sh
 # 创建
@@ -1705,22 +1705,22 @@ mkfs.ext4 /dev/mapper/rhcs02-data02
 
     ```sh
     yum groupinstall 'High Availability'
-    yum install -y luci             # 若要使用 luci/conga 用户界面，需要安装此包(按需安装，不要求每个节点都安装)
-    yum install -y lvm2-cluster     # 若使用 clvm，则需要安装此包(每个节点都需要)
+    yum install -y luci             # 若要使用 luci/conga 用户界面, 需要安装此包(按需安装, 不要求每个节点都安装)
+    yum install -y lvm2-cluster     # 若使用 clvm, 则需要安装此包(每个节点都需要)
     ```
 
-    如果启用了防火墙, 则需要添加规则。配置防火墙有两种方法：
+    如果启用了防火墙, 则需要添加规则。配置防火墙有两种方法: 
 
-    * 第一种取巧的配置，集群节点之间全部端口都放开，不做任何限制
+    * 第一种取巧的配置, 集群节点之间全部端口都放开, 不做任何限制
 
         ```sh
-        # 192.168.161.16 上配置信任 192.168.161.17
-        -A INPUT -s 192.168.161.16 -j ACCEPT
-        -A OUTPUT -s 192.168.161.17 -j ACCEPT
+        #  rhel64-node01 上配置信任 rhel64-node02 (要用心跳 IP)
+        -A INPUT -s 10.168.161.16 -j ACCEPT
+        -A OUTPUT -s 10.168.161.17 -j ACCEPT
 
-        # 192.168.161.17 上配置信任 192.168.161.16
-        -A INPUT -s 192.168.161.17 -j ACCEPT
-        -A OUTPUT -s 192.168.161.16 -j ACCEPT
+        #  rhel64-node02 上配置信任 rhel64-node01  (要用心跳 IP)
+        -A INPUT -s 10.168.161.17 -j ACCEPT
+        -A OUTPUT -s 10.168.161.16 -j ACCEPT
         ```
 
     * 第二种配置具体端口
@@ -1733,7 +1733,7 @@ mkfs.ext4 /dev/mapper/rhcs02-data02
         |`11111`| TCP |	ricci(为 luci 提供接口) |
         |`8084`<sup id="a1">[1](#f1)</sup>| TCP | luci (conga用户界面)|
 
-        按照上表列出的端口，则节点在 node01 上可以配置 node02 的访问策略 (node02 上配置类似)：
+        按照上表列出的端口, 则节点在 node01 上可以配置 node02 的访问策略 (node02 上配置类似): 
 
         ```sh
         -A INPUT -m state --state NEW -p udp -s <node02> -d <node01> -m multiport --dports 5404,5405 -j ACCEPT
@@ -1743,7 +1743,7 @@ mkfs.ext4 /dev/mapper/rhcs02-data02
         -A INPUT -p igmp -j ACCEPT  # For igmp (Internet Group Management Protocol)
         ```
 
-        上面的规则摘自红帽官方文档，可以适当的简略一下：
+        上面的规则摘自红帽官方文档, 可以适当的简略一下: 
 
         ```sh
         -A INPUT -p udp -s <node02> -m multiport --dports 5404,5405 -j ACCEPT
@@ -1779,7 +1779,7 @@ mkfs.ext4 /dev/mapper/rhcs02-data02
 
     * (3) 节点认证
 
-        与 RHCS 7 不同，在后续创建集群、添加节点、同步配置文件等操作时才会需要输入密码做节点认证。
+        与 RHCS 7 不同, 在后续创建集群、添加节点、同步配置文件等操作时才会需要输入密码做节点认证。
 
 * 2.7.3 创建集群
 
@@ -1809,7 +1809,7 @@ mkfs.ext4 /dev/mapper/rhcs02-data02
 
     (1) 创建
 
-    在其中一个节点上执行命令创建集群：
+    在其中一个节点上执行命令创建集群: 
 
     ```sh
     # css -h <host> --createcluster <cluster_name>
@@ -1840,7 +1840,7 @@ mkfs.ext4 /dev/mapper/rhcs02-data02
 
     ```sh
     # ccs -h <host> --addnode <host> [--nodeid <node_id>] [--votes <votes>]
-    # "--addnode": 添加节点，一次只能添加一个节点; 如果要删除节点, 使用 "--rmnode"
+    # "--addnode": 添加节点, 一次只能添加一个节点; 如果要删除节点, 使用 "--rmnode"
     # "--nodeid": 指定节点的 id
     # "--votes": 指定节点的投票权
 
@@ -1871,7 +1871,7 @@ mkfs.ext4 /dev/mapper/rhcs02-data02
     </cluster>
     ```
 
-    > NOTES：查看 `/etc/cluster/cluster.conf` 文件可以发现：多了两行 `clusternode` 配置，而且 `config_version` 由 `1` 变成 `3`。这是因为任何一个节点对集群配置文件进行修改，这个值都会自增 1，后续集群间配置文件同步时，也是由 `config_version` 的值决定谁是 "最新" 的。
+    > NOTES: 查看 `/etc/cluster/cluster.conf` 文件可以发现: 多了两行 `clusternode` 配置, 而且 `config_version` 由 `1` 变成 `3`。这是因为任何一个节点对集群配置文件进行修改, 这个值都会自增 1, 后续集群间配置文件同步时, 也是由 `config_version` 的值决定谁是 "最新" 的。
 
 
 ### 2.8 配置资源
@@ -1925,7 +1925,7 @@ Service Operations:
 
 * 2.8.1 准备工作
 
-    > 关于 `resource` 和 `service`：可以将多个 `resource` 绑定在一起，创建成一个 `service`，类似于 RHCS 7 中的 "资源组"。
+    > 关于 `resource` 和 `service`: 可以将多个 `resource` 绑定在一起, 创建成一个 `service`, 类似于 RHCS 7 中的 "资源组"。
 
     ```sh
     ccs -h <host> --lsresourceopt       # 列出所有支持的 resource
@@ -1988,7 +1988,7 @@ Service Operations:
         __restart_expire_time: Amount of time before a failure is forgotten for an independent subtree.
     ```
 
-    使用以下命令 添加/删除 IP 资源：
+    使用以下命令 添加/删除 IP 资源: 
 
     ```sh
     # 添加
@@ -2003,6 +2003,74 @@ Service Operations:
 
 * 2.8.3 添加 HA-LVM
  
+    将卷组交由 RHCS 集群管理, 需先解除本地 LVM 对卷组的管理, 然后配置集群资源管理卷组。RHCS 6 中有两种方法配置 HA-LVM: 
+
+    * (Perferred) 使用 CLVM 在节点上管理 LVM (此时节点会独占 LVM 上所有的逻辑卷)
+
+        1. 安装软件包
+            
+            ```sh
+            yum groupinstall "Resilient Storage"
+            # or
+            yum install lvm2-cluster
+            ```
+        2. 修改 lvm 配置
+
+            ```sh
+            ~] vi /etc/lvm/lvm.conf
+            
+            # locking_type = 1
+            locking_type = 3
+            ```
+
+        3. 需要启动 clvmd
+
+            ```sh
+            service clvmd start
+            chkconfig clvmd on
+            ```
+
+        4. 创建卷组时的注意点
+
+            示例: 
+
+            ```sh
+            pvcreate /dev/vdb1
+            vgcreate -cy shared_vg /dev/vdb1    # 此时要为卷组指定 -c, --clustered {y|n}
+            lvcreate -L 10G -n ha_lv shared_vg
+            mkfs.ext4 /dev/shared_vg/ha_lv
+            lvchange -an shared_vg/ha_lv
+            ```
+
+
+    * 使用 LVM 本地 tag 管理
+
+        1. 修改 lvm 配置
+
+            ```sh
+            ~] vi /etc/lvm/lvm.conf
+
+            locking_type = 1
+            use_lvmetad = 0
+            volume_list = [ "VolGroup00", "@rhel64-node01" ] # 填写本机使用的卷组, 集群管理的卷组不能写进去
+                                                             # 同时填写主机名, 要与集群配置的节点名称一致
+
+            # 另一个节点使用:  volume_list = [ "VolGroup00", "@rhel64-node02" ] 
+            ```
+            
+            > 使用 `lvmconf --enable-halvm` 命令可以直接将 `locking_type` 和 `use_lvmetad` 配置好
+        
+        2. 重建 initramfs
+
+            ```sh
+            cp /boot/initramfs-$(uname -r).img /boot/initramfs-$(uname -r).img.$(date +%m-%d-%H%M%S).bak
+            dracut -H -f /boot/initramfs-$(uname -r).img $(uname -r)
+            ```
+
+        3. `reboot`
+
+    配置完以后, 添加 HA-LVM 到集群: 
+
     ```sh
     ~] ccs -h rhel64-node01 --lsserviceopt lvm
     vm - LVM Failover script
@@ -2053,25 +2121,24 @@ Service Operations:
         __restart_expire_time: Amount of time before a failure is forgotten for an independent subtree.
 
 
-    ~] ccs -h rhel64-node01 --addresource fs name="FS_data01" mountpoint="/data01" device="/dev/mapper/rhcs01-data01" fst
-    ype="ext4" self_fence=1
-    ~] ccs -h rhel64-node01 --addresource fs name="FS_data02" mountpoint="/data02" device="/dev/mapper/rhcs02-data02" fstype="ext4" self_fence=1
+    ~] ccs -h rhel64-node01 --addresource fs name="FS_data01" mountpoint="/data01" device="/dev/mapper/rhcs01-data01" fstype="ext4" self_fence=1 force_fsck=1
+    ~] ccs -h rhel64-node01 --addresource fs name="FS_data02" mountpoint="/data02" device="/dev/mapper/rhcs02-data02" fstype="ext4" self_fence=1 force_fsck=1
     ```
 
 * 2.8.5 添加 VSFTPD
 
-    RHCS 6 中没有办法将一个系统服务添加到集群，需要使用 script 来替代。
+    RHCS 6 中没有办法将一个系统服务添加到集群, 需要使用 script 来替代。
 
-    1. 从 /etc/init.d/vsftpd 复制两份出来，分别作为两个节点 VSFTPD 服务的服务文件(启动脚本)
+    1. 从 /etc/init.d/vsftpd 复制两份出来, 分别作为两个节点 VSFTPD 服务的服务文件(启动脚本)
 
         ```sh
         cp -a /etc/init.d/vsftpd /etc/init.d/vsftpd_01
         cp -a /etc/init.d/vsftpd /etc/init.d/vsftpd_02
         ```
 
-    2. 修改服务文件，保证只按指定的配置文件启动 VSFTPD
+    2. 修改服务文件, 保证只按指定的配置文件启动 VSFTPD
 
-        将原有的 `CONFS` 行注释，新增一行 `CONFS`: 
+        将原有的 `CONFS` 行注释, 新增一行 `CONFS`: 
 
         ```sh
         ~] vi /etc/init.d/vsftpd_01
@@ -2109,7 +2176,7 @@ Service Operations:
         ~] ccs -h rhel64-node01 --addresource script name="VSFTPD_02" file="/etc/init.d/vsftpd_02"
         ```
 
-    添加完 IP，LVM，FS 和 SCRIPT 后，配置文件内容如下：
+    添加完 IP, LVM, FS 和 SCRIPT 后, 配置文件内容如下: 
 
     ```html
     ~] ccs -h rhel64-node01 --getconf
@@ -2157,9 +2224,9 @@ Service Operations:
 
 * 前言
 
-    RHCS 6 配置 Fence 时，有两种配置方式。以双节点为例：
+    RHCS 6 配置 Fence 时, 有两种配置方式。以双节点为例: 
 
-    * 方式一：配置一个 Fence 设备，两个节点作为两个实例添加到该 Fence 设备。适用于选择 vCenter/ESXi/KVM 等虚拟化平台或者集中式电源管理作为 Fence 设备的情况。配置示例：
+    * 方式一: 配置一个 Fence 设备, 两个节点作为两个实例添加到该 Fence 设备。适用于选择 vCenter/ESXi/KVM 等虚拟化平台或者集中式电源管理作为 Fence 设备的情况。配置示例: 
 
         ```html
             <clusternode name="rhel64-node01" nodeid="1">      
@@ -2182,7 +2249,7 @@ Service Operations:
         </fencedevices> 
         ```
 
-    * 方式二：配置两个 Fence 设备，两个节点分别使用不同的 Fence 设备。适用于使用物理机 IPMI/带外/管理 接口作为 Fence 设备的情况。vCenter/ESXi/KVM 同样适用。配置示例：
+    * 方式二: 配置两个 Fence 设备, 两个节点分别使用不同的 Fence 设备。适用于使用物理机 IPMI/带外/管理 接口作为 Fence 设备的情况。vCenter/ESXi/KVM 同样适用。配置示例: 
 
         ```html
             <clusternode name="rhel64-node01" nodeid="1" votes="1">
@@ -2208,7 +2275,7 @@ Service Operations:
         .,bvcx
 
 
-    配置语法：
+    配置语法: 
 
     ```text
     Fencing Operations:
@@ -2245,7 +2312,7 @@ Service Operations:
     ```
 
 
-    常用的 Fence 设备：
+    常用的 Fence 设备: 
 
     ```sh
     ~] ccs -h rhel64-node01 --lsfenceopt
@@ -2258,7 +2325,7 @@ Service Operations:
 
 * 前置操作
 
-     参考 [1.9 配置 Fence](#19-配置-fence) `1.9.3 前置配置` 中的前置操作
+    参考 [1.9 配置 Fence](#19-配置-fence) `1.9.3 前置配置` 中的前置操作
 
     > When using SELinux with the High Availability Add-On in a VM environment, you should ensure that the SELinux boolean `fenced_can_network_connect` is persistently set to on. This allows the `fence_xvm` fencing agent to work properly, enabling the system to fence virtual machines.
 
@@ -2267,17 +2334,18 @@ Service Operations:
     - `post_fail_delay`: the number of seconds the fence daemon ( `fenced` ) waits before fencing a node (a member of the fence domain) after the node has failed (default 0) .
     - `post_join_delay`: the number of seconds the fence daemon ( `fenced` ) waits before fencing a node after the node joins the fence domain. The `post_join_delay` default value is 6. A typical setting for `post_join_delay` is between 20 and 30 seconds, but can vary according to cluster and network performance.
 
-    这两个参数需要同时设置，如果只单独设置一个，另一个会重置为默认值  
+    这两个参数需要同时设置, 如果只单独设置一个, 另一个会重置为默认值  
 
     ```sh
-    ccs -h node01 --setfencedaemon post_fail_delay=5 post_join_delay=25
+    ccs -h rhel64-node01 --setfencedaemon post_fail_delay=0 post_join_delay=25
     ```
 
 
 * 使用 vCenter 作为 Fence 设备
 
     ```sh
-    ]# ccs -h rhel64-node01 --lsfenceopt fence_vmware_soap
+    ] ccs -h rhel64-node01 --lsfenceopt fence_vmware_soap
+
     fence_vmware_soap - Fence agent for VMWare over SOAP API
       Required Options:
       Optional Options:
@@ -2373,7 +2441,7 @@ Service Operations:
     ccs -h node01 --addfenceinst IPMI_Fence_02 node02 ipmi_method
     ```
 
-* KVM 虚拟机： fence_xvm
+* KVM 虚拟机:  fence_xvm
 
     1. 从 KVM 宿主机(配置了 `fence_virtd` )中过去 Key 文件
 
@@ -2390,22 +2458,23 @@ Service Operations:
         rhel64-02            999303cd-a80e-4a44-af38-b15fe7302f86 on
         ```
 
-    3. 添加 Fence device，method，instance
+    3. 添加 Fence device, method, instance
 
         ```sh
-        ~] ccs -h rhel64-node01 --addfencedev XVM_FENCE agent="fence_xvm" key_file="/etc/cluster/fence_xvm.key"
+        ccs -h rhel64-node01 --addfencedev XVM_FENCE_01 agent="fence_xvm" key_file="/etc/cluster/fence_xvm.key" port="rhel64-01"
+        ccs -h rhel64-node01 --addfencedev XVM_FENCE_02 agent="fence_xvm" key_file="/etc/cluster/fence_xvm.key" port="rhel64-02"
 
-        ~] ccs -h rhel64-node01 --addmethod xvm_method rhel64-node01
-        ~] ccs -h rhel64-node01 --addmethod xvm_method rhel64-node02
+        ccs -h rhel64-node01 --addmethod xvm_method rhel64-node01
+        ccs -h rhel64-node01 --addmethod xvm_method rhel64-node02
 
-        ~] ccs -h rhel64-node01 --addfenceinst XVM_FENCE rhel64-node01 xvm_method port="rhel64-01"
-        ~] ccs -h rhel64-node01 --addfenceinst XVM_FENCE rhel64-node02 xvm_method port="rhel64-02"
+        ccs -h rhel64-node01 --addfenceinst XVM_FENCE_01 rhel64-node01 xvm_method
+        ccs -h rhel64-node01 --addfenceinst XVM_FENCE_02 rhel64-node02 xvm_method
         ```
 
 
 * 后置操作
 
-    检查/测试 fence 状态：
+    检查/测试 fence 状态: 
 
     ```sh
     ~] fence_check     # 需要启动集群才能验证
@@ -2415,7 +2484,7 @@ Service Operations:
     Testing node04 method 1: success
     ```
 
-    测试 Fence 某个节点：
+    测试 Fence 某个节点: 
 
     ```sh
     ~] fence_node node01
@@ -2439,14 +2508,14 @@ Failover Domain Operations:
                         Remove node from failover domain
 ```
 
-关于参数解释：
+关于参数解释: 
 
-1. `restricted`：配置此参数，集群服务限制在该故障切换域内运行；如果域中无可用成员，则服务启动失败。
-2. `ordered`：配置此参数，故障切换域成员按列表顺序排优先级，列表顶端的成员是首选成员，接下来是列表中的第二个成员，依此类推。
-3. `nofailback`：配置此参数，故障节点恢复后，服务不切回到原来节点上运行
+1. `restricted`: 配置此参数, 集群服务限制在该故障切换域内运行; 如果域中无可用成员, 则服务启动失败。
+2. `ordered`: 配置此参数, 故障切换域成员按列表顺序排优先级, 列表顶端的成员是首选成员, 接下来是列表中的第二个成员, 依此类推。
+3. `nofailback`: 配置此参数, 故障节点恢复后, 服务不切回到原来节点上运行
 
 
-创建故障切换域：
+创建故障切换域: 
 
 ```sh
 ccs -h rhel64-node01 --addfailoverdomain VSFTPD_Domain_01 restricted ordered
@@ -2454,7 +2523,7 @@ ccs -h rhel64-node01 --addfailoverdomain VSFTPD_Domain_01 restricted ordered
 ccs -h rhel64-node01 --addfailoverdomain VSFTPD_Domain_02 restricted ordered
 ```
 
-添加域成员，并指定顺序：
+添加域成员, 并指定顺序: 
 
 ```sh
 ccs -h rhel64-node01 --addfailoverdomainnode VSFTPD_Domain_01 rhel64-node01 1 
@@ -2464,7 +2533,7 @@ ccs -h rhel64-node01 --addfailoverdomainnode VSFTPD_Domain_02 rhel64-node02 1
 ccs -h rhel64-node01 --addfailoverdomainnode VSFTPD_Domain_02 rhel64-node01 2 
 ```
 
-添加完以后，查看配置情况：
+添加完以后, 查看配置情况: 
 
 ```html
 ~] ccs -h rhel64-node01 --lsfailoverdomain
@@ -2514,12 +2583,12 @@ VSFTPD_Domain_02: restricted=1, ordered=1, nofailback=0
 
 ### 2.11 配置仲裁
 
-> Quorum Disk is a disk-based quorum daemon, `qdiskd`, that provides supplemental heuristics to determine node fitness. With heuristics you can determine factors that are important to the operation of the node in the event of a network partition. For example, in a four-node cluster with a 3:1 split, ordinarily, the three nodes automatically "win" because of the three-to-one majority. Under those circumstances, the one node is fenced. With `qdiskd` however, you can set up heuristics that allow the one node to win based on access to a critical resource (for example, a critical network path). If your cluster requires additional methods of determining node health, then you should configure qdiskd to meet those needs.<sup>仲裁磁盘是使用磁盘的仲裁守护进程 qdiskd，它可提供补充的试探法（heuristics）以确定节点是否正常运作。使用这些试探法，您可以确定在网络分区事件中对节点操作十分重要的因素。例如：在一个按 3:1 分割的有四个节点的集群中，最初三个节点自动“获胜”，因为三对一的占优。在那些情况下，只有一个节点被 fence。但使用 qdiskd，您可以设定试探法以便允许一个节点因访问重要资源获胜（例如：关键网络路径）。如果您的集群需要额外的方法确定节点工作正常，那么您应该将 qdiskd 配置为满足那些要求。</sup>
+> Quorum Disk is a disk-based quorum daemon, `qdiskd`, that provides supplemental heuristics to determine node fitness. With heuristics you can determine factors that are important to the operation of the node in the event of a network partition. For example, in a four-node cluster with a 3:1 split, ordinarily, the three nodes automatically "win" because of the three-to-one majority. Under those circumstances, the one node is fenced. With `qdiskd` however, you can set up heuristics that allow the one node to win based on access to a critical resource (for example, a critical network path). If your cluster requires additional methods of determining node health, then you should configure qdiskd to meet those needs.<sup>仲裁磁盘是使用磁盘的仲裁守护进程 qdiskd, 它可提供补充的试探法（heuristics）以确定节点是否正常运作。使用这些试探法, 您可以确定在网络分区事件中对节点操作十分重要的因素。例如: 在一个按 3:1 分割的有四个节点的集群中, 最初三个节点自动“获胜”, 因为三对一的占优。在那些情况下, 只有一个节点被 fence。但使用 qdiskd, 您可以设定试探法以便允许一个节点因访问重要资源获胜（例如: 关键网络路径）。如果您的集群需要额外的方法确定节点工作正常, 那么您应该将 qdiskd 配置为满足那些要求。</sup>
 
 配置仲裁的一些要求:
 
 1. 每个集群节点投票权 (vote) 相同, 且都为 1;
-2. 仲裁设备成员超时值是根据 CMAN 成员超时值 ( 即 CMAN 认为节点已死，并不再是成员前该节点不响应的时间 ) 自动配置的; 如果要修改这个值, 应当保证 CMAN 超时值至少是 仲裁设备的 2 倍;
+2. 仲裁设备成员超时值是根据 CMAN 成员超时值 ( 即 CMAN 认为节点已死, 并不再是成员前该节点不响应的时间 ) 自动配置的; 如果要修改这个值, 应当保证 CMAN 超时值至少是 仲裁设备的 2 倍;
 3. Fence 可用;
 4. 最多支持 16 节点;
 5. 最小 10Mb 的共享磁盘作为仲裁盘。
@@ -2592,8 +2661,11 @@ Quorum Operations:
     ```sh
     # ccs -h host --addheuristic [heuristic options]
 
-    ccs -h rhel64-node01 --addheuristic program="/bin/ping -c1 -t2 10.168.161.1" interval=2 score=1 tko=2
+    ccs -h rhel64-node01 --addheuristic program="/bin/ping -c1 -t2 10.168.161.14" interval=1 score=1 tko=5
     ```
+
+    > 注: 实验测试过程中, 使用 KVM 宿主机的 bridge 网卡 IP (10.168.161.1) 作为 ping 检测的目标 IP, 会让 quorum 产生错误的判断: 当在节点 1 上执行 `ifdown eth1` 以后, 两个节点的日志文件中都出现了 fence 对方节点的日志, 但是实际上节点 2 会被先 fence; 节点 2 正常启动以后, 节点 1 重启。可能和 KVM/qemu 的网络有关系, 为了避免出错, 建议使用另一台虚拟机上的 IP 作为检查。
+
 
     quorum disk heuristic: 
 
@@ -2616,23 +2688,370 @@ Quorum Operations:
     ~] ccs -h rhel64-node01 --getconf
 
       <quorumd device="/dev/vdd" label="rhel64-rhcs-qdisk">    
-        <heuristic interval="2" program="/bin/ping -c1 -t2 10.168.161.1" score="1" tko="2"/>    
+        <heuristic interval="2" program="/bin/ping -c1 -t2 10.168.161.14" score="1" tko="2"/>    
       </quorumd> 
     ```
 
 
 ### 2.12 配置服务
 
-```sh
-~] ccs -h host --addservice <servicename> [service options]
+* 创建服务
 
-autostart — Specifies whether to autostart the service when the cluster starts. 
-            Use "1" to enable and "0" to disable; the default is enabled.
-   domain — Specifies a failover domain (if required).
-exclusive — Specifies a policy wherein the service only runs on nodes that have no other services running on them.
- recovery — Specifies a recovery policy for the service. The options are to relocate, restart, disable, or restart-disable the service. The restart recovery policy indicates that the system should attempt to restart the failed service before trying to relocate the service to another node. The relocate policy indicates that the system should try to restart the service in a different node. The disable policy indicates that the system should disable the resource group if any component fails. The restart-disable policy indicates that the system should attempt to restart the service in place if it fails, but if restarting the service fails the service will be disabled instead of being moved to another host in the cluster.
-If you select Restart or Restart-Disable as the recovery policy for the service, you can specify the maximum number of restart failures before relocating or disabling the service, and you can specify the length of time in seconds after which to forget a restart.
+    ```text
+    ~] ccs -h host --addservice <servicename> [service options]
+    ```
 
+    Service Options:
+
+    * `autostart` — Specifies whether to autostart the service when the cluster starts. Use "1" to enable and "0" to disable; the default is enabled.
+    * `domain` — Specifies a failover domain (if required).
+    * `exclusive` — Specifies a policy wherein the service only runs on nodes that have no other services running on them.
+    * `recovery` — Specifies a recovery policy for the service. The options are to relocate, restart, disable, or restart-disable the service. 
+        * The "`restart`" recovery policy indicates that the system should attempt to restart the failed service before trying to relocate the service to another node. 
+        * The "`relocate`" policy indicates that the system should try to restart the service in a different node. 
+        * The "`disable`" policy indicates that the system should disable the resource group if any component fails. 
+        * The "`restart-disable`" policy indicates that the system should attempt to restart the service in place if it fails, but if restarting the service fails the service will be disabled instead of being moved to another host in the cluster.
+            
+        If you select `restart` or `restart-disable` as the recovery policy for the service, you can specify *the maximum number of restart failures* before relocating or disabling the service, and you can specify *the length of time in seconds after which to forget a restart*.
+    
+    * `__independent_subtree` - Treat this and all children as an independent subtree.
+    * `__enforce_timeouts` - Consider a timeout for operations as fatal.
+    * `__max_failures` - Maximum number of failures before returning a failure to a status check.
+    * `__failure_expire_time` - Amount of time before a failure is forgotten.
+    * `__max_restarts` - Maximum number restarts for an independent subtree before giving up.
+    * `__restart_expire_time` - Amount of time before a failure is forgotten for an independent subtree.
+
+    ```sh
+    ccs -h rhel64-node01 --addservice VSFTPD_SERVICE_01 autostart=1 domain=VSFTPD_Domain_01 exclusive=0 recovery=restart __max_failures=3 __restart_expire_time=300
+    ccs -h rhel64-node01 --addservice VSFTPD_SERVICE_02 autostart=1 domain=VSFTPD_Domain_02 exclusive=0 recovery=restart __max_failures=3 __restart_expire_time=300
+    ```
+
+* 添加全局资源到服务
+
+    ```text
+    service: name=VSFTPD_SERVICE_01, exclusive=0, domain=VSFTPD_Domain_01, __max_failures=3, autostart=1, __restart_expire_time=300, recovery=restart
+    service: name=VSFTPD_SERVICE_02, exclusive=0, domain=VSFTPD_Domain_02, __max_failures=3, autostart=1, __restart_expire_time=300, recovery=restart
+    resources: 
+      ip: monitor_link=1, sleeptime=10, prefer_interface=eth0, family=ipv4, address=192.168.161.18/24
+      ip: monitor_link=1, sleeptime=10, prefer_interface=eth0, family=ipv4, address=192.168.161.19/24
+      lvm: name=LVM_RHCS01, self_fence=1, vg_name=rhcs01, lv_name=data01
+      lvm: name=LVM_RHCS02, self_fence=1, vg_name=rhcs02, lv_name=data02
+      fs: name=FS_data01, device=/dev/mapper/rhcs01-data01, mountpoint=/data01, self_fence=1, fstype=ext4
+      fs: name=FS_data02, device=/dev/mapper/rhcs02-data02, mountpoint=/data02, self_fence=1, fstype=ext4
+      script: name=VSFTPD_01, file=/etc/init.d/vsftpd_01
+      script: name=VSFTPD_02, file=/etc/init.d/vsftpd_02
+    ```
+
+    将 ip, lvm, fs, script 都添加到服务中: 
+
+    ```sh
+    # ccs -h host --addsubservice servicename subservice [service options]
+
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_01 ip ref="192.168.161.18/24"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_01 lvm ref="LVM_RHCS01"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_01 fs ref="FS_data01"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_01 script ref="VSFTPD_01"
+
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_02 ip ref="192.168.161.19/24"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_02 lvm ref="LVM_RHCS02"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_02 fs ref="FS_data02"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_02 script ref="VSFTPD_02"
+    ```
+
+    添加完以后配置文件如下: 
+
+    ```html
+    ~] ccs -h rhel64-node01 --getconf
+
+    ...
+    <service __max_failures="3" __restart_expire_time="300" autostart="1" domain="VSFTPD_Domain_01" exclusive="0" name="VSFTPD_SERVICE_01" recovery="restart">      
+      <ip ref="192.168.161.18/24"/>      
+      <lvm ref="LVM_RHCS01"/>      
+      <fs ref="FS_data01"/>      
+      <script ref="VSFTPD_01"/>      
+    </service>    
+    <service __max_failures="3" __restart_expire_time="300" autostart="1" domain="VSFTPD_Domain_02" exclusive="0" name="VSFTPD_SERVICE_02" recovery="restart">      
+      <ip ref="192.168.161.19/24"/>      
+      <lvm ref="LVM_RHCS02"/>      
+      <fs ref="FS_data02"/>      
+      <script ref="VSFTPD_02"/>      
+    </service> 
+    ... 
+    ```
+
+    由于我们添加的资源有 “先后” 关系, 如 IP 启动后才能正常启动 VSFTPD,  LVM 启动后 FS 才能正常挂载。
+    
+    因此服务添加应该按照以下方法为: 
+
+    ```sh
+    # 移除资源
+    ccs -h rhel64-node01 --rmsubservice VSFTPD_SERVICE_01 ip
+    ccs -h rhel64-node01 --rmsubservice VSFTPD_SERVICE_01 lvm 
+    ccs -h rhel64-node01 --rmsubservice VSFTPD_SERVICE_01 fs
+    ccs -h rhel64-node01 --rmsubservice VSFTPD_SERVICE_01 script
+    
+    ccs -h rhel64-node01 --rmsubservice VSFTPD_SERVICE_02 ip
+    ccs -h rhel64-node01 --rmsubservice VSFTPD_SERVICE_02 lvm 
+    ccs -h rhel64-node01 --rmsubservice VSFTPD_SERVICE_02 fs
+    ccs -h rhel64-node01 --rmsubservice VSFTPD_SERVICE_02 script
+
+    # 重新添加资源, 按 "父-子" 顺序
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_01 ip ref="192.168.161.18/24"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_01 ip:lvm ref="LVM_RHCS01"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_01 ip:lvm:fs ref="FS_data01"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_01 ip:lvm:fs:script ref="VSFTPD_01"
+
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_02 ip ref="192.168.161.19/24"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_02 ip:lvm ref="LVM_RHCS02"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_02 ip:lvm:fs ref="FS_data02"
+    ccs -h rhel64-node01 --addsubservice VSFTPD_SERVICE_02 ip:lvm:fs:script ref="VSFTPD_02"
+    ```
+
+    此时, 配置文件内容如下（注意与第一次添加时对比的差异）: 
+
+    ```html
+    ~] ccs -h rhel64-node01 --getconf
+
+    ...
+    <service __max_failures="3" __restart_expire_time="300" autostart="1" domain="VSFTPD_Domain_01" exclusive="0" name="VSFTPD_SERVICE_01" recovery="restart">      
+      <ip ref="192.168.161.18/24">        
+        <lvm ref="LVM_RHCS01">          
+          <fs ref="FS_data01">            
+            <script ref="VSFTPD_01"/>            
+          </fs>          
+        </lvm>        
+      </ip>      
+    </service>    
+    <service __max_failures="3" __restart_expire_time="300" autostart="1" domain="VSFTPD_Domain_02" exclusive="0" name="VSFTPD_SERVICE_02" recovery="restart">      
+      <ip ref="192.168.161.19/24">        
+        <lvm ref="LVM_RHCS02">          
+          <fs ref="FS_data02">            
+            <script ref="VSFTPD_02"/>            
+          </fs>          
+        </lvm>        
+      </ip>      
+    </service> 
+    ...
+    ```
+
+### 2.13 配置其他集群属性
+
+
+* 2.13.1 查看集群其他属性配置情况
+
+    ```sh
+    ccs -h host --lsmisc
+    ```
+
+* 2.13.2 集群配置文件版本
+
+    ```sh
+    ccs -h host --getversion     # 查看版本
+    ccs -h host --setversion n   # 设置
+    ccs -h host --incversion     # 版本值 +1
+    ```
+
+* 2.13.3 多播地址
+
+    ```sh
+    ccs -h <host> --setmulticast <multicastaddress>  # 设置
+    ccs -h host --setmulticast                       # 移除（不添加参数）
+    ```
+
+    如果未指定多播地址, cman 会基于集群 ID 自动生成: 239.192.x.x (IPv4) / FF15:: (IPv6)
+
+* 2.13.4 两节点集群的配置
+
+    ```sh
+    ccs -h <host> --setcman two_node=1 expected_votes=1
+
+    # ccs -h rhel64-node01 --setcman two_node=1 expected_votes=1
+    ```
+
+* 2.13.5 日志配置
+
+    ```html
+    ~] man cluster.conf
+
+    Logging
+        Cluster daemons use a common logging section to configure their 
+        loggging behavior.
+
+            <cluster name="alpha" config_version="1">
+                    <logging/>
+            </cluster>
+
+        Global settings apply to all:
+
+            <logging debug="on"/>
+
+        Per-daemon logging_daemon subsections override the global settings. 
+        Daemon names that can be configured include: corosync, qdiskd, groupd, 
+        fenced, dlm_controld, gfs_controld, rgmanager.
+
+            <logging>
+                    <logging_daemon name="qdiskd" debug="on"/>
+                    <logging_daemon name="fenced" debug="on"/>
+            </logging>
+
+        Corosync daemon settings apply to all corosync subsystems by default, 
+        but subsystems can also be configured individually. These include CLM, 
+        CPG, MAIN, SERV, CMAN, TOTEM, QUORUM, CONFDB, CKPT, EVT.
+
+            <logging>
+                    <logging_daemon name="corosync" subsys="QUORUM" debug="on"/>
+                    <logging_daemon name="corosync" subsys="CONFDB" debug="on"/>
+            </logging>
+
+        The attributes available at global, daemon and subsystem levels are:
+
+        to_syslog
+                enable/disable messages to syslog (yes/no), default "yes"
+
+        to_logfile
+                enable/disable messages to log file (yes/no), default "yes"
+
+        syslog_facility
+                facility used for syslog messages, default "daemon"
+
+        syslog_priority
+                messages at this level and up will be sent to syslog, default "info"
+
+        logfile_priority
+                messages at this level and up will be written to log file, default "info"
+
+        logfile
+                the log file name, default /var/log/cluster/<daemon>.log
+
+        debug="on"
+
+    EXAMPLE
+        An explicit configuration for the default settings would be:
+
+            <logging to_syslog="yes" to_logfile="yes" syslog_facility="daemon"
+                    syslog_priority="info" logfile_priority="info">
+                <logging_daemon name="qdiskd"
+                        logfile="/var/log/cluster/qdiskd.log"/>
+                <logging_daemon name="fenced"
+                        logfile="/var/log/cluster/fenced.log"/>
+                <logging_daemon name="dlm_controld"
+                        logfile="/var/log/cluster/dlm_controld.log"/>
+                <logging_daemon name="gfs_controld"
+                        logfile="/var/log/cluster/gfs_controld.log"/>
+                <logging_daemon name="rgmanager"
+                        logfile="/var/log/cluster/rgmanager.log"/>
+                <logging_daemon name="corosync"
+                        logfile="/var/log/cluster/corosync.log"/>
+            </logging>
+
+        To include debug messages (and above) from all daemons in their default log files, 
+        either of the following which are equivalent:
+
+            <logging debug="on"/>
+            <logging logfile_priority="debug"/>
+
+        To exclude all log messages from syslog:
+
+            <logging to_syslog="no"/>
+
+        To disable logging to all log files:
+
+            <logging to_file="no"/>
+
+        To include debug messages (and above) from all daemons in syslog:
+
+            <logging syslog_priority="debug"/>
+
+        To limit syslog messages to error (and above), keeping info (and above) in log files 
+        (this logfile_priority setting is the default so could be omitted):
+
+            <logging syslog_priority="error" logfile_priority="info"/>
+    ```
+
+    典型配置: 
+
+    ```sh
+    ccs -h rhel64-node01 --setlogging to_syslog=yes syslog_facility=daemon syslog_priority=info to_logfile=yes logfile_priority=info
+    ccs -h rhel64-node01 --addlogging name=qdiskd logfile="/var/log/cluster/qdiskd.log"
+    ccs -h rhel64-node01 --addlogging name=fenced logfile="/var/log/cluster/fenced.log"
+    ccs -h rhel64-node01 --addlogging name=dlm_controld logfile="/var/log/cluster/dlm_controld.log"
+    ccs -h rhel64-node01 --addlogging name=gfs_controld logfile="/var/log/cluster/gfs_controld.log"
+    ccs -h rhel64-node01 --addlogging name=rgmanager logfile="/var/log/cluster/rgmanager.log"
+    ccs -h rhel64-node01 --addlogging name=corosync logfile="/var/log/cluster/corosync.log"
+    ```
+
+* 2.13.6 同步配置文件到其他节点
+
+    ```sh
+    ccs -h <host> --sync --activate
+    ccs -h <host> --checkconf
+    ccs -f <file> -h <host> --setconf
+    ccs -f file --checkconf
+    ```
+
+### 2.14 管理集群
+
+* 集群管理
+
+    ```sh
+    ccs -h <host> --start  # Start *AND* enable cluster services on reboot for host specified with "-h"
+    ccs -h <host> --stop   # Stop *AND* disable cluster services on reboot for host specified with "-h"
+    ccs -h <host> --startall [--noenable]  # Start *AND* enable cluster services on reboot for all nodes
+    ccs -h <host> --stopall [--noenable]   #Stop *AND* disable cluster services on reboot for all nodes
+    ```
+
+* 节点管理
+
+    ```sh
+    ccs -h <host> --lsnode
+    ccs -h <host> --addnode <node> [--nodeid <nodeid>] [--vote <nodeid>]
+    ccs -h <host> --rmnode <node>
+    ```
+
+* 集群服务管理: `clusvcadm`
+
+    ```text
+    Resource Group Control Commands:
+      -v                     Display version and exit
+      -d <group>             Disable <group>.  This stops a group
+                             until an administrator enables it again,
+                             the cluster loses and regains quorum, or
+                             an administrator-defined event script
+                             explicitly enables it again.
+      -e <group>             Enable <group>
+      -e <group> -F          Enable <group> according to failover
+                             domain rules (deprecated; always the
+                             case when using central processing)
+      -e <group> -m <member> Enable <group> on <member>
+      -r <group> -m <member> Relocate <group> [to <member>]
+                             Stops a group and starts it on another
+                             cluster member.
+      -M <group> -m <member> Migrate <group> to <member>
+                             (e.g. for live migration of VMs)
+      -q                     Quiet operation
+      -R <group>             Restart a group in place.
+      -s <group>             Stop <group>.  This temporarily stops
+                             a group.  After the next group or
+                             or cluster member transition, the group
+                             will be restarted (if possible).
+      -Z <group>             Freeze resource group.  This prevents
+                             transitions and status checks, and is 
+                             useful if an administrator needs to 
+                             administer part of a service without 
+                             stopping the whole service.
+      -U <group>             Unfreeze (thaw) resource group.  Restores
+                             a group to normal operation.
+      -c <group>             Convalesce (repair, fix) resource group.
+                             Attempts to start failed, non-critical 
+                             resources within a resource group.
+    Resource Group Locking (for cluster Shutdown / Debugging):
+      -l                     Lock local resource group managers.
+                             This prevents resource groups from
+                             starting.
+      -S                     Show lock state
+      -u                     Unlock resource group managers.
+                             This allows resource groups to start.
+    ```
 
 
 ## 对比 RHCS 6 和 RHCS 7
@@ -2662,7 +3081,7 @@ If you select Restart or Restart-Disable as the recovery policy for the service,
     Redhat Cluster 7 (RHEL 7) | pcsd.service | Cluster  Resource Manager.
     Redhat Cluster 7 (RHEL 7) | corosync.service | Manages cluster quorum and cluster membership.
 
-    NOTES: 上表中的 `cman` 服务，实际上也是由 `corosync` 提供: 
+    NOTES: 上表中的 `cman` 服务, 实际上也是由 `corosync` 提供: 
     
     ```sh
     ~] service cman status
@@ -2691,3 +3110,9 @@ If you select Restart or Restart-Disable as the recovery policy for the service,
     Prior to Redhat Cluster 7 | `service rgmanager stop`<br>`service cman stop`<br> `service ricci stop` | Stop the cluster services on each cluster nodes
     Prior to Redhat Cluster 7 | `chkconfig rgmanager off`<br> `chkconfig cman off`<br>`chkconfig ricci off`| Disable the cluster services from startup
     Redhat Cluster 7 (RHEL 7) | `pcs cluster destroy` | Destroy the cluster in one-shot using pacemaker
+
+
+## Others
+
+* [RHCS-使用Conga界面搭建HA.pdf](./RHCS-Pacemaker_Overview.pdf)
+* [RHCS-Pacemaker_Overview.pdf](./RHCS-%E4%BD%BF%E7%94%A8Conga%E7%95%8C%E9%9D%A2%E6%90%AD%E5%BB%BAHA.pdf)

@@ -28,17 +28,17 @@ nav:
     - Netfilter/iptables: docs/Netfilter-iptables
     - NFS: docs/NFS
     - NTP: docs/NTP
+    - RHCS: docs/RHCS
     - Shell: docs/Shell
     - Shell-圣经: docs/Shell-圣经-CN
     - SSH: docs/SSH
     - Team: docs/Team
+    - VSFTPD: docs/VSFTPD
     - 双网卡路由: docs/双网卡路由
     - 正则表达式: docs/正则表达式
     - 证书: docs/证书
   - Drafts:
     - Git: drafts/Git
-    - RHCS: drafts/RHCS
-    - VSFTPD: drafts/VSFTPD
     - 计算机网络: drafts/计算机网络
     - 三次握手与四次挥手: drafts/三次握手与四次挥手
     - 特殊字符: drafts/特殊字符
