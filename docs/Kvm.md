@@ -364,7 +364,7 @@ $ virsh console rhel79
 
 * RHEL/CentOS/Rocky 8
 
-    * 方法一: 执行命令添加参数"`console=ttyS0`"
+    * 方法一: 执行命令添加参数 "`console=ttyS0`" 
 
         ```sh
         grubby --update-kernel=ALL --args="console=ttyS0,115200n8"

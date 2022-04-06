@@ -46,6 +46,7 @@ Some notes that hopefully will help you.
   - [证书](docs/证书.md)
 - Drafts:
   - [Git](drafts/Git.md)
+  - [Ubuntu](drafts/Ubuntu.md)
   - [计算机网络](drafts/计算机网络.md)
   - [三次握手与四次挥手](drafts/三次握手与四次挥手.md)
   - [特殊字符](drafts/特殊字符.md)
