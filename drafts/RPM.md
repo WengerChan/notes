@@ -125,7 +125,7 @@ bash-4.2.46-31.el7.x86_64
     | `%pretrans` | Scriptlet that is executed just before installing or removing *any package*. |
     | `%posttrans` | Scriptlet that is executed at the end of the transaction. |
 
-* 查看 RPM 包中包含的 Sriptlet：
+* 查看 RPM 包中包含的 Sriptlet
 
     * 操作系统已安装的 RPM
 
@@ -266,9 +266,18 @@ bash-4.2.46-31.el7.x86_64
 
     以下情况触发此段代码：
 
-    * 已安装此包, ruby 或 perl 被安装/升级时
+    * 已安装此包, `ruby` 或 `perl` 被安装/升级时 ( `ruby` 的版本应该大于 2.0, `perl` 的版本应该大于 5.20)
 
-    * 已安装 ruby 或 perl, 此包被安装/升级时
+    * 已安装 `ruby` 或 `perl`, 此包被安装/升级时
+
+    | Comparison           | Meaning                                                          |
+    | -------------------- | -----------------------------------------------------------------|
+    | `package < version`  | A package with a version number less than version                |
+    | `package > version`  | A package with a version number greater than version             |
+    | `package >= version` | A package with a version number greater than or equal to version |
+    | `package <= version` | A package with a version number less than or equal to version    |
+    | `package = version`  | A package with a version number equal to version                 |
+    | `package`            | A package at any version number                                  |
 
 
 * 触发器执行先后顺序
@@ -310,194 +319,6 @@ bash-4.2.46-31.el7.x86_64
     /usr/sbin/service ktune stop &>/dev/null || :
     /usr/sbin/chkconfig --del ktune &>/dev/null || :
     ```
-
-RPM 信号机制:
-
-* `$1`
-
-    The rpm sets `$1` argument with appropriate values to distinguish the number of rpm versions installed. 
-
-    During fresh installation of `projectname-1.0-0`, `%install` and `%post` scripts will be called with `$1` set to `1` indicating that this is the only active version. 
-
-    When upgraded to `projectname-1.0-1`, `%install` and `%post` scripts will be called with `$1` set to `2`. 
-
-    After which, the `%preun` and `%postun` scripts will be called with `$1` set to `1` so as to clean up stuffs of `projectname-1.0-0`. 
-
-    Thus by writing the spec file based on $1 value, we can handle the upgrades effectively.
-
-    ```text
-    In Pre/post
-    if $1 == 1 initial installation
-    if $1 == 2 upgrade
-
-    In preun/postun
-    if $1 == 0 uninstall
-    if $1 == 1 upgrade
-    ```
-
-* `$2`
-
-Inside your trigger scripts, $1, the first command-line argument, holds the number of instances of your package that will remain after the operation has completed. 
-
-The second argument, $2, holds the number of instances of the target package that will remain after the operation. Thus, if $2 is 0, the target package will be removed. 
-
-
-
-| Comparison           | Meaning                                                          |
-| -------------------- | -----------------------------------------------------------------|
-| `package < version`  | A package with a version number less than version                |
-| `package > version`  | A package with a version number greater than version             |
-| `package >= version` | A package with a version number greater than or equal to version |
-| `package <= version` | A package with a version number less than or equal to version    |
-| `package = version`  | A package with a version number equal to version                 |
-| `package`            | A package at any version number                                  |
-
-
-
-
-
-/*! \page triggers Trigger scriptlets
-
-Triggers provide a well-defined method for packages to interact with one another at package install and uninstall time. They are an extension of the normal installation scripts (i.e. %pre) which allows one package (the "source" of the trigger package [which I often think of as the "triggered package"]) to execute an action when the installation status of another package (the "target" of the trigger) changes.
-
-\section triggers_example A Simple Example
-
-Say the package "mymailer" needs an /etc/mymailer/mailer symlink which points to the mail transport agent to use. If sendmail is installed, the link should point to /usr/bin/sendmail, but it vmail is installed, the link should instead point to /usr/bin/vmail. If both packages are present, we don't care where the link points (realistically, sendmail and vmail should conflict with one another), while if neither package is installed the link should not exist at all.
-
-This can be accomplished by mymailer providing trigger scripts which move the symlink when any of the following occurs:
-
-\verbatim
-        1) sendmail is installed
-        2) vmail is installed
-        3) sendmail is removed
-        4) vmail is removed
-\endverbatim
-
-The first two of these scripts would look like this:
-
-\verbatim
-        %triggerin -- sendmail
-        ln -sf /usr/bin/sendmail /etc/mymailer/mailer
-
-        %triggerin -- vmail
-        ln -sf /usr/bin/vmail /etc/mymailer/mailer
-\endverbatim
-
-These are two installation triggers, triggered by one of sendmail or vmail.
-They are run when:
-
-\verbatim
-        1) mymailer is already installed, and sendmail is installed or
-           upgraded
-        2) mymailer is already installed, and vmail is installed or
-           upgraded
-        3) sendmail is already installed, and mymailer is installed or
-           upgraded
-        4) vmail is already installed, and mymailer is installed or
-           upgraded
-\endverbatim
-
-For the upgrading, the strategy is a little different. Rather then setting the link to point to the trigger, the link is set to point to the *other* mailer (if it exists), as follows:
-
-\verbatim
-        %triggerun -- sendmail
-        [ $2 = 0 ] || exit 0
-        if [ -f /usr/bin/vmail ]; then
-                ln -sf /usr/bin/vmail /etc/mymailer/mailer
-        else
-                rm -f /etc/mymailer/mailer
-
-        fi
-
-        %triggerun -- vmail
-        [ $2 = 0 ] || exit 0
-        if [ -f /usr/bin/sendmail ]; then
-                ln -sf /usr/bin/sendmail /etc/mymailer/mailer
-        else
-                rm -f /etc/mymailer/mailer
-
-        fi
-
-        %postun
-        [ $1 = 0 ] && rm -f /etc/mymailer/mailer
-\endverbatim
-
-These trigger scripts get run when:
-
-\verbatim
-        1) sendmail is installed, and mymailer is removed
-        2) vmail is installed, and mymailer is removed
-        3) mymailer is installed, and sendmail gets removed
-        4) mymailer is installed, and vmail gets removed
-\endverbatim
-
-The %postun insures that /etc/mymailer/mailer is removed when mymailer is removed (triggers get run at the same time as %preun scripts, so  doing this in the %postun is safe). Note that the triggers are testing $2 to see if any action should occur. Recall that the $1 passed to regular scripts contains the number of instances of the package which will be  installed when the operation has completed. $1 for triggers is exactly the same -- it is the number of instances of the source (or triggered) package which will remain when the trigger has completed. Similarly, $2 is the number of instances of the target package which will remain. In this case, if any of the targets will remain after the uninstall, the trigger doesn't do anything (as it's probably being triggered by an upgrade).
-
-\section triggers_syntax Trigger Syntax
-
-Trigger specifications are of the form:
-
-\verbatim
-        %trigger{un|in|postun} [[-n] <subpackage>] [-p <program>] -- <trigger>
-\endverbatim
-
-The -n and -p arguments are the same as for %post scripts.  The
-\<trigger\> portion is syntactically equivalent to a "Requires"
-specification (version numbers may be used). If multiple items are
-given (comma separated), the trigger is run when *any* of those
-conditions becomes true (the , can be read as "or"). For example:
-
-\verbatim
-        %triggerin -n package -p /usr/bin/perl -- fileutils > 3.0, perl < 1.2
-        print "I'm in my trigger!\n";
-\endverbatim
-
-Will put a trigger in package 'package' which runs when the installation
-status of either fileutils > 3.0 or perl < 1.2 is changed. The script will
-be run through /usr/bin/perl rather then /bin/sh (which is the default).
-
-\section triggers_unusual An Unusual Case
-
-There is one other type of trigger available -- %triggerpostun. These are
-triggers that are run after their target package has been removed; they will
-never be run when the package containing the trigger is removed. 
-
-While this type of trigger is almost never useful, they allow a package to
-fix errors introduced by the %postun of another package (or by an earlier 
-version of that package).
-
-\section triggers_order Order of Script Execution
-
-For reference, here's the order in which scripts are executed on a single
-package upgrade:
-
-\verbatim
-  all-%pretrans
-  ...
-  any-%triggerprein (%triggerprein from other packages set off by new install)
-  new-%triggerprein
-  new-%pre      for new version of package being installed
-  ...           (all new files are installed)
-  new-%post     for new version of package being installed
-
-  any-%triggerin (%triggerin from other packages set off by new install)
-  new-%triggerin
-  old-%triggerun
-  any-%triggerun (%triggerun from other packages set off by old uninstall)
-
-  old-%preun    for old version of package being removed
-  ...           (all old files are removed)
-  old-%postun   for old version of package being removed
-
-  old-%triggerpostun
-  any-%triggerpostun (%triggerpostun from other packages set off by old un
-                install)
-  ...
-  all-%posttrans
-\endverbatim
-*/
-
-
 
 
 * Epoch
@@ -992,4 +813,36 @@ package upgrade:
     # Used with polkit to reauthorize users in remote sessions
     -session   optional     pam_reauthorize.so prepare
     ```
+
+
+## RPM 信号机制
+
+* `$1`
+
+    The rpm sets `$1` argument with appropriate values to distinguish the number of rpm versions installed. 
+
+    During fresh installation of `projectname-1.0-0`, `%install` and `%post` scripts will be called with `$1` set to `1` indicating that this is the only active version. 
+
+    When upgraded to `projectname-1.0-1`, `%install` and `%post` scripts will be called with `$1` set to `2`. 
+
+    After which, the `%preun` and `%postun` scripts will be called with `$1` set to `1` so as to clean up stuffs of `projectname-1.0-0`. 
+
+    Thus by writing the spec file based on $1 value, we can handle the upgrades effectively.
+
+    ```text
+    In Pre/post
+    if $1 == 1 initial installation
+    if $1 == 2 upgrade
+
+    In preun/postun
+    if $1 == 0 uninstall
+    if $1 == 1 upgrade
+    ```
+
+* `$2`
+
+Inside your trigger scripts, $1, the first command-line argument, holds the number of instances of your package that will remain after the operation has completed. 
+
+The second argument, $2, holds the number of instances of the target package that will remain after the operation. Thus, if $2 is 0, the target package will be removed. 
+
 
