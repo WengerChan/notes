@@ -56,7 +56,7 @@ apt purge open-vm-tools open-vm-tools-dev
     deb http://192.168.161.1:8800/ubuntu16.04.7 xenial main restricted
     ```
 
-## Server and Desktop Differences
+## Server and Desktop Differences (20.04 LTS)
 
 The *Ubuntu Server Edition* and the *Ubuntu Desktop Edition* use the same apt repositories, making it just as easy to install a *server* application on the Desktop Edition as on the Server Edition.
 
@@ -82,6 +82,15 @@ Most used commands:
   edit-sources - edit the source information file
   satisfy      - satisfy dependency strings
   purge        - ="remove --purge", 删除软件的同时删除配置文件
+```
+
+### apt-cache
+
+apt-cache 主要用于搜索软件
+
+```sh
+apt-cache search neofetch
+apt-cache show nofetch
 ```
 
 ### dpkg
@@ -126,3 +135,80 @@ Comparison operators for --compare-versions are:
 
 Use 'apt' or 'aptitude' for user-friendly package management.
 ```
+
+## Network
+
+```sh
+ip addr add 10.102.66.200/24 dev eth0 # 设置临时 IP
+
+ip link set dev eth0 up 
+ip link set dev eth0 down
+
+~] /etc/resolv.conf    # 设置临时 DNS
+nameserver 8.8.8.8
+
+ip route add default via 10.102.66.1  # 设置临时默认路由
+ip addr flush eth0                    # 清空网卡的临时配置
+```
+
+永久配置:
+
+* 14.04/16.04
+
+    ```sh
+    ~] vi /etc/network/interfaces
+    
+    # This file describes the network interfaces available on your system
+    # and how to activate them. For more information, see interfaces(5).
+    
+    source /etc/network/interfaces.d/*
+    
+    # The loopback network interface
+    auto lo
+    iface lo inet loopback
+    
+    # The primary network interface
+    auto ens3
+    iface ens3 inet static
+            address 192.168.161.20
+            netmask 255.255.255.0
+            network 192.168.161.0
+            broadcast 192.168.161.255
+            gateway 192.168.161.1
+            # dns-nameservers 114.114.114.114 # DNS
+    ```
+
+    除了使用 `dns-nameservers` 关键字配置 DNS, 还可以编辑 `/etc/resolvconf/resolv.conf.d/base` 配置:
+    
+    ```sh
+    ~] vi /etc/resolvconf/resolv.conf.d/base 
+    nameserver 114.114.114.114
+
+    ~] resolvconf -u
+    ```
+
+* 18.04/20.04
+
+    ```sh
+    ~] cat /etc/netplan/00-installer-config.yaml
+
+    # This is the network config written by 'subiquity'
+    network:
+      ethernets:
+        enp1s0:
+          addresses:
+          - 192.168.161.21/24
+          gateway4: 192.168.161.1
+          nameservers:
+            addresses: []
+            search: []
+      version: 2
+    
+    ~] netplan apply
+    ```
+
+    查看 DNS 情况:
+
+    ```sh
+    ~] systemd-resolve --status
+    ```

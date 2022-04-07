@@ -4,10 +4,10 @@
 
 ### RHEL/Centos 6.x
 
-```
+```text
 select "kernel…"
 
-s或者single
+s 或者 single
 
 passwd root
 
