@@ -110,7 +110,7 @@ bash-4.2.46-31.el7.x86_64
 | `%changelog` | A record of changes that have happened to the package between different `Version` or `Release` builds. |
 
 
-### 2.3 Advanced Items
+### 2.3 Advanced Topic
 
 #### 2.3.1 Scriptlets
 
@@ -321,18 +321,133 @@ bash-4.2.46-31.el7.x86_64
     ```
 
 
-* Epoch
+#### 2.3.3 Epoch
+
+`epoch` 定义 RPM 包的额外版本号, 其优先级比 `version` 和 `release` 高
+
+需要注意的是, 如果在 SPEC 中未定义 `epoch` 和在 SPEC 文件中定义 `epoch` 为 0 是不同的, 例如定义 `epoch` 为 0 时, 使用 `rpm` 可以查询到 `${EPOCH}` 值为 0, 而没有定义则查询不到
+
+YUM 进行事务操作时会将未设置 `epoch` 的 RPM 包当作设置了 `epoch` 为 0 来方便比较
 
 
-* Macros
+* 关于 RPM 包版本号比较
 
-> Refer to: [RPM-macros](./Linux-rpm-macros.md)
+    版本号表示格式为 "`epoch:version-release`", 如: `1:2-3`; 通常情况下 `epoch` 信息不会显示在 RPM 包的名字里:
+
+    ```sh
+    ~] rpm -qa vim-enhanced
+
+    vim-enhanced-7.4.629-8.el7_9.x86_64
+    ```
+
+    可以通过下面的两种方法命令来查看 `epoch` 的值:
+
+    ```sh
+    ~] rpm -q vim-enhanced --queryformat '%{EPOCH}\n' 
+    2
+
+    ~] yum list vim-enhanced
+    ...
+    vim-enhanced.x86_64        2:7.4.629-8.el7_9            @updates
+    ```
+
+    版本比对原则:
+
+    > [https://blog.csdn.net/RHEL_admin/article/details/37592971](https://blog.csdn.net/RHEL_admin/article/details/37592971)
+
+    * 1 属性优先级
+
+        先比较 `epoch`, 然后比较 `version`, 最后比较 `release`
+
+        ```text
+        1:1-1 > 0:2-2  # 比较 epoch
+        0:2-1 > 0:1-3  # 比较 version
+        0:1-2 > 0:1-1  # 比较 release
+        ```
+
+    * 2 版本号字段列表分隔模式
+
+        除 `epoch` 属性之外, `version` 和 `release` 可能不单单包含数字, 也可能含有字符串, 例如 `1.0alpha1`, `2.0.0+svn12221`
+
+        遇到这种情况时, 版本号字段会被分隔为列表。分隔策略是: *数字与字符串分开, 形成自然分隔边界, 点号/加号/减号/下划线作为分隔符*。
+        
+        * `1.0alpha1` 会分为 `[ 1, 0, alpha, 1 ]`
+        * `2.0.0+svn12221` 会分为 `[ 2, 0, 0, svn, 12221 ]`
+
+        这样子分隔的目的是为了列表相应分段进行比较: 比较的优先级按照列表的下标顺序自然排序, 第一位的优先级最高, 后面依次降低。如果两个列表可比较的分段经过比较后都相等, 那么列表长的比列表短的新, 如果列表长度也一样, 那么这两个版本号字段相等。
+
+        ```text
+        1.2.0 > 1.1.9       ( [1, 2, 0]  中第2分段的 "2" > [1, 1, 9] 中第 2 分段的 "1" )
+        1.12.1 > 1.9beta2   ( [1, 12, 1] 中第2分段的 "12" > [1, 9, beta, 2] 中第 2 分段的 "9" )
+        3.1.0 > 3.1         ( [3, 1, 0] 的列表长度 3 > [3,1] 的列表长度 2 )
+        ```
+
+    * 3 列表分段比较算法
+
+        此算法是在 *原则 2* 基础上针对字符串和数字比较的原则
+
+        * 如果是数和数比较, 那么两个串会看作两个整数进行自然数比较, *前导的零会被忽略*: `"12" -> 12`, `"00010" -> 10`
+        * 如果是字符串和字符串比较, 那么会进行如同 C 语言 `strcmp()` 函数的逻辑, 按照 ACSII 码顺序得出, *排在后面的为新版本*, *小写字母比大写字母新*
+        * 如果是字符串和数比较, 那么 *认定数字比字符串新*
+
+        ```text
+        123 > 121
+        svn > rc
+        alpha > Beta
+        0 > beta
+        ```
 
 
+    具体的例子:
+
+    ```text
+    1.00010 > 1.9     因为 10 > 9
+    2.02 = 2.2        因为 02 = 2
+    3.4.0 > 3.4       因为 3.4.0 多出一个列表分段
+    5mgc25 = 5.mgc.25 因为分隔后的列表两者相等
+    6.0 > 6beta       因为数字比字符串新
+    ```
 
 
+#### 2.3.4 Macros
+
+> Refer to: [RPM-Macros.md](./RPM-Macros.md)
 
 
+#### 2.3.5 Conditionals
+
+* Syntax
+
+    ```yaml
+    %if expression
+    ...
+    %endif
+    ```
+
+    or
+
+    ```yaml
+    %if expression
+    ...
+    %else
+    ...
+    %endif
+    ```
+
+* Examples
+
+    ```yaml
+    %if 0%{?rhel} == 8
+    sed -i '/AS_FUNCTION_DESCRIBE/ s/^//' configure.in sed -i '/AS_FUNCTION_DESCRIBE/ s/^//' acinclude.m4
+    %endif
+    ```
+
+    ```yaml
+    %define ruby_archive %{name}-%{ruby_version}
+    %if 0%{?milestone:1}%{?revision:1} != 0
+    %define ruby_archive %{ruby_archive}-%{?milestone}%{?!milestone:%{?revision:r%{revision}}}
+    %endif
+    ```
 
 
 * `e.g.` An example SPEC file for the bello program written in bash
