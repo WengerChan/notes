@@ -1539,7 +1539,46 @@ The second argument, $2, holds the number of instances of the target package tha
 ---
 
 
-## C. 实战 OpenSSH
+## C. 实战 OpenSSH && OpenSSL
+
+```yaml
+---
+Env:
+     OS: CentOS 7.6
+OpenSSH: openssh-9.0p1.tar.gz
+OpenSSL: openssl-1.1.1n.tar.gz
+    gcc: 4.8.5 20150623 (Red Hat 4.8.5-44)
+   make: GNU Make 3.82
+```
+
+### C.1 准备源码包和工作目录
+
+准备一台 CentOS 7.6 虚拟机， root 身份进入系统
+
+* 用户及工作目录
+
+    ```sh
+    ~] useradd rpmbuilder
+    ~] su - rpmbuilder
+    ~]$ rpmdev-setuptree
+    ~]$ tree /home/rpmbuilder/rpmbuild
+    /home/rpmbuilder/rpmbuild/
+    ├── BUILD
+    ├── RPMS
+    ├── SOURCES
+    ├── SPECS
+    └── SRPMS
+    ```
+
+* 下载源码包并上传到虚拟机
+
+    OpenSSL：https://www.openssl.org/source/
+
+    OpenSSH：http://www.openssh.com/portable.html
+
+### C.2 对 OpenSSL 打包成 RPM
+
+
 
 ## 需要注意的几点
 
