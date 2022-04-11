@@ -1,7 +1,5 @@
 %define soversion 1.1
 
-%define x86_64
-
 %global _performance_build 1
 
 Summary: Utilities from the general purpose cryptography library with TLS implementation
@@ -10,21 +8,14 @@ Version: 1.1.1n
 Release: 1%{?dist}
 Epoch: 1
 Source: openssl-%{version}.tar.gz
-Source1: hobble-openssl
-Source2: Makefile.certificate
-Source6: make-dummy-cert
-Source7: renew-dummy-cert
-Source9: opensslconf-new.h
-Source10: opensslconf-new-warning.h
-Source11: README.FIPS
-Source12: ec_curve.c
-Source13: ectest.c
 
-Group: System Environment/Libraries
 License: OpenSSL and ASL 2.0
+License: OpenSSL
+Group: System Environment/Libraries
 URL: http://www.openssl.org/
-BuildRequires: gcc
-BuildRequires: coreutils, perl-interpreter, sed, zlib-devel, /usr/bin/cmp
+BuildArch: x86_64
+BuildRoot: %{_tmppath}/%{name}-%{version}-root
+BuildRequires: coreutils, krb5-devel, perl, sed, zlib-devel, /usr/bin/cmp
 BuildRequires: lksctp-tools-devel
 BuildRequires: /usr/bin/rename
 BuildRequires: /usr/bin/pod2man
@@ -33,7 +24,7 @@ BuildRequires: perl(Test::Harness), perl(Test::More), perl(Math::BigInt)
 BuildRequires: perl(Module::Load::Conditional), perl(File::Temp)
 BuildRequires: perl(Time::HiRes)
 BuildRequires: perl(FindBin), perl(lib), perl(File::Compare), perl(File::Copy)
-Requires: coreutils
+Requires: coreutils, make
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description
@@ -42,23 +33,24 @@ machines. OpenSSL includes a certificate management tool and shared
 libraries which provide various cryptographic algorithms and
 protocols.
 
+
 %package libs
 Summary: A general purpose cryptography library with TLS implementation
+Group: System Environment/Libraries
 Requires: ca-certificates >= 2008-5
-Requires: crypto-policies >= 20180730
-Recommends: openssl-pkcs11%{?_isa}
+# Recommends: openssl-pkcs11%{?_isa}                                  <= ?
 # Needed obsoletes due to the base/lib subpackage split
 Obsoletes: openssl < 1:1.0.1-0.3.beta3
-Obsoletes: openssl-fips < 1:1.0.1e-28
-Provides: openssl-fips = %{epoch}:%{version}-%{release}
 
 %description libs
 OpenSSL is a toolkit for supporting cryptography. The openssl-libs
 package contains the libraries that are used by various applications which
 support cryptographic algorithms and protocols.
 
+
 %package devel
 Summary: Files for development of applications which will use OpenSSL
+Group: Development/Libraries
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: krb5-devel%{?_isa}, zlib-devel%{?_isa}
 Requires: pkgconfig
@@ -68,8 +60,10 @@ OpenSSL is a toolkit for supporting cryptography. The openssl-devel
 package contains include files needed to develop applications which
 support various cryptographic algorithms and protocols.
 
+
 %package static
 Summary:  Libraries for static linking of applications which will use OpenSSL
+Group: Development/Libraries
 Requires: %{name}-devel%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description static
@@ -78,9 +72,11 @@ package contains static libraries needed for static linking of
 applications which support various cryptographic algorithms and
 protocols.
 
+
 %package perl
 Summary: Perl scripts provided with OpenSSL
-Requires: perl-interpreter
+Group: Applications/Internet
+Requires: perl
 Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description perl
@@ -88,19 +84,12 @@ OpenSSL is a toolkit for supporting cryptography. The openssl-perl
 package provides Perl scripts for converting certificates and keys
 from other formats to the formats used by the OpenSSL toolkit.
 
+
 %prep
 %setup -q -n %{name}-%{version}
 
-# The hobble_openssl is called here redundantly, just to be sure.
-# The tarball has already the sources removed.
-%{SOURCE1} > /dev/null
-
-cp %{SOURCE12} crypto/ec/
-cp %{SOURCE13} test/
-
 %build
-# Figure out which flags we want to use.
-# default
+
 sslarch=%{_os}-%{_target_cpu}
 %ifarch x86_64
 sslflags=enable-ec_nistp_64_gcc_128
@@ -118,11 +107,10 @@ export HASHBANGPERL=/usr/bin/perl
 	enable-weak-ssl-ciphers \
 	no-mdc2 no-ec2m no-sm2 no-sm4 \
 	shared  ${sslarch} $RPM_OPT_FLAGS '-DDEVRANDOM="\"/dev/urandom\""'
-
 make all
 
 # Overwrite FIPS README
-cp -f %{SOURCE11} .
+cp -f %{SOURCE5} %{SOURCE11} .
 
 # Clean up the .pc files
 for i in  ; do
@@ -130,7 +118,6 @@ for i in  ; do
 done
 
 %check
-# Verify that wlibcrypto.pc libssl.pc openssl.pchat was compiled actually works.
 
 # Hack - either enable SCTP AUTH chunks in kernel or disable sctp for check
 (sysctl net.sctp.addip_enable=1 && sysctl net.sctp.auth_enable=1) || \
@@ -139,11 +126,9 @@ done
  touch -r configdata.pm configdata.pm.new && \
  mv -f configdata.pm.new configdata.pm)
 
-# We must revert patch31 before tests otherwise they will fail
-patch -p1 -R < %{PATCH31}
-
 LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 export LD_LIBRARY_PATH
+
 crypto/fips/fips_standalone_hmac libcrypto.so.%{soversion} >.libcrypto.so.%{soversion}.hmac
 ln -s .libcrypto.so.%{soversion}.hmac .libcrypto.so.hmac
 crypto/fips/fips_standalone_hmac libssl.so.%{soversion} >.libssl.so.%{soversion}.hmac
@@ -152,7 +137,18 @@ OPENSSL_ENABLE_MD5_VERIFY=
 export OPENSSL_ENABLE_MD5_VERIFY
 OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file
 export OPENSSL_SYSTEM_CIPHERS_OVERRIDE
-make test
+
+make -C test apps tests
+%{__cc} -o openssl-thread-test \
+	`krb5-config --cflags` \
+	-I./include \
+	$RPM_OPT_FLAGS \
+	%{SOURCE8} \
+	-L. \
+	-lssl -lcrypto \
+	`krb5-config --libs` \
+	-lpthread -lz -ldl
+./openssl-thread-test --threads %{thread_test_threads}
 
 # Add generation of HMAC checksum of the final stripped library
 %define __spec_install_post \
@@ -167,12 +163,20 @@ make test
 
 %define __provides_exclude_from %{_libdir}/openssl
 
+
 %install
+
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
 # Install OpenSSL.
-install -d $RPM_BUILD_ROOT{%{_bindir},%{_includedir},%{_libdir},%{_mandir},%{_libdir}/openssl,%{_pkgdocdir}}
-make DESTDIR=$RPM_BUILD_ROOT install
+install -d $RPM_BUILD_ROOT{%{_bindir},%{_includedir},%{_libdir},%{_mandir},%{_libdir}/openssl}
+make INSTALL_PREFIX=$RPM_BUILD_ROOT install
+make INSTALL_PREFIX=$RPM_BUILD_ROOT install_docs
+mv $RPM_BUILD_ROOT%{_libdir}/engines $RPM_BUILD_ROOT%{_libdir}/openssl
+mv $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/man/* $RPM_BUILD_ROOT%{_mandir}/
+rmdir $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/man
 rename so.%{soversion} so.%{version} $RPM_BUILD_ROOT%{_libdir}/*.so.%{soversion}
+mkdir $RPM_BUILD_ROOT/%{_lib}
 for lib in $RPM_BUILD_ROOT%{_libdir}/*.so.%{version} ; do
 	chmod 755 ${lib}
 	ln -s -f `basename ${lib}` $RPM_BUILD_ROOT%{_libdir}/`basename ${lib} .%{version}`
@@ -182,16 +186,16 @@ done
 # Install a makefile for generating keys and self-signed certs, and a script
 # for generating them on the fly.
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs
-install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_pkgdocdir}/Makefile.certificate
-install -m755 %{SOURCE6} $RPM_BUILD_ROOT%{_bindir}/make-dummy-cert
-install -m755 %{SOURCE7} $RPM_BUILD_ROOT%{_bindir}/renew-dummy-cert
+install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs/Makefile
+install -m755 %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs/make-dummy-cert
+install -m755 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs/renew-dummy-cert
 
-# Move runable perl scripts to bindir
-mv $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc/*.pl $RPM_BUILD_ROOT%{_bindir}
-mv $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc/tsget $RPM_BUILD_ROOT%{_bindir}
-
-# Drop the SSLv3 methods from includes
-sed -i '/ifndef OPENSSL_NO_SSL3_METHOD/,+4d' $RPM_BUILD_ROOT%{_includedir}/openssl/ssl.h
+# Make sure we actually include the headers we built against.
+for header in $RPM_BUILD_ROOT%{_includedir}/openssl/* ; do
+	if [ -f ${header} -a -f include/openssl/$(basename ${header}) ] ; then
+		install -m644 include/openssl/`basename ${header}` ${header}
+	fi
+done
 
 # Rename man pages so that they don't conflict with other system man pages.
 pushd $RPM_BUILD_ROOT%{_mandir}
@@ -207,13 +211,20 @@ for manpage in man*/* ; do
 done
 for conflict in passwd rand ; do
 	rename ${conflict} ssl${conflict} man*/${conflict}*
-# Fix dangling symlinks
+	# Fix dangling symlinks
 	manpage=man1/openssl-${conflict}.*
 	if [ -L ${manpage} ] ; then
 		ln -snf ssl${conflict}.1ssl ${manpage}
 	fi
 done
 popd
+
+
+# Pick a CA script.
+pushd  $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc
+mv CA.sh CA
+popd
+
 
 mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA
 mkdir -m700 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/private
@@ -241,19 +252,18 @@ basearch=sparc
 basearch=sparc64
 %endif
 
-%ifarch %{multilib_arches}
-# Do an opensslconf.h switcheroo to avoid file conflicts on systems where you
-# can have both a 32- and 64-bit version of the library, and they each need
-# their own correct-but-different versions of opensslconf.h to be usable.
+
+%ifarch x86_64
 install -m644 %{SOURCE10} \
 	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf-${basearch}.h
 cat $RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf.h >> \
 	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf-${basearch}.h
 install -m644 %{SOURCE9} \
 	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf.h
-%endif
+
 LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 export LD_LIBRARY_PATH
+%endif
 
 %files
 %{!?_licensedir:%global license %%doc}
