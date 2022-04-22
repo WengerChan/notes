@@ -54,7 +54,7 @@
     ```sh
     virsh undefined VM-NAME
 
-    [--managed-save]         # 当虚拟机处于saved状态时，删除时需要指定这个选项
+    [--managed-save]         # 当虚拟机处于saved状态时, 删除时需要指定这个选项
     [--snapshots-metadata]
     [ {--storage volumes | --remove-all-storage [--delete-snapshots]} --wipe-storage]
     ```
@@ -229,6 +229,35 @@ virt-clone -o VM-NAME-01 -n VM-NAME-02 -f /data/VM-NAME-02.qcow2  # VM-NAME-01�
         virsh detach-disk --domain rhel79-clone --target vdb --config
         ```
 
+    * 回收磁盘空间
+
+        如果磁盘是 "精简置备", 在虚拟机的使用过程中, 虚拟机内的文件经过大量的增, 删, 改等操作后, 会使得虚拟机磁盘的体积变大, 即使删除了虚拟机内的文件, 已经分配给虚拟磁盘的空间却并不会被回收。
+
+        此时可以对磁盘空间进行回收.
+
+        * 在虚拟机内部执行命令
+
+            ```sh
+            dd if=/dev/zero of=/mount_point/junk
+            rm -f /mount_point/junk
+            ```
+
+            `/mount_point` 为磁盘挂载点, 上面的操作是将虚拟磁盘内部所有未被占用的空间用 0 字节填充, 便于后续回收
+        
+        * 宿主机上操作
+
+            将虚拟机关机, 执行:
+
+            ```sh
+            qemu-img convert -c -O qcow2 Centos76.qcow2 Centos76-new.qcow2
+            ```
+
+            转换的时候不拷贝 0 数据块, 达到回收空间的目的.
+
+        * 执行完命令以后, 将虚拟机的磁盘文件替换成新的磁盘文件即可.
+
+            界面修改或者编辑配置文件 (`virsh edit centos76`)
+
 * 快照
 
     ```text
@@ -281,7 +310,7 @@ virt-clone -o VM-NAME-01 -n VM-NAME-02 -f /data/VM-NAME-02.qcow2  # VM-NAME-01�
             # 合并快照3到当前使用的快照4中
             virsh blockpull --domain rhel79 --path /data/rhel79_3.qcow2 --base /data/test4.qcow2 --wait --verbose
             
-            # 迁移虚拟机，合并base-image到active,合并需要一段时间
+            # 迁移虚拟机, 合并base-image到active,合并需要一段时间
             virsh blockpull --domain rhel79 --path /data/test4.qcow2 --wait --verbose
             ```
 
@@ -616,13 +645,13 @@ rss 594740
 # --config           affect next boot
 # --live             affect running domain
 # --current          affect current domain
-# 对于带有memory balloon的QEMU/KVM，将可选的--period设置为大于0的值（以秒为单位），将使balloon dirver程序返回其他统计信息，这些统计信息将由后续的dommemstat命令显示。 
-# 将--period设置为0将停止气球状驱动程序收集，但不会清除气球状驱动程序中的统计信息。 需要至少QEMU/KVM 1.5在主机上运行。
-# --live，-config和--current标志仅在使用--period选项设置气球驱动程序的收集时间时有效。 
-#     如果指定了--live，则仅影响正在运行的来宾收集周期。 
-#     如果指定了--config，将影响持久客户机的下一次引导。 
-#     如果指定了--current，则影响当前的来宾状态。
-# --current不能和--live和--config一起给出。如果未指定标志，则行为将根据来宾状态而有所不同。 
+# 对于带有memory balloon的QEMU/KVM, 将可选的--period设置为大于0的值（以秒为单位）, 将使balloon dirver程序返回其他统计信息, 这些统计信息将由后续的dommemstat命令显示。 
+# 将--period设置为0将停止气球状驱动程序收集, 但不会清除气球状驱动程序中的统计信息。 需要至少QEMU/KVM 1.5在主机上运行。
+# --live, -config和--current标志仅在使用--period选项设置气球驱动程序的收集时间时有效。 
+#     如果指定了--live, 则仅影响正在运行的来宾收集周期。 
+#     如果指定了--config, 将影响持久客户机的下一次引导。 
+#     如果指定了--current, 则影响当前的来宾状态。
+# --current不能和--live和--config一起给出。如果未指定标志, 则行为将根据来宾状态而有所不同。 
 
 # swap_in           - The amount of data read from swap space (in KiB)
 # swap_out          - The amount of memory written out to swap space (in KiB)
@@ -918,7 +947,7 @@ See man page for examples and full option syntax.
 
     * docker
 
-        由于容器运行在自己单独的network namespace里面(需要使用 veth对)，所以都有自己单独的协议栈，情况和上面的虚拟机差不多，但它采用了另一种方式来和外界通信: 
+        由于容器运行在自己单独的network namespace里面(需要使用 veth对), 所以都有自己单独的协议栈, 情况和上面的虚拟机差不多, 但它采用了另一种方式来和外界通信: 
 
         ```text
         +------------------------------------------------+-----------------------------------+-----------------------------------+

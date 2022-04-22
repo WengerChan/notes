@@ -34,11 +34,13 @@ nav:
     - SSH: docs/SSH
     - Team: docs/Team
     - VSFTPD: docs/VSFTPD
+    - vlmcsd: docs/vlmcsd
     - 双网卡路由: docs/双网卡路由
     - 正则表达式: docs/正则表达式
     - 证书: docs/证书
   - Drafts:
     - Git: drafts/Git
+    - RPM: drafts/RPM
     - Ubuntu: drafts/Ubuntu
     - 计算机网络: drafts/计算机网络
     - 三次握手与四次挥手: drafts/三次握手与四次挥手
