@@ -7,6 +7,8 @@ Name: openssl
 Version: 1.1.1n
 Release: 1%{?dist}
 Epoch: 1
+Vendor: Cnwn
+Packager: Wenger Chan <cnwn1111@hotmail.com>
 Source: openssl-%{version}.tar.gz
 Source1: Makefile.certificate 
 Source2: make-dummy-cert

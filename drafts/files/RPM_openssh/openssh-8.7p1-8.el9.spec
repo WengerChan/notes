@@ -51,7 +51,7 @@
 
 # Do not forget to bump pam_ssh_agent_auth release if you rewind the main package release to 1
 %global openssh_ver 8.7p1
-%global openssh_rel 6
+%global openssh_rel 8
 %global pam_ssh_agent_ver 0.10.4
 %global pam_ssh_agent_rel 4
 
@@ -201,6 +201,17 @@ Patch977: openssh-8.7p1-scp-kill-switch.patch
 Patch978: openssh-8.7p1-upstream-cve-2021-41617.patch
 # fix for `ssh-keygen -Y find-principals -f /dev/null -s /dev/null` (#2024902)
 Patch979: openssh-8.7p1-find-principals-fix.patch
+# Create non-existent directories when scp works in sftp mode and some more minor fixes
+# upstream commits:
+# ba61123eef9c6356d438c90c1199a57a0d7bcb0a
+# 63670d4e9030bcee490d5a9cce561373ac5b3b23
+# ac7c9ec894ed0825d04ef69c55babb49bab1d32e
+Patch980: openssh-8.7p1-sftpscp-dir-create.patch
+# Workaround for lack of sftp_realpath in older versions of RHEL
+# https://bugzilla.redhat.com/show_bug.cgi?id=2038854
+# https://github.com/openssh/openssh-portable/pull/299
+# downstream only
+Patch981: openssh-8.7p1-recursive-scp.patch
 
 Patch1000: openssh-8.7p1-minimize-sha1-use.patch
 
@@ -382,6 +393,8 @@ popd
 %patch977 -p1 -b .kill-scp
 %patch978 -p1 -b .cve-2021-41617
 %patch979 -p1 -b .find-principals
+%patch980 -p1 -b .sftpdirs
+%patch981 -p1 -b .scp-sftpdirs
 
 %patch200 -p1 -b .audit
 %patch201 -p1 -b .audit-race
@@ -668,6 +681,16 @@ test -f %{sysconfig_anaconda} && \
 %endif
 
 %changelog
+* Mon Feb 21 2022 Dmitry Belyavskiy <dbelyavs@redhat.com> - 8.7p1-8
+- Workaround for RHEL 8 incompatibility in scp utility in SFTP mode
+  Related: rhbz#2038854
+
+* Mon Feb 07 2022 Dmitry Belyavskiy <dbelyavs@redhat.com> - 8.7p1-7
+- Switch to SFTP protocol in scp utility by default - upstream fixes
+  Related: rhbz#2001002
+- Workaround for RHEL 8 incompatibility in scp utility in SFTP mode
+  Related: rhbz#2038854
+
 * Tue Dec 21 2021 Dmitry Belyavskiy <dbelyavs@redhat.com> - 8.7p1-6
 - Fix SSH connection to localhost not possible in FIPS
   Related: rhbz#2031868
