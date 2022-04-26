@@ -35,6 +35,7 @@ Some notes that hopefully will help you.
   - [NFS](docs/NFS.md)
   - [NTP](docs/NTP.md)
   - [RHCS](docs/RHCS.md)
+  - [RPM](docs/RPM.md)
   - [Shell](docs/Shell.md)
   - [Shell-圣经-CN](docs/Shell-圣经-CN.md)
   - [Shell-圣经-EN](docs/Shell-圣经-EN.md)
@@ -47,7 +48,6 @@ Some notes that hopefully will help you.
   - [证书](docs/证书.md)
 - Drafts:
   - [Git](drafts/Git.md)
-  - [RPM](drafts/RPM.md)
   - [Ubuntu](drafts/Ubuntu.md)
   - [计算机网络](drafts/计算机网络.md)
   - [三次握手与四次挥手](drafts/三次握手与四次挥手.md)

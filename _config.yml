@@ -29,6 +29,7 @@ nav:
     - NFS: docs/NFS
     - NTP: docs/NTP
     - RHCS: docs/RHCS
+    - RPM: docs/RPM
     - Shell: docs/Shell
     - Shell-圣经: docs/Shell-圣经-CN
     - SSH: docs/SSH
@@ -40,7 +41,6 @@ nav:
     - 证书: docs/证书
   - Drafts:
     - Git: drafts/Git
-    - RPM: drafts/RPM
     - Ubuntu: drafts/Ubuntu
     - 计算机网络: drafts/计算机网络
     - 三次握手与四次挥手: drafts/三次握手与四次挥手
