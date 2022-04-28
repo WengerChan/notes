@@ -1658,7 +1658,7 @@ OpenSSH: openssh-9.0p1.tar.gz
     [libfido2-1.6.0-7.el7.src.rpm](./files/RPM_openssh/libfido2-1.6.0-7.el7.src.rpm)
 
     ```sh
-    rpm -ivh libfido2-1.6.0-7.el7.src.rpm
+    rpm -ivh libcbor-0.7.0-5.el7.src.rpm
     rpm -ivh libfido2-1.6.0-7.el7.src.rpm
 
     cd rpmbuild/SPEC
