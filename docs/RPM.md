@@ -1677,3 +1677,64 @@ OpenSSH: openssh-9.0p1.tar.gz
     ~]$ rpmbuild -bs openssh.spec
     ~]$ rpmbuild -bb openssh.spec
     ```
+
+### C.5 注意事项
+
+* (1) 以下五个文件打包 RPM 时因为配置了 `%config(noreplace)`, 在客户端更新 OpenSSH 时可能不会覆盖当前系统的文件; 
+
+    ```text
+    /etc/pam.d/sshd
+    /etc/ssh/sshd_config
+    /etc/sysconfig/sshd
+
+    /etc/ssh/ssh_config
+    /etc/ssh/moduli
+    ```
+    
+    新版本的 OpenSSH 有些配置项的默认值已经发生改变了(比如 `PermitRootLogin`), 如果依旧使用旧配置文件可能会有部分影响; 但是旧配置文件中也可能有些特殊或者自定义的配置项, 不能草率的直接覆盖原配置文件
+
+    
+    根据实际不同情况, 可以选择修改 `openssh.spec` 去掉 `%config(noreplace)`, 或者在 `%pre`, `%post` 中添加操作来完成
+
+    * 使用新配置文件覆盖旧配置文件
+
+        ```text
+        %pre
+        /usr/bin/mv -f /etc/ssh/ssh_config /etc/ssh/ssh_config.old
+        /usr/bin/mv -f /etc/ssh/moduli /etc/ssh/moduli.old
+
+        %pre server
+        ...
+        /usr/bin/mv -f /etc/pam.d/sshd /etc/pam.d/sshd.old
+        /usr/bin/mv -f /etc/ssh/sshd_config /etc/ssh/sshd_config.old
+        /usr/bin/mv -f /etc/sysconfig/sshd /etc/sysconfig/sshd.old
+        ```
+
+        或
+
+        ```text
+        %post
+        ...
+        test -f /etc/ssh/moduli && \
+          /usr/bin/mv -f /etc/ssh/moduli /etc/ssh/moduli.old && \
+          /usr/bin/mv -f /etc/ssh/moduli.rpmnew /etc/ssh/moduli || :
+        test -f /etc/ssh/ssh_config && \
+          /usr/bin/mv -f /etc/ssh/ssh_config /etc/ssh/ssh_config.old && \
+          /usr/bin/mv -f /etc/ssh/ssh_config.rpmnew /etc/ssh/ssh_config || :
+
+        %post server
+        ...
+        test -f /etc/ssh/sshd_config && \
+          /usr/bin/mv -f /etc/ssh/sshd_config /etc/ssh/sshd_config.old && \
+          /usr/bin/mv -f /etc/ssh/sshd_config.rpmnew /etc/ssh/sshd_config || :
+        test -f /etc/pam.d/sshd && \
+          /usr/bin/mv -f /etc/pam.d/sshd /etc/pam.d/sshd.old && \
+          /usr/bin/mv -f /etc/pam.d/sshd.rpmnew /etc/pam.d/sshd || :
+        test -f /etc/sysconfig/sshd.rpmnew && \
+          /usr/bin/mv -f /etc/sysconfig/sshd /etc/sysconfig/sshd.old && \
+          /usr/bin/mv -f /etc/sysconfig/sshd.rpmnew /etc/sysconfig/sshd || :
+        ```
+    
+    * 修改就配置文件以满足要求
+
+
