@@ -417,6 +417,11 @@ getent passwd sshd >/dev/null || \
 %post server
 %systemd_post sshd.service sshd.socket
 /usr/bin/chmod --silent 0600 /etc/ssh/ssh_host_*_key
+# 20220511
+# /usr/bin/chmod --silent 0550 /root
+# /usr/bin/chmod --silent 0700 /root/.ssh
+# /usr/bin/chmod --silent 0550 /root/.ssh/authorized_keys
+
 
 %preun server
 %systemd_preun sshd.service sshd.socket

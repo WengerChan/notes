@@ -115,30 +115,14 @@ ro recovery nomode set ==> rw single init=/bin/bash
 > GRUB密码: root/Kylin123123
 
 ```sh
-rd.break
-
-mount -o remount,rw /sysroot
-
-chroot /sysroot
-
-...
-
-reboot
-```
-
-ARM版本, 如华为泰山:
-
-```sh
+# 华为泰山
 init=/bin/bash console=tty1
-
-mount -o remount,rw /sysroot
-# mount -o remount,rw /
-
-chroot /sysroot
+# 飞腾
+init=/bin/bash console=tty0
 
 ...
 
-reboot
+/sbin/reboot -f
 ```
 
 
