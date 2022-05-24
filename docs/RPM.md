@@ -1694,9 +1694,11 @@ OpenSSH: openssh-9.0p1.tar.gz
     新版本的 OpenSSH 有些配置项的默认值已经发生改变了(比如 `PermitRootLogin`), 如果依旧使用旧配置文件可能会有部分影响; 但是旧配置文件中也可能有些特殊或者自定义的配置项, 不能草率的直接覆盖原配置文件
 
     
-    根据实际不同情况, 可以选择修改 `openssh.spec` 去掉 `%config(noreplace)`, 或者在 `%pre`, `%post` 中添加操作来完成
+    根据实际不同情况, 可以选择修改 `openssh.spec` 去掉 `%config(noreplace)`, 或者在 `%pre`, `%post` 中添加操作来完成：
 
-    * 使用新配置文件覆盖旧配置文件
+    * 方式一：使用新配置文件覆盖旧配置文件
+
+        `%pre` 阶段将旧配置文件备份后移除：
 
         ```text
         %pre
@@ -1710,7 +1712,7 @@ OpenSSH: openssh-9.0p1.tar.gz
         /usr/bin/mv -f /etc/sysconfig/sshd /etc/sysconfig/sshd.old
         ```
 
-        或
+        或者在 `%post` 阶段再修改：
 
         ```text
         %post
@@ -1735,6 +1737,10 @@ OpenSSH: openssh-9.0p1.tar.gz
           /usr/bin/mv -f /etc/sysconfig/sshd.rpmnew /etc/sysconfig/sshd || :
         ```
     
-    * 修改就配置文件以满足要求
+    * 方式二：安装完成以后，修改旧配置文件以满足要求
+
+        ```sh
+        # 此处是脚本
+        ```
 
 
