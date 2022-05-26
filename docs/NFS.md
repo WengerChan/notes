@@ -132,6 +132,33 @@ NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外�
     showmount -e ServerHost
     ```
 
+* 挂载
+
+    * 手动挂载
+
+        ```sh
+        mount -t nfs 192.168.161.12:/home/example /mount_point
+        # -o 指定选项
+
+        sudo mount -t nfs -o vers=4,minorversion=0,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev,noresvport file-system-id.region.nas.aliyuncs.com:/ /mnt
+
+        sudo mount -t nfs -o vers=3,nolock,proto=tcp,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev,noresvport file-system-id.region.nas.aliyuncs.com:/ /mnt
+        ```
+
+        | 参数 | 说明 |
+        | vers | 文件系统版本，如 nfs v3、nfs v4 |
+        | _netdev | 防止客户端在网络就绪之前开始挂载文件系统 |
+        | noresvport | 网络重连时使用新的TCP端口，保障在网络发生故障恢复的时候不会中断连接 |
+
+
+    * fstab
+
+        ```sh
+        192.168.161.12:/home/example  /mount_point  nfs  vers=3,_netdev,noresvport  0 0
+        192.168.161.12:/home/example  /mount_point  nfs  defaults,_netdev,noresvport  0 0
+        ```
+
+
 ## 关于 `showmount -e` 漏洞
 
 `showmount -e` 通过 `mountd` 守护进程去显示信息, 因此可以限制 `mountd` 的访问达到限制

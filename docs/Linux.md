@@ -760,3 +760,15 @@ net.ifnames=1 biosdevname=0 ==> ens192
     ```sh
     dd if=/root/testfile of=/dev/null bs=4k count=26214400 iflag=direct   # 100G
     ```
+
+## 磁盘UUID
+
+```sh
+blkid
+lsblk -o name,mountpoint,size,uuid
+ls -lh /dev/disk/by-uuid/
+hwinfo --block | grep by-uuid | awk '{print $3,$7}'
+udevadm info -q all -n /dev/sdc1 | grep -i by-uuid | head -1
+tune2fs -l /dev/sdc1 | grep UUID
+dumpe2fs /dev/sdc1 | grep UUID
+```
