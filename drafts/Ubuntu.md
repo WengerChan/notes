@@ -56,6 +56,30 @@ apt purge open-vm-tools open-vm-tools-dev
     deb http://192.168.161.1:8800/ubuntu16.04.7 xenial main restricted
     ```
 
+* 软件源目录结构
+
+    ```text
+    /
+    dists/    包含各个发行版
+        bionic/            
+            main/          自由软件、可以被自由发布的软件和被Ubuntu团队完全支持的软件
+            multiverse/    包含非自由软件, 需尊重版权, 自行负责
+            restricted/    没有自由软件版权, 但依然被Ubuntu团队支持的软件
+            universe/      包含大多数开源软件建立在公共源上(由main中软件编写, 但是没有升级/维护保障)
+        bionic-security/    仅修复漏洞, 并且尽可能少的改变软件包的行为
+        bionic-backports/   security 策略加上新版本的软件（包括候选版本的）
+        bionic-updates/     修复严重但不影响系统安全运行的漏洞
+        bionic-proposed/    update 类的测试部分, 仅建议提供测试和反馈的人进行安装
+    indices/      维护人员文件和重载文件
+    pool/         实际存储软件包的位置, dists/中文件会指向此处
+        main/        
+        multiverse/  
+        restricted/  
+        universe/    
+    project/      大部分为开发人员的资源 (包括 gpg, gpg.sig, release 等文件)
+    ```
+
+
 ## Server and Desktop Differences (20.04 LTS)
 
 The *Ubuntu Server Edition* and the *Ubuntu Desktop Edition* use the same apt repositories, making it just as easy to install a *server* application on the Desktop Edition as on the Server Edition.
