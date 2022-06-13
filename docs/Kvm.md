@@ -1067,7 +1067,6 @@ else
 fi
 
 function ping_ip () {
-
     for i in $(seq 1 255); do 
         {
             ping ${ip_head1}.${i} -c 1 -w 1 > /dev/null  2>&1
@@ -1075,11 +1074,9 @@ function ping_ip () {
         } &
     done
     wait
-
 }
 
 function find_vm () {
-
     for vm in ${vm_list}; do
         echo "${vm}"
         vm_mac=$(virsh domiflist ${vm} | grep -Ew 'br0|br-heartb' | awk '{print $NF}')
@@ -1091,7 +1088,6 @@ function find_vm () {
 }
 
 function main () {
-
     ping_ip
     find_vm
 }
@@ -1122,6 +1118,7 @@ main
             IP:192.168.161.15       MAC:52:54:00:0e:95:37
             IP:192.168.161.13       MAC:52:54:00:0e:95:37
             IP:10.168.161.13        MAC:52:54:00:84:f3:fd
+    ```
 
 * 获取指定虚拟机的 IP
 
@@ -1131,3 +1128,73 @@ main
             IP:192.168.161.2        MAC:52:54:00:b7:33:03
             IP:192.168.161.111      MAC:52:54:00:b7:33:03
     ```
+
+
+### 获取当前宿主机上虚拟机配置的内存大小: `get_vm_mem.sh`
+
+```sh
+#!/bin/bash
+if [ "$1" == "all" ]; then
+    vm_list=$(virsh list --name)
+else
+    vm_list="$1"
+fi
+
+function get_mem () {
+    for vm in ${vm_list}; do
+        printf "%-20s" "$vm"
+        virsh dominfo "${vm}" | grep -i 'used memory' | xargs | awk '{print "\t" "Mem(GB): "($3/1024/1024) }'
+    done
+}
+
+function main () {
+    get_mem
+}
+
+main
+```
+
+输出示例：
+
+```sh
+~] bash get_vm_mem.sh all
+centos7.6               Mem(GB): 1
+centos7.9               Mem(GB): 1
+centos8.5               Mem(GB): 1.5
+openeuler2003           Mem(GB): 1
+```
+
+
+### 获取当前宿主机上虚拟机配置的CPU核数: `get_vm_cpu.sh`
+
+```sh
+#!/bin/bash
+if [ "$1" == "all" ]; then
+    vm_list=$(virsh list --all --name)
+else
+    vm_list="$1"
+fi
+
+function get_cpu () {
+    for vm in ${vm_list}; do
+        printf "%-20s" "${vm}"
+        virsh vcpucount "${vm}" | grep 'current\s*config' | awk '{print "\t" "CPU(Core): "$3 }'
+    done
+}
+
+function main () {
+    get_cpu
+}
+
+main
+```
+
+输出示例：
+
+```sh
+~] bash get_vm_cpu.sh all
+centos7.6               CPU(Core): 1
+centos7.9               CPU(Core): 2
+centos8.5               CPU(Core): 2
+openeuler2003           CPU(Core): 1
+```
