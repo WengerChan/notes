@@ -472,6 +472,173 @@
 
 #### 第06章：多表查询
 
+多表查询，也称为关联查询，指两个或更多个表一起完成查询操作
+
+前提条件：这些一起查询的表之间是有关系的（一对一、一对多），它们之间一定是有关联字段，这个关联字段可能建立了外键，也可能没有建立外键。比如：员工表和部门表，这两个表依靠“部门编号”进行关联。
+
+* 笛卡尔积（交叉连接）
+
+    CROSS JOIN
+
+* 等值连接 VS 非等值连接
+
+    ```sql
+    -- 等值连接
+    SELECT employees.employee_id, employees.last_name, employees.department_id, employees.department_id, departments.location_id
+    FROM employees, departments
+    WHERE employees.department_id = departments.department_id;
+
+    -- 等值连接, 表别名
+    SELECT e.employee_id, e.last_name, e.department_id, e.department_id, d.location_id
+    FROM employees e, departments d
+    WHERE e.department_id = d.department_id;
+
+    -- 非等值连接: emlpoyees 表中的列工资在job_grades表中最高和最低工资之间的
+    SELECT e.last_name, e.salary, j.grade_level
+    FROM employees e, job_grades j
+    WHERE e.salary BETWEEN j.lowest_sal AND j.highest_sal;
+    ```
+
+    总结：连接 n个表,至少需要n-1个连接条件。
+
+* 自连接 vs 非自连接
+
+    ```sql
+    -- 查询employees表，返回“Xxx works for Xxx”
+    SELECT CONCAT(emp.last_name, ' works for ', mgr.last_name)
+    FROM employees emp, employees mgr
+    WHERE emp.manager_id = mgr.employee_id;
+
+    -- 查询出last_name为 ‘Chen’ 的员工的 manager 的信息
+    SELECT mgr.*
+    FROM employees emp, employees mgr
+    WHERE emp.manager_id = mgr.employee_id
+    AND emp.last_name = 'Chen';
+    ```
+
+* 内连接 vs 外连接
+
+    * 内连接: 合并具有同一列的两个以上的表的行, 结果集中不包含一个表与另一个表不匹配的行
+
+    * 外连接: 两个表在连接过程中除了返回满足连接条件的行以外还返回左（或右）表中不满足条件的行 ，这种连接称为左（或右） 外连接。没有匹配的行时, 结果表中相应的列为空(NULL)
+
+        如果是左外连接，则连接条件中左边的表也称为 主表 ，右边的表称为 从表 。
+
+        如果是右外连接，则连接条件中右边的表也称为 主表 ，左边的表称为 从表 。
+
+    * 满外连接的结果: 左右表匹配的数据 + 左表没有匹配到的数据 + 右表没有匹配到的数据。
+
+    ```sql
+    -- SQL92 语法: 在 SQL92 中采用（+）代表从表所在的位置;  SQL92 没有全(满)外连接
+    SELECT last_name,department_name
+    FROM employees ,departments
+    WHERE employees.department_id = departments.department_id(+);  -- 左外连接
+
+    SELECT last_name,department_name
+    FROM employees ,departments
+    WHERE employees.department_id(+) = departments.department_id;  -- 右外连接
+
+    -- SQL99 语法: JOIN, LEFT OUTER JOIN, RIGHT OUTER JOIN, FULL OUTER JOIN(MySql 不支持)
+    SELECT employee_id, city, department_name
+    FROM employees e
+    JOIN departments d
+    ON d.department_id = e.department_id
+    JOIN locations l
+    ON d.location_id = l.location_id;
+
+    SELECT e.last_name, e.department_id, d.department_name
+    FROM employees e
+    LEFT OUTER JOIN departments d
+    ON e.department_id = d.department_id;
+    ```
+
+* UNION 关键字: 合并查询结果
+
+    `UNION`: 去掉重复记录
+
+    `UNION ALL`: 对于重复的记录, 不去重
+
+* 七种 `SQL JOINS`
+
+    ![SQL JOINS](pictures/MySQL/SQL_JOINS.png)
+
+    ```sql
+    -- 中图：内连接 A∩B
+    SELECT employee_id,last_name,department_name
+    FROM employees e JOIN departments d
+    ON e.`department_id` = d.`department_id`;
+
+    -- 左上图：左外连接
+    SELECT employee_id,last_name,department_name
+    FROM employees e LEFT JOIN departments d
+    ON e.`department_id` = d.`department_id`;
+
+    -- 右上图：右外连接
+    SELECT employee_id,last_name,department_name
+    FROM employees e RIGHT JOIN departments d
+    ON e.`department_id` = d.`department_id`;
+
+    -- 左中图：A - A∩B
+    SELECT employee_id,last_name,department_name
+    FROM employees e LEFT JOIN departments d
+    ON e.`department_id` = d.`department_id`
+    WHERE d.`department_id` IS NULL
+
+    -- 右中图：B - A∩B
+    SELECT employee_id,last_name,department_name
+    FROM employees e RIGHT JOIN departments d
+    ON e.`department_id` = d.`department_id`
+    WHERE e.`department_id` IS NULL
+
+    -- 左下图：满外连接 = 左中图 + 右上图 A∪B 或 左上图 + 右中图
+    SELECT employee_id,last_name,department_name
+    FROM employees e LEFT JOIN departments d
+    ON e.`department_id` = d.`department_id`
+    WHERE d.`department_id` IS NULL
+    UNION ALL  -- 没有去重操作，效率高
+    SELECT employee_id,last_name,department_name
+    FROM employees e RIGHT JOIN departments d
+    ON e.`department_id` = d.`department_id`;
+
+    SELECT employee_id,last_name,department_name
+    FROM employees e LEFT JOIN departments d
+    ON e.`department_id` = d.`department_id`
+    UNION ON
+    SELECT employee_id,last_name,department_name
+    FROM employees e RIGHT JOIN departments d
+    ON e.`department_id` = d.`department_id`
+    WHERE e.`department_id` IS NULL
+
+    -- 右下图: 左中图 + 右中图 A∪B - A∩B 或者 (A - A∩B) ∪ （B - A∩B）
+    SELECT employee_id,last_name,department_name
+    FROM employees e LEFT JOIN departments d
+    ON e.`department_id` = d.`department_id`
+    WHERE d.`department_id` IS NULL
+    UNION ALL
+    SELECT employee_id,last_name,department_name
+    FROM employees e RIGHT JOIN departments d
+    ON e.`department_id` = d.`department_id`
+    WHERE e.`department_id` IS NULL
+    ```
+
+* SQL99 新特性
+
+    * 自然连接: `NATUAL JOIN` 自动查询所有相同的字段, 进行等值连接
+
+        ```sql
+        SELECT employee_id,last_name,department_name
+        FROM employees e NATURAL JOIN departments d;
+        ```
+    * `USING` 连接: 指定数据表里的 同名字段 进行等值连接
+
+        ```sql
+        SELECT employee_id,last_name,department_name
+        FROM employees e JOIN departments d
+        USING (department_id);
+        ```
+
+* `SQL92` 和 `SQL99` 是经典的 SQL 标准，也分别叫做 `SQL-2` 和 `SQL-3` 标准。
+
 #### 第07章：单行函数
 
 #### 第08章：聚合函数

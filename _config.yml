@@ -30,17 +30,18 @@ nav:
     - NTP: docs/NTP
     - RHCS: docs/RHCS
     - RPM: docs/RPM
-    - Shell: docs/Shell
     - Shell-圣经: docs/Shell-圣经-CN
+    - Shell: docs/Shell
     - SSH: docs/SSH
     - Team: docs/Team
-    - VSFTPD: docs/VSFTPD
     - vlmcsd: docs/vlmcsd
+    - VSFTPD: docs/VSFTPD
     - 双网卡路由: docs/双网卡路由
     - 正则表达式: docs/正则表达式
     - 证书: docs/证书
   - Drafts:
     - Git: drafts/Git
+    - MySQL: drafts/MySQL
     - Ubuntu: drafts/Ubuntu
     - 计算机网络: drafts/计算机网络
     - 三次握手与四次挥手: drafts/三次握手与四次挥手
