@@ -33,6 +33,30 @@ NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外�
 |`secure`, `insecure` | `secure`: 限制客户端只能从小于1024的tcp/ip端口连接nfs服务器（默认设置）<br>`insecure` : 允许 |
 |`subtree`, `no_subtree` | `subtree`: 若输出目录是一个子目录, 则nfs服务器将检查其父目录的权限(默认设置)；<br>`no_subtree`: 即使输出目录是一个子目录, nfs服务器也不检查其父目录的权限, 这样可以提高效率； |
 
+### (可选) 修改服务端口
+
+* mountd(20048)
+
+    ```sh
+    ~] vi /etc/sysconfig/nfs
+    # Port rpc.mountd should listen on.
+    MOUNTD_PORT=20048
+    ```
+
+* nfs(2049)
+
+    ```sh
+    ~] vi /etc/services
+    nfs             2049/tcp        nfsd shilp      # Network File System
+    nfs             2049/udp        nfsd shilp      # Network File System
+    nfs             2049/sctp       nfsd shilp      # Network File System
+    ```
+
+* portmapper(111)
+
+    未找到配置方法
+
+
 ### Samples
 
 - Export the entire filesystem to machines master and trusty.  In addition to write access, all uid squashing is turned off for host trusty.
@@ -129,7 +153,8 @@ NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外�
 * 获取服务器共享出来的目录
 
     ```sh
-    showmount -e ServerHost
+    showmount -e <ServerIP>
+    rpcinfo -p <ServerIP>  # 关注 portmapper, nfs, mountd 对应的端口, 如果有防火墙, 需要放通这些端口
     ```
 
 * 挂载
