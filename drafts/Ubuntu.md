@@ -236,3 +236,31 @@ ip addr flush eth0                    # 清空网卡的临时配置
     ```sh
     ~] systemd-resolve --status
     ```
+
+## Network - bond
+
+* 18.04
+
+    ```sh
+    ~] vi /etc/netplan/01-xxxxx.yaml
+    network:
+      bonds:
+        bond1:
+          addresses:
+          - 10.139.130.4/24
+          gateway4: 10.139.130.1
+          interfaces:
+          - eno1
+          - eno2
+          nameservers:
+            addresses:
+            - 114.114.114.114
+            - 223.6.6.6
+          parameters:
+            mode: active-backup
+            mii-monitor-interval: 100
+      ethernets:
+        eno1: {}
+        eno2: {}
+      version: 2
+    ```
