@@ -134,6 +134,32 @@
         ```
     * 5 重启mysql服务, 此时不需要添加 `--skip-grant-tables` 参数
 
+* 连接报错："Authentication plugin 'caching_sha2_password' cannot be loaded"
+
+    出现这个原因是 MySQL8 之前的版本中加密规则是 `mysql_native_password`，而在MySQL8之后，加密规则是 `caching_sha2_password`。
+    
+    解决问题方法有两种，第一种是升级图形界面工具版本，第二种是把 MySQL8 用户登录密码加密规则还原成 `mysql_native_password`
+
+    ```sql
+    -- 使用mysql数据库
+    USE mysql;
+    
+    -- 修改'root'@'localhost'用户的密码规则和密码
+    ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'abc123';
+    
+    -- 刷新权限
+    FLUSH PRIVILEGE
+    ```
+
+* MySQL Workbench 报错："Could not acquire managementaccess for administrationRuntimeError"
+
+    打开 `C:\Program Files\MySQL\MySQL Workbench 8.0\workbench`, 编辑 `os_utils`, 将 `encoding="utf-8"` 修改成 `encoding="gbk"`
+
+    ```python
+    # process = subprocess.Popen(command, stdin = subprocess.PIPE, encoding="utf-8", stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell=True)
+    process = subprocess.Popen(command, stdin = subprocess.PIPE, encoding="gbk", stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell=True)
+    ```
+
 
 ### 2. SQL之SELECT使用篇
 
