@@ -21,7 +21,7 @@ Some notes that hopefully will help you.
 
 - Docs:
   - [Ansible](docs/Ansible.md)
-  - [Awk](docs/Awk.md)
+  - [awk](docs/awk.md)
   - [Bonding](docs/Bonding.md)
   - [Emoji](docs/Emoji.md)
   - [Fedora-使用手册](docs/Fedora-使用手册.md)
@@ -41,6 +41,7 @@ Some notes that hopefully will help you.
   - [Shell](docs/Shell.md)
   - [SSH](docs/SSH.md)
   - [Team](docs/Team.md)
+  - [top](docs/top.md)
   - [vlmcsd](docs/vlmcsd.md)
   - [VSFTPD](docs/VSFTPD.md)
   - [双网卡路由](docs/双网卡路由.md)
@@ -48,6 +49,7 @@ Some notes that hopefully will help you.
   - [证书](docs/证书.md)
 - Drafts:
   - [Git](drafts/Git.md)
+  - [sed](drafts/sed.md)
   - [MySQL](drafts/MySQL.md)
   - [Ubuntu](drafts/Ubuntu.md)
   - [计算机网络](drafts/计算机网络.md)

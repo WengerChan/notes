@@ -15,7 +15,7 @@ nav:
     - About: ''
   - Docs:
     - Ansible: docs/Ansible
-    - Awk: docs/Awk
+    - awk: docs/awk
     - Bonding: docs/Bonding
     - Emoji: docs/Emoji
     - Fedora-使用手册: docs/Fedora-使用手册
@@ -34,6 +34,7 @@ nav:
     - Shell: docs/Shell
     - SSH: docs/SSH
     - Team: docs/Team
+    - top: docs/top
     - vlmcsd: docs/vlmcsd
     - VSFTPD: docs/VSFTPD
     - 双网卡路由: docs/双网卡路由
@@ -42,6 +43,7 @@ nav:
   - Drafts:
     - Git: drafts/Git
     - MySQL: drafts/MySQL
+    - sed: drafts/sed
     - Ubuntu: drafts/Ubuntu
     - 计算机网络: drafts/计算机网络
     - 三次握手与四次挥手: drafts/三次握手与四次挥手
