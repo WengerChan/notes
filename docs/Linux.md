@@ -1056,3 +1056,13 @@ ens224.99      | 99   | ens224
     ```
 
     开机内核选择界面, 选择带 `rescue` 的内核 `CentOS Linux (0-rescue-...) 7 (Core)` 启动, 启动后使用 root 登录, 执行 `dracut -f`, 重启
+
+
+* `jexec servicesStarting certmonger`
+
+    CentOS 6.6 开机卡在 `jexec servicesStarting certmonger`，修改运行级别：
+
+    ```sh
+    ~] vi /etc/inittab
+    id:3:initdefault:    # 修改为 3
+    ```

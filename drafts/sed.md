@@ -2,8 +2,14 @@
 
 > sed - stream editor for filtering and transforming text
 
+使用格式:
 
-sed [OPTION]... {script-only-if-no-other-script} [input-file]
+```sh
+sed OPTIONS... [SCRIPT] [INPUTFILE...]
+```
+
+## 命令行选项
+
 
 
 input-file: 指定操作的文件；如果没指定 input-file 或者指定 - 表明 sed 将从标准输入中读取数据
@@ -47,6 +53,31 @@ If no -e, --expression, -f, or --file option is given, then the first non-option
 
 
 -- 
+
+替换指定行行尾的换行符：
+
+```sh
+~] cat test.txt
+VLAN96
+10.5.96.132/24
+VLAN305
+10.5.5.14/24
+```
+
+```sh
+~] cat test.txt | sed '/VLAN[0-9]*/N;s/\n/: /'
+VLAN96: 10.5.96.132/24
+VLAN305: 10.5.5.14/24
+
+~] cat test.txt | sed ':a;N;s/\n/: /;ba' # 或 sed ':a;N;s/\n/: /;ta'
+
+VLAN96: 10.5.96.132/24: VLAN305: 10.5.5.14/24
+
+# N 是把下一行加入到当前的 hold space 模式空间里，使之进行后续处理
+# :a ta 或 :a ba 是配套使用, 实现跳转; t 多一层判断
+```
+
+
 
 -i[SUFFIX], --in-place[=SUFFIX]
 

@@ -99,6 +99,7 @@ Fields Management for window 1:Def, whose current sort field is %CPU
   CODE    = Code Size (KiB)        NU      = Last Used NUMA node 
 ```
 
+
 ## 3. 快捷键
 
 * 显示相关
@@ -201,7 +202,6 @@ Fields Management for window 1:Def, whose current sort field is %CPU
     ```
 
 
-
 ## 4. 参数
 
 ```sh
@@ -226,7 +226,9 @@ top -hv|-bcEHiOSs1 -d secs -n max -u|U user -p pid -o fld -w [cols]
 -1  显示各个CPU的信息
 ```
 
+
 ---
+
 
 ## 附录 A：top 命令各字段含义
 
