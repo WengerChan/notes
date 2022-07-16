@@ -333,3 +333,19 @@ Github md不支持 `[TOC]`, 不过其二级标题可这样写:
 <b id="f1">1 脚注内容 [?](#a1)
 
 <b id="f2">2 脚注内容 [?](#a2)
+
+<-!>
+
+## 其他
+
+* 注释
+
+    ```markdown
+    <!--注释-->
+    ```
+
+* 插入带空格路径
+
+    ```markdown
+    [aaa](<path to markdown file.md>)
+    ```
