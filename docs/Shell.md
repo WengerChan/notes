@@ -1,5 +1,11 @@
 # shell, bash
 
+CentOS7.6 - 4.2.46
+Ubuntu20.04 - 5.0.17
+
+
+
+
 ## Variables
 
 
@@ -246,6 +252,17 @@ shell> echo ${!parameter}
 helloworld
 ```
 
+```sh
+${parameter:-word}
+              Use Default Values.  If parameter is unset or null, the expansion of word is substituted.  Otherwise, the value of parameter is substituted.
+${parameter:=word}
+              Assign Default Values.  If parameter is unset or null, the expansion of word is assigned to parameter.  The value of parameter is then substituted.  Positional parameters  and  special parameters may not be assigned to in this way.
+${parameter:?word}
+              Display  Error  if  Null  or  Unset.  If parameter is null or unset, the expansion of word (or a message to that effect if word is not present) is written to the standard error and the shell, if it is not interactive, exits.  Otherwise, the value of parameter is substituted.
+${parameter:+word}
+              Use Alternate Value.  If parameter is null or unset, nothing is substituted, otherwise the expansion of word is substituted.
+```
+
 ### 参数大小写修改
 
 | 写法  | 作用 | 作用范围 |
@@ -256,6 +273,16 @@ helloworld
 | `${A,,}`  | `大写 -> 小写`  | 所有大写字母 |
 | `${A~}`   | `大小写互换` | 第一个字母 |
 | `${A~~}`  | `大小写互换` | 全部字母 |
+
+所有的大小写修改操作，均可以使用 pattern 来对指定的字符进行大小写转换：
+
+```sh
+~] string=aaabbbccc
+~] echo ${string^^a}
+AAAbbbccc
+~] echo ${string^^[bc]}
+aaaBBBCCC
+```
 
 ### 空参数处理
 
@@ -277,7 +304,6 @@ helloworld
 | `${A?}`    | Error  |  `''`  | `${A}` |
 
 注: `${A:=B}` 和 `${A=B}` 使用 `${B}` 值时, 实际是执行了 `A=${B}`, 即将 B 的值赋给 A
-
 
 
 * 示例: `${parameter:-word}` 和 `${parameter-word}`
@@ -476,6 +502,186 @@ helloworld
     - `${parameter?word}`只会检查**变量是否定义**, 无论定义为何值: **变量已定义**=> `${parameter=word}`取 `parameter` 作为变量解析结果; 相反, 取 `word` 的值.
     - 两种写法均不会对 `parameter` 做任何操作
 
+### 变量切片
+
+```sh
+${parameter:start}
+${parameter:start:length}
+# start: 起始点
+# length: 字符长度/结束点位置
+```
+
+* 起始位置为 `0`，最后一个字符为 `-1`
+
+    ```sh
+            0  1  2  3  4  5  6  7  8  9
+    No →:   0  1  2  3  4  5  6  7  8  9
+    No ←: -10 -9 -8 -7 -6 -5 -4 -3 -2 -1
+    ```
+
+* 不指定 `length` 时，表示截取到字符串结尾；当 `length>0` 时，表示 "字符长度"；当 `length<0` 时，表示 "结束点位置"，此时 `length` 指定位置的值不会被截取
+
+    ```sh
+    ~] string=0123456789
+
+    # 省略 length
+    ~] echo ${string: 1}
+    123456789
+    ~] echo ${string: -5}
+    56789
+
+    # length>0
+    ~] echo ${string: 1: 2}
+    12
+    ~] echo ${string: -4: 2}
+    67
+
+    # length<0, 此时 -1 对应的字符 9 未被截取
+    ~] echo ${string: 1: -1}
+    12345678
+    ~] echo ${string: -4: -1}
+    678
+    ```
+
+* 当 `start` 为负数时，主要要和 : 保留一个空格，否则会被解释器错误解释
+
+    ```sh
+    ~] echo ${string: -6: 2}
+    45
+
+    ~] echo ${string:-6: 2}
+    0123456789
+    ```
+
+* 如果 `start` 为 `@`（作为参数），此时起始值为 1，且 `length` 不能为负数
+
+    ```sh
+            0  1  2  3  4  5  6  7  8  9
+    No →:   1  2  3  4  5  6  7  8  9  10
+    No ←: -10 -9 -8 -7 -6 -5 -4 -3 -2 -1
+    ```
+
+    ```sh
+    ~] set -- 0 1 2 3 4 5 6 7 8 9
+    
+    ~] echo ${@:0}
+    -bash 0 1 2 3 4 5 6 7 8 9
+    ~] echo ${@:1}
+    0 1 2 3 4 5 6 7 8 9
+    ~] echo ${@:7}
+    6 7 8 9
+    ~] echo ${@: -3: 2}
+    7 8
+    ~] echo ${@: -3: -1}
+    -bash:  -1: substring expression < 0
+    ```
+
+* 如果 `start` 为下标是 `@` 或者 `*` 的数组，此时表达式含义为 `array[start]` 后的 `length` 个值，`length` 不能为负数
+
+    ```sh
+    ~] array=(0 1 2 3 4 5 6 7 8 9)
+
+    ~] echo ${array[*]}
+    0 1 2 3 4 5 6 7 8 9
+    ~] echo ${array[*]:7}
+    7 8 9
+    ~] echo ${array[*]:7:2}
+    7 8
+    ~] echo ${array[*]:7: -2}
+    -bash:  -2: substring expression < 0
+    ```
+
+
+### 参数查找
+
+```sh
+${!prefix*}
+${!prefix@}
+
+"${!prefix*}"
+"${!prefix@}"
+```
+
+shell 将其展为所有以 `prefix` 开头为的变量名：
+
+* 当被双引号包裹时 `@` 会扩展成独立的几个变量名，而 `*` 则会扩展成变量组合而成的字符串
+* 当没有被双引号包裹时 `@`，`*` 都会扩展成独立的几个变量
+
+示例：
+
+```sh
+~] var1=111
+~] var2=222
+
+# 没有双引号包裹
+~] for v in ${!var@}; do echo $v; done;
+var1
+var2
+~] for v in ${!var@}; do echo ${!v}; done;
+111
+222
+
+~] for v in ${!var*}; do echo ${!v}; done;
+111
+222
+~] for v in ${!var*}; do echo $v; done;
+var1
+var2
+
+# 有双引号包裹
+~] for v in "${!var@}"; do echo $v; done;
+var1
+var2
+~] for v in "${!var@}"; do echo ${!v}; done;
+111
+222
+
+~] for v in "${!var*}"; do echo $v; done;
+var1 var2
+~] for v in "${!var*}"; do echo ${!v}; done;  # 此时展开成一个变量 "var1 var2"
+-bash: var1 var2: invalid variable name
+```
+
+
+### 删除、替换
+
+* 删除
+
+    ```sh
+    ${param#str}   # param 从头开始匹配 str 并删除（尽可能少的匹配）
+    ${param##str}  # param 从头开始匹配 str 并删除（尽可能多的匹配）
+    
+    ${param%str}   # param 从尾开始匹配 str 并删除（尽可能少的匹配）
+    ${param%%str}  # param 从尾开始匹配 str 并删除（尽可能多的匹配）
+    ```
+
+    通配字符：
+
+    * `*`: 任意个任意字符
+    * `?`: 任意一个任意字符
+    * `[]`: `[ab]` 表示匹配 a 或者 b，`[^ab]` 表示除 a、b 以外的其他字符
+
+* 替换
+
+    ```sh
+    ${parame/pattern/str}  # 将从左到右、第一个出现的 pattern 替换成 str
+    ```
+
+    pattern 可以以以下特殊字符开头，表达不同需求：
+
+    * `/`: 不仅仅替换第一个 pattern，而是替换所有
+    * `#`: 必须是开头
+    * `%`: 必须是结尾
+
+
+
+
+~]
+
+```sh
+```
+```sh
+```
 
 ## 脚本参数接收
 
