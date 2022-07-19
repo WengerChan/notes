@@ -56,7 +56,8 @@ Some notes that hopefully will help you.
   - [三次握手与四次挥手](drafts/三次握手与四次挥手.md)
   - [特殊字符](drafts/特殊字符.md)
   - [左右mongodb右手redis读书笔记](drafts/左右mongodb右手redis读书笔记.md)
-
+- Scripts
+  - [Scripts Lib](scripts/List.md)
 
 ## Maintainer
 

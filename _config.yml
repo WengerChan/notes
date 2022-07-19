@@ -50,5 +50,5 @@ nav:
     - 特殊字符: drafts/特殊字符
     - 左右mongodb右手redis读书笔记: drafts/左右mongodb右手redis读书笔记
   - Scripts:
-    - Script Lib: scripts/README
+    - Script-Lib: scripts/List
 

@@ -1,6 +1,4 @@
-# Script Library 
-
-List:
+# Script Library
 
 | Name | OS | Function |
 | :-- | :-- | :-- |
@@ -14,9 +12,9 @@ List:
 | [`discover_web_middleware.sh`](./discover_web_middleware.sh) |  | Bkee |
 | [`discover_web_middleware.ps1`](./discover_web_middleware.ps1) |  | Bkee |
 | [`dzfp_mon.sh`](./dzfp_mon.sh) |  |  |
-| [`install_bkee_agent.sh`](install_bkee_agent.sh) |  |  |
-| [`install_openssh.sh`](install_openssh.sh) | `el6`,`el7` | Update `OpenSSH`、`OpenSSL` by Tarball |
-| [`install_openssh_el5.sh`](install_openssh.sh) | `el5` | Update `OpenSSH`、`OpenSSL` by Tarball |
-| [`install_vmtools_el6.sh`](install_vmtools_el6.sh) | `el6` |  Install VMware Tools |
-| [`install_weblogic_12c.sh`](install_weblogic_12c.sh) | `el7` | Install Oracle Weblogic 12C |
+| [`install_bkee_agent.sh`](./install_bkee_agent.sh) |  |  |
+| [`install_openssh.sh`](./install_openssh.sh) | `el6`,`el7` | Update `OpenSSH`、`OpenSSL` by Tarball |
+| [`install_openssh_el5.sh`](./install_openssh.sh) | `el5` | Update `OpenSSH`、`OpenSSL` by Tarball |
+| [`install_vmtools_el6.sh`](./install_vmtools_el6.sh) | `el6` |  Install VMware Tools |
+| [`install_weblogic_12c.sh`](./install_weblogic_12c.sh) | `el7` | Install Oracle Weblogic 12C |
 
