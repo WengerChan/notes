@@ -764,6 +764,140 @@ net.ifnames=1 biosdevname=0 ==> ens192
     dd if=/root/testfile of=/dev/null bs=4k count=26214400 iflag=direct   # 100G
     ```
 
+* 附: 详解 `dd`
+
+    * 参数
+
+        ```text
+        if=文件名 - 输入文件名，缺省为标准输入。即指定源文件。<if=inputfile>
+        of=文件名 - 输出文件名，缺省为标准输出。即指定目的文件。< of=output file >
+        ibs=bytes - 一次读入bytes个字节，即指定一个块大小为bytes个字节。
+        obs=bytes - 一次输出bytes个字节，即指定一个块大小为bytes个字节。
+        bs=bytes  - 同时设置读入/输出的块大小为bytes个字节。
+        cbs=bytes - 一次转换bytes个字节，即指定转换缓冲区大小。
+        skip=blocks - 从输入文件开头跳过blocks个块后再开始复制。
+        seek=blocks - 从输出文件开头跳过blocks个块后再开始复制。注意: 通常只用当输出文件是磁盘或磁带时才有效，即备份到磁盘或磁带时才有效。
+        count=blocks - 仅拷贝blocks个块，块大小等于ibs指定的字节数。
+        conv=<CONVS> - 进行指定格式的操作
+            ascii: ebcdic -> ascii
+            ebcdic: ascii -> ebcdic
+            ibm: ascii -> alternateebcdic
+            block: 把每一行转换为长度为 cbs，不足部分用空格填充
+            unblock: 使每一行的长度都为cbs，不足部分用空格填充
+            lcase: 大写 -> 小写
+            ucase: 小写 -> 大写
+            swab: 交换输入的每对字节
+            noerror: 出错时不停止
+            notrunc: 不截断输出文件
+            nocreate: 不创建输出文件
+            sync: 将每个输入块填充到 ibs 个字节，不足部分用空（NUL）字符补齐。
+        iflag=FLAGS
+        oflag=FLAGS - 指定读/写的方式标签
+	        append: 追加的方式(只对output产生影响)，建议和 conv=notrunc 搭配使用
+	        direct: 读写数据采用I/O
+	        directory: 非directory就会读写失败
+	        dsync: 书写数据采用synchronized I/O
+	        sync: 同上，但包括metadata
+	        fullblock: 占满b lock (iflag only)
+	        nonblack: 使用 non-blocking I/O
+	        noatime: 不更新 access time
+	        nocache: discard cached data
+	        nofollow: do not follow symlinks
+	        skip_bytes/counts_bytes (iflag only): 相应的skip=N/count=N变为N bytes 
+	        seek_bytes (oflay only): 相应的seek=N变为N bytes
+        status=LEVEL: 控制 dd 程序的输出信息
+            none: 除error外，不输出任何信息
+            noxfer: 不输出最后的统计信息
+            progress: 输出所有信息
+        ```
+
+    * 常见示例
+
+        ```sh
+        # 1.将本地的/dev/hdb整盘备份到/dev/hdd
+        dd if=/dev/hdb of=/dev/hdd
+
+        # 2.将/dev/hdb全盘数据备份到指定路径的image文件
+        dd if=/dev/hdb of=/root/image
+
+        # 3.将备份文件恢复到指定盘
+        dd if=/root/image of=/dev/hdb
+
+        # 4.备份 /dev/hdb 全盘数据，并利用 gzip 工具进行压缩，保存到指定路径
+        dd if=/dev/hdb | gzip > /root/image.gz
+
+        # 5.将压缩的备份文件恢复到指定盘
+        gzip -dc /root/image.gz | dd of=/dev/hdb
+
+        # 6.备份磁盘开始的512个字节大小的MBR信息到指定文件
+        dd if=/dev/hda of=/root/image count=1 bs=512
+
+        # 恢复 MBR
+        dd if=/root/image of=/dev/hda
+
+        # 7.备份软盘
+        dd if=/dev/fd0 of=disk.img count=1 bs=1440k
+
+        # 8.拷贝内存内容到硬盘
+        dd if=/dev/mem of=/root/mem.bin bs=1024
+
+        # 9.拷贝光盘内容到指定文件夹，并保存为cd.iso文件
+        dd if=/dev/cdrom of=/root/cd.iso
+
+        # 10.增加swap分区文件大小
+        dd if=/dev/zero of=/swapfile bs=1024 count=262144
+        mkswap /swapfile
+        swapon /swapfile
+        # vi /etc/fstab
+        # /swapfile swap swap defaults 0 0
+
+        # 11.销毁磁盘数据: 利用随机的数据填充硬盘
+        dd if=/dev/urandom of=/dev/hda1
+
+        # 12.测试硬盘的读写速度
+        # 通过以下两个命令输出的命令执行时间，可以计算出硬盘的读、写速度
+        dd if=/dev/zero bs=1024 count=1000000 of=/root/1Gb.file
+        dd if=/root/1Gb.file bs=64k | dd of=/dev/null
+
+        # 13.确定硬盘的最佳块大小
+        # 通过比较以下命令输出中所显示的命令执行时间，即可确定系统最佳的块大小
+        dd if=/dev/zero bs=1024 count=1000000 of=/root/1Gb.file
+        dd if=/dev/zero bs=2048 count=500000 of=/root/1Gb.file
+        dd if=/dev/zero bs=4096 count=250000 of=/root/1Gb.file
+        dd if=/dev/zero bs=8192 count=125000 of=/root/1Gb.file
+
+        # 14.修复硬盘
+        # 当硬盘较长时间（比如1，2年）放置不使用后，磁盘上会产生magnetic fluxpoint。当磁头读到这些区域时会遇到困难，并可能导致I/O错误。当这种情况影响到硬盘的第一个扇区时，可能导致硬盘报废。上边的命令有可能使这些数据起死回生。且这个过程是安全，高效的。
+        dd if=/dev/sda of=/dev/sda
+
+        # 15.dd命令做usb启动盘
+        # (1) root用户或者sudo  
+        # (2) 用以上命令前必须卸载 u 盘, sdb 是u盘
+        # (3) 注意, 执行命令后很快完成, 但u盘还在闪, 等不闪了安全移除。
+        dd if=xxx.iso of=/dev/sdb bs=1M
+
+        # 16. 
+        ## 1) 生成文件大小和实际占空间大小一样的文件
+        dd if=/dev/zero of=name.file bs=1M count=1
+
+        ## 2)生成文件大小固定，但实际不占空间命令
+        # seek=1000 表示略过1000个Block不写 (这里 Block 按照 bs 的定义是 1M)，count=0 表示写入 0 个Block。
+        # 用ls(查看文件大小)命令看新生成的文件，大小可以看出是1000M。但是再用 du 实际占用硬盘大小只有0M 。
+        dd if=/dev/zero of=1G.img bs=1M seek=1000 count=0
+
+        # 17. 占用内存
+        mkdir /tmp/memory  
+        mount -t tmpfs -o size=1024M tmpfs /tmp/memory
+        dd if=/dev/zero of=/tmp/memory/block
+
+        sleep 3600
+        rm /tmp/memory/block
+        umount /tmp/memory
+        rmdir /tmp/memory
+        ```
+
+
+
 
 ## 磁盘 UUID
 
@@ -1102,3 +1236,8 @@ ens224.99      | 99   | ens224
         dnf install langpacks-en glibc-all-langpacks
         ```
  
+* `swapon: /xxx/swapfile: swapon failed: Cannot allocate memory`
+
+    - Increase `vm.min_free_kbytes` value, for example to a higher value than a single allocation request. 
+    - Change `vm.zone_reclaim_mode` to 1 if it's set to zero, so the system can reclaim back memory from cached memory.  
+
