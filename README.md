@@ -47,7 +47,9 @@ Some notes that hopefully will help you.
   - [双网卡路由](docs/双网卡路由.md)
   - [正则表达式](docs/正则表达式.md)
   - [证书](docs/证书.md)
+  - [其他](docs/其他.md)
 - Drafts:
+  - [echo,printf](drafts/echo%2Cprintf.md)
   - [Git](drafts/Git.md)
   - [sed](drafts/sed.md)
   - [MySQL](drafts/MySQL.md)

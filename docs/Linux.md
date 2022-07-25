@@ -897,7 +897,7 @@ ens224.99      | 99   | ens224
     ```
 
 
-* `Cannot use device with duplicates.`
+* LVM reports `Cannot use device with duplicates.`
 
     * When attempting to extend a VG, the below error is produced: 
 
@@ -1066,3 +1066,39 @@ ens224.99      | 99   | ens224
     ~] vi /etc/inittab
     id:3:initdefault:    # 修改为 3
     ```
+
+
+* `Failed to set locale, defaulting to C.UTF-8`
+
+    CentOS/RHEL 8 中, 执行 `dnf repolist` 或者其他 `dnf`/`yum` 命令时，出现以下报错：
+
+    ```sh
+    ~] dnf repolist
+
+    Failed to set locale, defaulting to C.UTF-8            <=报错
+    Updating Subscription Management repositories.
+    Unable to read consumer identity
+
+    This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.
+    ```
+
+    这是系统缺少语言包，导致设置的 `/etc/locale.conf` 中的设置 ( 如 `LANG=en_US.UTF-8` ) 无法被 `dnf`/`yum` 读取
+
+    * 查看目前系统已安装的语言包
+
+        ```sh
+        locale -a
+        ```
+    
+    * 安装语言包
+ 
+        ```sh
+        # 中文
+        yum install glibc-langpack-zh
+
+        # 英文
+        dnf install glibc-langpack-en
+        # 或
+        dnf install langpacks-en glibc-all-langpacks
+        ```
+ 

@@ -4,8 +4,6 @@ CentOS7.6 - 4.2.46
 Ubuntu20.04 - 5.0.17
 
 
-
-
 ## Variables
 
 

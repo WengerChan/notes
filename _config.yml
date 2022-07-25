@@ -40,7 +40,9 @@ nav:
     - 双网卡路由: docs/双网卡路由
     - 正则表达式: docs/正则表达式
     - 证书: docs/证书
+    - 其他: docs/其他
   - Drafts:
+    - echo,printf: drafts/'echo,printf'
     - Git: drafts/Git
     - MySQL: drafts/MySQL
     - sed: drafts/sed
