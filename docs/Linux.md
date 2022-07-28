@@ -897,8 +897,6 @@ net.ifnames=1 biosdevname=0 ==> ens192
         ```
 
 
-
-
 ## 磁盘 UUID
 
 ```sh
