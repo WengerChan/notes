@@ -174,7 +174,31 @@ NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外�
         | vers | 文件系统版本，如 nfs v3、nfs v4 |
         | _netdev | 防止客户端在网络就绪之前开始挂载文件系统 |
         | noresvport | 网络重连时使用新的TCP端口，保障在网络发生故障恢复的时候不会中断连接 |
+        | lock,nolock | 是否使用 NLM 来实现主机间的文件锁 (不指定时，默认为 lock) |
+        | local_lock= | 是否在本地锁。可选参数 all,flock,posix,none |
 
+        NLM 仅在 NFS v2,v3 中可用，NFS v4 自身管理文件锁。
+
+        ```text
+        lock / nolock  
+            Selects  whether  to  use  the  NLM  sideband  protocol to lock files on the server.  If neither option is specified (or if lock is specified), NLM locking is used for this mount point.  When using the nolock option, applications can lock files, but such locks provide exclusion  only  against  other applications running on the same client. Remote applications are not affected by these locks.
+
+            NLM locking must be disabled with the nolock option when using NFS to mount /var because /var contains files used by the NLM implementation on Linux. Using the nolock option is also required when mounting exports on NFS servers that do not support the NLM protocol.
+
+        local_lock=mechanism
+            Specifies whether to use local locking for any or both of the flock and the POSIX locking mechanisms. mechanism can be one of all, flock, posix, or none. This option is supported in kernels 2.6.37 and later.
+
+            The Linux NFS client provides a way to make locks local.  This means, the applications  can  lock files, but such locks provide exclusion only against other applications running on the same client. Remote applications  are not affected by these locks.
+
+            If this option is not specified, or if none is specified, the client assumes that the locks are not local.
+            If all is specified, the client assumes that both flock and POSIX locks are local.
+            If flock is specified, the client assumes that only flock locks are local and uses NLM sideband protocol to lock files when POSIX locks are used.
+            If posix is specified, the client assumes that POSIX locks are local and uses NLM sideband protocol to lock files when flock locks are used.
+
+            To  support legacy flock behavior similar to that of NFS clients < 2.6.12, use 'local_lock=flock'. This option is required when  exporting NFS mounts via Samba as Samba maps Windows share mode locks as flock. Since NFS clients > 2.6.12 implement flock by emulating POSIX locks, this will result in conflicting locks.
+
+            NOTE:  When used together, the 'local_lock' mount option will be overridden by 'nolock'/'lock' mount option.
+        ```
 
     * fstab
 
