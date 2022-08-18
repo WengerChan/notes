@@ -1528,13 +1528,22 @@ OpenSSL: openssl-1.1.1n.tar.gz
 
     OpenSSL：https://www.openssl.org/source/
 
-> 或者直接使用本文提供的 SRPM 文件: [openssl-1.1.1n-1.el7.src.rpm](./files/RPM_openssl/openssl-1.1.1n-1.el7.src.rpm), 下载后使用 `rpm -i` 安装
+> 或者直接使用本文提供的 SRPM 文件: [openssl-1.1.1n-1.el7.src.rpm](./files/RPM_openssl/openssl-1.1.1n-1.el7.src.rpm), 使用方法如下:
+
+```sh
+useradd rpmbuilder
+su - rpmbuilder
+rpm -i openssl-1.1.1n-1.el7.src.rpm
+```
+
+> 注: src.rpm 中包含各种 `SOURCES` 文件，可直接跳转到 [`B.4 编译`](#b4-编译)
 
 
 ### B.2 准备几个 `SOURCES` 文件
 
 | 名字 | 下载路径 |
 | ------------------------------------ | ------------------------------------------------------------------------------ |
+| `Source0: openssl-1.1.1n.tar.gz`     |                                                                                |
 | `Source1: Makefile.certificate`      | [`Makefile.certificate`       ](./files/RPM_openssl/Makefile.certificate)      |
 | `Source2: make-dummy-cert`           | [`make-dummy-cert`            ](./files/RPM_openssl/make-dummy-cert)           |
 | `Source3: renew-dummy-cert`          | [`renew-dummy-cert`           ](./files/RPM_openssl/renew-dummy-cert)          |
@@ -1562,7 +1571,7 @@ OpenSSL: openssl-1.1.1n.tar.gz
 
 ```sh
 ~]$ cd /home/rpmbuilder/rpmbuild/SPEC
-~]$ rpmbuild --nobuild openssl
+~]$ rpmbuild --nobuild openssl.spec
 ~]$ rpmbuild -bs openssl.spec
 ~]$ rpmbuild -bb openssl.spec
 ```
@@ -1600,16 +1609,26 @@ OpenSSH: openssh-9.0p1.tar.gz
 
 > 安装上前文编译的 openssl, openssl-devel, openssl-libs 软件包
 
-下载源码包并上传到虚拟机: [OpenSSH Portable](http://www.openssh.com/portable.html)
+下载源码包并上传到虚拟机: 下载地址 [OpenSSH Portable](http://www.openssh.com/portable.html)
 
-或者直接使用本文提供的 SRPM 文件: [openssh-9.0p1-1.el7.src.rpm](./files/RPM_openssh/openssh-9.0p1-1.el7.src.rpm), 下载后使用 `rpm -i` 安装
+或者直接使用本文提供的 SRPM 文件: [openssh-9.0p1-1.el7.src.rpm](./files/RPM_openssh/openssh-9.0p1-1.el7.src.rpm), 使用方法如下:
 
+```sh
+useradd rpmbuilder
+su - rpmbuilder
+rpm -i openssh-9.0p1-1.el7.src.rpm
+```
+
+> 注: src.rpm 中包含各种 `SOURCES` 文件，可直接跳转到 [`C.4 编译`](#c4-编译)
 
 ### C.2 准备几个 `SOURCES` 文件
 
+> 解压 `openssh-9.0p1-1.el7.src.rpm` 获取以下文件
+
 |                            名字                            |
 | :--------------------------------------------------------- |
-| `Source1: openssh-%{version}.tar.gz.asc`                   |
+| `Source0: openssh-9.0p1.tar.gz`                            |
+| `Source1: openssh-9.0p1.tar.gz.asc`                        |
 | `Source2: sshd.pam`                                        |
 | `Source3: gpgkey-736060BA.gpg`                             |
 | `Source4: pam_ssh_agent_auth-%{pam_ssh_agent_ver}.tar.gz`  |
@@ -1673,7 +1692,7 @@ OpenSSH: openssh-9.0p1.tar.gz
 
     ```sh
     ~]$ cd /home/rpmbuilder/rpmbuild/SPEC
-    ~]$ rpmbuild --nobuild openssh
+    ~]$ rpmbuild --nobuild openssh.spec
     ~]$ rpmbuild -bs openssh.spec
     ~]$ rpmbuild -bb openssh.spec
     ```
@@ -1744,3 +1763,58 @@ OpenSSH: openssh-9.0p1.tar.gz
         ```
 
 
+## D. 实战 3: 编译 Python 3.8
+
+```yaml
+---
+Env:
+     OS: CentOS 7.6
+    gcc: 4.8.5 20150623 (Red Hat 4.8.5-44)
+   make: GNU Make 3.82
+openssl: 1.0.2k-fips
+```
+
+### D.1 准备源码包和工作目录
+
+下载源码包并上传到虚拟机: 下载地址 [Python 3.8.13](https://www.python.org/ftp/python/3.8.13/Python-3.8.13.tar.xz)
+
+或者直接使用本文提供的 SRPM 文件: [python38-3.8.13-1.el7.src.rpm](./files/RPM_python/python38-3.8.13-1.el7.src.rpm), 使用方法如下:
+
+```sh
+useradd rpmbuilder
+su - rpmbuilder
+rpm -i python38-3.8.13-1.el7.src.rpm
+```
+
+> 注: src.rpm 中包含各种 `SOURCES` 文件，可直接跳转到 [`D.4 编译`](#d4-编译)
+
+### D.2 准备几个 `SOURCES` 文件
+
+| 名字 | 下载路径 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| `Source0: Python-3.8.13.tar.xz`          |                                                                                      |
+| `Source1: python38-3.8.13-ldconfig.conf` | [`python38-3.8.13-ldconfig.conf` ](./files/RPM_python/python38-3.8.13-ldconfig.conf) |
+| `Source2: python38-3.8.13-profile.sh`    | [`python38-3.8.13-profile.sh`    ](./files/RPM_python/python38-3.8.13-profile.sh)    |
+
+### D.3 准备 `python38.spec` 文件
+
+[`python38.spec`](./files/RPM_python/python38.spec)
+
+> 参考:
+> 
+> * 红帽 `python3-3.6.8-18.el7.src.rpm` 中的 [`python3.spec`](./files/RPM_python/python3-3.6.8-18.el7.spec)
+> * 红帽 `python38-3.8.12-1.module+el8.6.0+12642+c3710b74.src.rpm` 中的 [`python38.spec`](./files/RPM_python/python38-3.8.12-1.module%2Bel8.6.0%2B12642%2Bc3710b74.spec)
+
+
+### D.4 编译
+
+```sh
+~]$ cd /home/rpmbuilder/rpmbuild/SPEC
+~]$ rpmbuild --nobuild python38.spec
+~]$ rpmbuild -bs python38.spec
+~]$ rpmbuild -bb python38.spec
+```
+
+### D.5 注意事项
+
+安装 `python38-3.8.13-1.el7.x86_64.rpm` 前请先卸载所有其他 `Python 3.x`
