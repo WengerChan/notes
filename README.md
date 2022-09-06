@@ -49,7 +49,7 @@ Some notes that hopefully will help you.
   - [证书](docs/证书.md)
   - [其他](docs/其他.md)
 - Drafts:
-  - [echo,printf](drafts/echo%2Cprintf.md)
+  - [echo,printf](drafts/echo_printf.md)
   - [Git](drafts/Git.md)
   - [sed](drafts/sed.md)
   - [MySQL](drafts/MySQL.md)

@@ -42,7 +42,7 @@ nav:
     - 证书: docs/证书
     - 其他: docs/其他
   - Drafts:
-    - echo,printf: drafts/'echo,printf'
+    - echo,printf: drafts/echo_printf
     - Git: drafts/Git
     - MySQL: drafts/MySQL
     - sed: drafts/sed
