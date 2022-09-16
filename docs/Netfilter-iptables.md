@@ -1,5 +1,42 @@
 # Netfilter - iptables
 
+## 相关概念
+
+* 规则链与规则表
+
+    * 规则链
+
+
+        | Chains      | Notes                                             |
+        | ----------- | :------------------------------------------------ |
+        | PREROUTING  | 在进行路由判断之前所要进行的规则(DNAT/REDIRECT)   |
+        | INPUT       | 处理入站的数据包                                  |
+        | OUTPUT      | 处理出站的数据包                                  |
+        | FORWARD     | 处理转发的数据包                                  |
+        | POSTROUTING | 在进行路由判断之后所要进行的规则(SNAT/MASQUERADE) |
+
+    * 规则表
+
+        | Tables | Notes                              |
+        | ------ | :--------------------------------- |
+        | raw    | 确定是否对该数据包进行状态跟踪     |
+        | mangle | 为数据包设置标记（较少使用）       |
+        | nat    | 修改数据包中的源、目标IP地址或端口 |
+        | filter | 确定是否放行该数据包（过滤）       |
+
+* 先后顺序
+
+    规则链的先后顺序:
+
+    * 入站顺序: PREROUTING → INPUT
+    * 出站顺序: OUTPUT → POSTROUTING
+    * 转发顺序: PREROUTING → FORWARD → POSTROUTING    
+ 
+    规则表的先后顺序: raw → mangle → nat → filter
+
+
+
+
 ## 语法
 
 ```sh
@@ -385,12 +422,12 @@ target = -j targetname [per-target-options]
 
 * (3) 邮件服务
 
-    | 协议 | 端口 | 加密端口 |
-    | -- | -- | -- |
-    | `http` | 80 | 443 |
-    | `smtp` | 25 | 465 |
-    | `pop3` | 110 | 995 |
-    | `imap` | 143 | 993 |
+    | 协议   | 端口 | 加密端口 |
+    | ------ | ---- | -------- |
+    | `http` | 80   | 443      |
+    | `smtp` | 25   | 465      |
+    | `pop3` | 110  | 995      |
+    | `imap` | 143  | 993      |
 
 
     ```bash

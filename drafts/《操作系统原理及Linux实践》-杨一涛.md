@@ -315,4 +315,192 @@ Process concept
 
         ![](pictures/《操作系统原理及Linux实战》-杨一涛/进程调度.png)
         
+## 实验二
 
+* 创建多线程
+
+
+```c
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <time.h>
+#include <stdlib.h>
+
+void* hello() {
+	for (int i = 0; i < 30; ++i) {
+		printf("Hello(%d)\n", rand() % 100);
+	}
+}
+
+void* world() {
+	for (int i = 0; i < 30; ++i) {
+		printf("World(%d)\n", rand() % 100);
+	}
+}
+
+int main() {
+	srand(time(NULL));
+	pthread_t tid, tid2;
+	pthread_create(&tid, NULL, hello, NULL);
+	pthread_create(&tid2, NULL, world, NULL);
+	pthread_join(tid, NULL);
+	pthread_join(tid2, NULL);
+	return 0;
+}
+```
+
+* Monte Carlo 技术计算 PI 值（多线程）
+
+    * 普通实现
+
+        ```c
+        #include <stdio.h>
+        #include <sys/types.h>
+        #include <unistd.h>
+        #include <pthread.h>
+        #include <time.h>
+        #include <stdlib.h>
+
+        int intervals = 1000;
+
+        int main(int argc, char const* argv[]) {
+            clock_t start, delta;
+            
+            start = clock();
+
+            srand(time(NULL));
+
+            int circle_points = 0;
+            int square_points = 0;
+            double pi;
+
+            for (int i = 0; i < intervals*intervals; ++i) {
+                double rand_x = (double)rand() / RAND_MAX;
+                double rand_y = (double)rand() / RAND_MAX;
+
+                if ((rand_x * rand_x + rand_y * rand_y) <= 1) {
+                    circle_points++;
+                }
+                
+                square_points++;
+            }
+
+            pi = (double)(4.0 * circle_points) / square_points;
+            printf("circle points: %d, square points: %d, => PI: %lf\n", circle_points, square_points, pi);
+
+            delta = clock() - start;
+            printf("Time taken: %lf seconds\n", (double)delta / CLOCKS_PER_SEC);
+            return 0;
+        }
+        ```
+
+    * 多次计算
+
+        ```c
+        #include <stdio.h>
+        #include <sys/types.h>
+        #include <time.h>
+        #include <stdlib.h>
+        #include <unistd.h>
+        #include <pthread.h>
+
+
+        void calc_pi(int intervals) {
+            unsigned int seed = time(NULL);
+            int circle_points = 0;
+            int square_points = 0;
+
+            for (int i = 0; i < intervals*intervals; ++i) {
+                double rand_x = (double)rand() / RAND_MAX;
+                double rand_y = (double)rand() / RAND_MAX;
+
+                if ((rand_x * rand_x + rand_y * rand_y) <= 1) {
+                    circle_points++;
+                }
+                
+                square_points++;
+            }
+
+            double pi;
+            pi = (double)(4.0 * circle_points) / square_points;
+            printf("circle points: %d, square points: %d, => PI: %lf\n", circle_points, square_points, pi);
+        }
+
+
+        int main(int argc, char const* argv[]) {
+            clock_t start, delta;
+            int intervals = 1000;
+
+            start = clock();
+
+            for (int i = 0; i < 10; ++i) {
+                calc_pi(1000);
+            }
+
+            delta = clock() - start;
+            printf("Time taken: %lf seconds\n", (double)delta / CLOCKS_PER_SEC);
+            return 0;
+        }
+        ```
+    
+    * 多线程计算
+
+        ```c
+        #include <stdio.h>
+        #include <sys/types.h>
+        #include <time.h>
+        #include <stdlib.h>
+        #include <unistd.h>
+        #include <pthread.h>
+
+        void* calc_pi(void* arg) {
+            unsigned int seed = time(NULL);
+            int circle_points = 0;
+            int square_points = 0;
+            int intervals = *((int*)arg);  //参数传递
+
+            for (int i = 0; i < intervals * intervals; ++i) {
+                double rand_x = (double)rand() / RAND_MAX;
+                double rand_y = (double)rand() / RAND_MAX;
+
+                if ((rand_x * rand_x + rand_y * rand_y) <= 1) {
+                    circle_points++;
+                }
+
+                square_points++;
+            }
+
+            double pi;
+            pi = (double)(4.0 * circle_points) / square_points;
+            printf("circle points: %d, square points: %d, => PI: %lf\n", circle_points, square_points, pi);
+
+            pthread_exit(0); //The thread finish normally or abnormally
+        }
+
+
+        int main(int argc, char const* argv[]) {
+            clock_t start, delta;
+            int intervals = 1000;
+            const int THREAD_N = 10;
+
+            start = clock();
+
+            pthread_t cacl_pi_thread[10];
+            int args[10];
+
+            for (int i = 0; i < THREAD_N; ++i) {
+                args[i] = intervals;
+                pthread_create(cacl_pi_thread + i, NULL, calc_pi, args + i);
+            }
+
+            for (int i = 0; i < THREAD_N; ++i) {
+                pthread_join(cacl_pi_thread[i], NULL);
+            }
+
+            delta = clock() - start;
+            printf("Time taken: %lf seconds\n", (double)delta / CLOCKS_PER_SEC);
+            return 0;
+        }
+        ```
