@@ -1213,7 +1213,7 @@ mysql> SELECT SHA('123qweQ.'), SHA(NULL);
 -- +------------------------------------------+-----------+
 -- 1 row in set (0.01 sec)
 
-mysql> SELECT ENCODE('123qweQ.','thisisased');
+mysql> SELECT ENCODE('123qweQ.','thisisased');  -- 命令行执行才生效
 -- +---------------------------------+
 -- | ENCODE('123qweQ.','thisisased') |
 -- +---------------------------------+
@@ -1387,6 +1387,200 @@ mysql> SELECT DECODE(ENCODE('123qweQ.','thisisased'), 'thisisased');
     同时因为 SQL 是一门类似英语的结构化查询语言，所以我们在写 SELECT 语句的时候，还要注意相应的关键字顺序，**所谓底层运行的原理，就是我们刚才讲到的执行顺序**。
 
 #### 第09章：子查询
+
+* 子查询指一个查询语句嵌套在另一个查询语句内部的查询，这个特性从MySQL 4.1开始引入：
+
+    * 子查询（内查询）在主查询之前一次执行完成
+    * 子查询的结果被主查询（外查询）使用
+    * 注意事项
+        * 子查询要包含在括号内
+        * 将子查询放在比较条件的右侧
+        * 单行操作符对应单行子查询，多行操作符对应多行子查询
+
+* 分类
+
+    * 单行子查询、 多行子查询 - 子查询返回的记录数
+    * 相关(或关联)子查询 和 不相关(或非关联)子查询 - 子查询是否被多次执行
+
+* 单行子查询
+
+    单行比较操作符：
+
+    | 操作符 | 含义                     |
+    | ------ | :----------------------- |
+    | `=`    | equal to                 |
+    | `>`    | greater than             |
+    | `>=`   | greater than or equal to |
+    | `<`    | less than                |
+    | `<=`   | less than or equal to    |
+    | `<>`   | not equal to             |
+
+
+    题目：返回job_id与141号员工相同，salary比143号员工多的员工姓名，job_id和工资
+    
+    ```sql
+    SELECT last_name, job_id, salary
+    FROM employees
+    WHERE job_id = (SELECT job_id FROM employees WHERE employee_id = 141)
+    AND salary > (SELECT salary FROM employees WHERE employee_id = 143);
+    ```
+
+    题目：查询与141号或174号员工的manager_id和department_id相同的其他员工的employee_id， manager_id，department_id
+
+    ```sql
+    SELECT employee_id, manager_id, department_id
+    FROM employees
+    WHERE manager_id IN (SELECT manager_id FROM employees WHERE employee_id IN (141,174))
+    AND department_id IN (SELECT department_id FROM employees WHERE employee_id IN (141,174))
+    AND employee_id NOT IN (141,174);
+    ```
+
+* HAVING 中的子查询
+
+    题目：查询最低工资大于50号部门最低工资的部门id和其最低工资
+
+    ```sql
+    SELECT department_id, MIN(salary) 
+    FROM employees 
+    GROUP BY department_id 
+    HAVING MIN(salary) > (SELECT MIN(salary) FROM employees WHERE department_id = 50);
+    ```
+    
+* CASE 中的子查询
+
+    题目：显示员工的employee_id,last_name和location。其中，若员工department_id与location_id为1800 的department_id相同，则location为’Canada’，其余则为’USA’。
+
+    ```sql
+    SELECT employee_id, last_name, CASE department_id 
+                                   WHEN (SELECT department_id FROM departments WHERE location_id = 1800)
+                                       THEN 'Canada'
+                                   ELSE 'USA' END AS "location"
+    FROM employees;
+    ```
+
+* 多行子查询
+
+    单行比较操作符：
+
+    | 操作符 | 含义                                                                |
+    | ------ | :------------------------------------------------------------------ |
+    | `IN`   | 等于列表中的任意一个                                                |
+    | `ANY`  | 需要和单行比较操作符一起使用，和子查询返回的某一个值比较 如 `> ANY` |
+    | `ALL`  | 需要和单行比较操作符一起使用，和子查询返回的所有值比较 如 `< ALL`   |
+    | `SOME` | 实际上是ANY的别名，作用相同，一般常使用ANY                          |
+
+    题目：查询平均工资最低的部门id
+
+    ```sql
+    SELECT department_id
+    FROM employees
+    GROUP BY department_id
+    HAVING AVG(salary) <= ALL (SELECT AVG(salary) FROM employees GROUP BY department_id);
+    ```
+
+    空值问题：
+
+    ```sql
+    SELECT last_name 
+    FROM employees 
+    WHERE employee_id NOT IN ( SELECT manager_id FROM employees );
+    -- no rows selected
+    ```
+
+* 相关子查询/关联子查询
+
+    如果子查询的执行依赖于外部查询，通常情况下都是因为子查询中的表用到了外部的表，并进行了条件关联，因此每执行一次外部查询，子查询都要重新计算一次，这样的子查询就称之为关联子查询 。
+
+    相关子查询按照一行接一行的顺序执行，主查询的每一行都执行一次子查询
+
+    ```text
+         +----------------------------------+
+    +--> | GET  从主查询获取候选列            |
+    |    +----------------------------------+
+    |  
+    |    +----------------------------------+
+    |    | EXECUTE  子查询使用主查询额数据    |
+    |    +----------------------------------+
+    | 
+    |    +----------------------------------+
+    +--- | USE  如果满足子查询的条件则返回这行 |
+         +----------------------------------+
+
+    SELECT col1, col2, ...
+    FROM table1 outer
+    WHERE col1 operator 
+                       (SELECT col
+                        FROM table2
+                        WHERE expr1 operator outer.expr2);
+    ```
+
+    题目：查询员工中工资大于本部门平均工资的员工的last_name,salary和其department_id
+
+    ```sql
+    SELECT last_name, salary, department_id
+    FROM employees emp
+    WHERE salary > (SELECT AVG(salary) FROM employees WHERE department_id = emp.department_id);
+
+    SELECT last_name, salary, e1.department_id
+    FROM employees e1 JOIN (SELECT department_id, AVG(salary) avg_salary FROM employees GROUP BY department_id) e2
+    ON e1.department_id = e2.department_id
+    AND e1.salary > e2.avg_salary;
+    ```
+
+* 在 ORDER BY 中使用子查询
+
+    题目：查询员工的id,salary,按照department_name 排序
+    
+    ```sql
+    SELECT employee_id,salary FROM employees e ORDER BY ( SELECT department_name FROM departments d WHERE e.`department_id` = d.`department_id` );
+    ```
+
+*  EXISTS 与 NOT EXISTS关键字
+
+    * 如果在子查询中不存在满足条件的行：
+        * 条件返回 FALSE
+        * 继续在子查询中查找（下一行）
+    * 如果在子查询中存在满足条件的行：
+        * 不在子查询中继续查找
+        * 条件返回 TRUE 
+    * NOT EXISTS 关键字表示如果不存在某种条件，则返回TRUE，否则返回FALSE。
+
+    题目：查询公司管理者的employee_id，last_name，job_id，department_id信息
+
+    ```sql
+    SELECT employee_id, last_name, job_id, department_id 
+    FROM employees e1 
+    WHERE EXISTS ( SELECT * FROM employees e2 WHERE e2.manager_id = e1.employee_id);
+    ```
+
+* 相关更新
+
+    使用相关子查询依据一个表中的数据更新另一个表的数据。
+
+    ```sql
+    UPDATE table1 alias1 
+    SET column = (SELECT expression FROM table2 alias2 WHERE alias1.column = alias2.column);
+    ```
+
+    题目：在employees中增加一个department_name字段，数据为员工对应的部门名称
+
+    ```sql
+    ALTER TABLE employees ADD(department_name VARCHAR(20));
+    
+    UPDATE employees e 
+    SET department_name = (SELECT department_name FROM departments d WHERE e.department_id = d.department_id);
+    ```
+
+* 相关删除
+
+    使用相关子查询依据一个表中的数据删除另一个表的数据。
+
+    题目：删除表employees中，其与emp_history表皆有的数据
+
+    ```sql
+    DELETE FROM employees e 
+    WHERE employee_id in (SELECT employee_id FROM emp_history WHERE employee_id = e.employee_id);
+    ```
 
 ### 3. SQL之DDL、DML、DCL使用篇
 
