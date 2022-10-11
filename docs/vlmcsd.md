@@ -121,33 +121,33 @@ Github: [https://github.com/Wind4/vlmcsd](https://github.com/Wind4/vlmcsd)
 
 4. 配置文件权限
 
-        ```sh
-        chmod 755 /usr/bin/vlmcsd
-        chown root.root /usr/bin/vlmcsd
-        chmod 755 /etc/init.d/vlmcsd
-        chown root.root /etc/init.d/vlmcsd
-        ```
+    ```sh
+    chmod 755 /usr/bin/vlmcsd
+    chown root.root /usr/bin/vlmcsd
+    chmod 755 /etc/init.d/vlmcsd
+    chown root.root /etc/init.d/vlmcsd
+    ```
 
 5. 启动服务, 并设置自启动
 
-        ```sh
-        chkconfig --add vlmcsd
-        chkconfig vlmcsd on
-        service vlmcsd start
-        ```
+    ```sh
+    chkconfig --add vlmcsd
+    chkconfig vlmcsd on
+    service vlmcsd start
+    ```
 
 6. 如果要指定监听 IP, 可使用 `-L`
 
-        ```sh
-        ~] vi /etc/init.d/vlmcsd
+    ```sh
+    ~] vi /etc/init.d/vlmcsd
 
-        ...
-        start() {
-          ...
-          echo 'Starting service...'
-          local CMD="$SCRIPT -p $PIDFILE -l $LOGFILE -L 192.168.161.1:1688 -d"  # <= 添加 "-L 192.168.161.1:1688"
-          su -c "$CMD" $RUNAS
-          ...
-        }
-        ...
-        ```
+    ...
+    start() {
+      ...
+      echo 'Starting service...'
+      local CMD="$SCRIPT -p $PIDFILE -l $LOGFILE -L 192.168.161.1:1688 -d"  # <= 添加 "-L 192.168.161.1:1688"
+      su -c "$CMD" $RUNAS
+      ...
+    }
+    ...
+    ```
