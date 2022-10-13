@@ -510,3 +510,97 @@ internal-sftp 可以实现对用户 SFTP 连接的灵活限制
         mask::r-x
         other::---
         ```
+
+## 关于 sftp 日志
+
+### 使用 sftp-server
+
+* 不指定日志文件，记录到 `/var/log/messages`
+
+    编辑 `/etc/ssh/sshd_config`:
+
+    ```text
+    Subsystem   sftp    /usr/libexec/openssh/sftp-server -l VERBOSE
+    ```
+
+    重启sshd服务，查看 `/var/log/messages`:
+
+    ```log
+    Mar  9 09:39:07 localhost sftp-server[1829]: received client version 3
+    Mar  9 09:39:07 localhost sftp-server[1829]: realpath "."
+    Mar  9 09:39:09 localhost sftp-server[1829]: lstat name "/root"
+    ```
+
+* 自定义日志文件
+
+    编辑 `/etc/ssh/sshd_config`:
+
+    ```text
+    Subsystem   sftp    /usr/libexec/openssh/sftp-server -l VERBOSE -f LOCAL3
+    ```
+
+    编辑 `/etc/rsyslog.conf`:
+
+    ```text
+    local3.*                                                /var/log/sftp.log
+    ```
+
+    重启sshd、rsyslog服务，查看 `/var/log/sftp`:
+
+    ```log
+    Mar  9 09:49:02 localhost sftp-server[1947]: received client version 3
+    Mar  9 09:49:02 localhost sftp-server[1947]: realpath "."
+    Mar  9 09:49:04 localhost sftp-server[1947]: lstat name "/root"
+    ```
+
+    * 如果要使日志只记录在指定的 `/var/log/sftp.log` 文件中, 按以下配置：
+
+        ```text
+        ...
+        local3.*                        /var/log/sftp.log
+        &~
+        *.info;mail.none;authpriv.none;cron.none                /var/log/messages
+        ```
+
+        由于 `&~` 的存在，后续的日志不会重复。
+
+### 使用 internal-server
+
+* 不指定日志文件，记录到 `/var/log/secure` 或 `/var/log/messages`
+
+    编辑 `/etc/ssh/sshd_config`:
+
+    ```text
+    #Subsystem   sftp    /usr/libexec/openssh/sftp-server
+    Subsystem   sftp    internal-sftp -l VERBOSE
+    Match User user_01
+        ChrootDirectorty /data/user_01
+    ```
+
+    如果用户被 `Match` 匹配并 `Chroot`，则日志记录到 `/var/log/secure`，如使用 user_01 时:
+
+    ```log
+    Mar  9 09:50:02 localhost sshd[2366]: pam_unix(sshd:session): session opened for user user_01 by (uid=0)
+    Mar  9 09:50:02 localhost sshd[2366]: session opened for local user user_01 from [192.168.161.1] [postauth]
+    Mar  9 09:50:02 localhost sshd[2366]: received client version 3
+    Mar  9 09:50:02 localhost sshd[2366]: opendir "/" [postauth]
+    Mar  9 09:50:04 localhost sshd[2366]: close "/" [postauth]
+    ```
+
+    其余用户日志记录到 `/var/log/messages`，如使用 user_02 时:
+
+    ```log
+    Mar  9 09:51:02 localhost systemd-logind: New session 46 of user user_02.
+    Mar  9 09:51:02 localhost internal-sftp[2381]: session opened for local user user_02 from [192.168.161.1]
+    Mar  9 09:51:02 localhost internal-sftp[2381]: received client version 3
+    Mar  9 09:51:02 localhost internal-sftp[2381]: realpath "."
+    Mar  9 09:51:04 localhost internal-sftp[2381]: opendir "/home/user_02"
+    Mar  9 09:51:04 localhost internal-sftp[2381]: close "/home/user_02"
+    ```
+
+* 指定日志文件
+
+    `/etc/ssh/sshd_config` 配置不变，编辑 `/etc/rsyslog.conf`:
+
+    ```
+    ```
