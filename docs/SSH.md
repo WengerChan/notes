@@ -562,7 +562,7 @@ internal-sftp 可以实现对用户 SFTP 连接的灵活限制
         *.info;mail.none;authpriv.none;cron.none                /var/log/messages
         ```
 
-        由于 `&~` 的存在，后续的日志不会重复。
+        > 新增的配置放在所有 rules 前面，由于 `&~` 的存在，后续的日志不会重复。
 
 ### 使用 internal-server
 
@@ -600,7 +600,42 @@ internal-sftp 可以实现对用户 SFTP 连接的灵活限制
 
 * 指定日志文件
 
-    `/etc/ssh/sshd_config` 配置不变，编辑 `/etc/rsyslog.conf`:
+    * 方案一：不指定日志设备，通过 chroot socket 接收日志
 
-    ```
-    ```
+        `/etc/ssh/sshd_config` 配置和上文保持不变，编辑 `/etc/rsyslog.conf`:
+
+        ```text
+        input(type="imuxsock" HostName="user_01" Socket="/data/user_01/dev/log" CreatePath="on")
+        if $fromhost == 'user' then /var/log/sftp.log
+        & stop
+        ...
+        *.info;mail.none;authpriv.none;cron.none                /var/log/messages
+        ```
+
+        注：
+
+        * 需要在 chroot 的目录下面新建一个 dev 目录用于存放日志
+        * 新增的配置放在所有 rules 前面
+        * 此时 `/var/log/sftp.log` 只会记录 user_01 用户的日志，而 user_02 的日志会记录到 `/var/log/messages`
+
+    * 方案二：为sftp指定日志设备
+
+        修改 `/etc/ssh/sshd_config` :
+
+        ```text
+        #Subsystem   sftp    /usr/libexec/openssh/sftp-server
+        Subsystem   sftp    internal-sftp -l VERBOSE -f LOCAL3
+        Match User user_01
+            ChrootDirectorty /data/user_01
+        ```
+
+        修改 `/etc/rsyslog.conf` ：
+
+        ```text
+        input(type="imuxsock" Socket="/data/user_01/dev/log" CreatePath="on")
+        local3.*                                                /var/log/sftp.log
+        ```
+
+        注：
+
+        * 此时 `/var/log/sftp.log` 会记录所有用户的日志
