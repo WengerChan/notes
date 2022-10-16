@@ -40,3 +40,13 @@
 ```
 
 ![](pictures/ceph/架构-01.png)
+
+* monitor - ceph-mon
+* manager - ceph-mgr
+* osd - ceph-osd
+* mds - ceph-mds（metadata server）
+
+## 网络模型
+
+* 公共网络：用于用户的数据通信
+* 集群网络：用于集群内部的管理通信
