@@ -175,11 +175,11 @@
     DCL（Data Control Language、数据控制语言）: 用于定义数据库、表、字段、用户的访问权限和安全级别
 
 
-    | 类型 | 关键字                                    |
-    | ---- | :---------------------------------------- |
-    | DDL  | CREATE, DROP, ALTER                       |
-    | DML  | INSERT, DELETE, UPDATE, SELECT            |
-    | DCL  | GRANT, REVOKE,COMMIT, ROLLBACK, SAVEPOINT |
+    | 类型 | 关键字                                     |
+    | ---- | :----------------------------------------- |
+    | DDL  | CREATE, DROP, ALTER, RENAME, TRUNCATE      |
+    | DML  | INSERT, DELETE, UPDATE, SELECT             |
+    | DCL  | GRANT, REVOKE, COMMIT, ROLLBACK, SAVEPOINT |
 
 * SQL基本规则
 
@@ -1586,6 +1586,159 @@ mysql> SELECT DECODE(ENCODE('123qweQ.','thisisased'), 'thisisased');
 
 #### 第10章：创建和管理表
 
+* 数据存储过程
+
+    创建数据库 -> 确认字段 -> 创建表 -> 插入数据
+
+* 标识符命名规则
+
+    * 数据库名、表名不得超过30个字符，变量名限制为29个
+    * 必须只能包含 A–Z, a–z, 0–9, _共63个字符
+    * 数据库名、表名、字段名等对象名中间不要包含空格
+    * 同一个MySQL软件中，数据库不能同名；同一个库中，表不能重名；同一个表中，字段不能重名
+    * 必须保证你的字段没有和保留字、数据库系统或常用方法冲突。如果坚持使用，请在SQL语句中使用`（着重号）引起来
+    * 保持字段名和类型的一致性：在命名字段并为其指定数据类型的时候一定要保证一致性，假如数据
+    * 类型在一个表里是整数，那在另一个表里可就别变成字符型了
+
+* 数据库 - 创建、管理、修改、使用
+
+    ```sql
+    -- 创建
+    CREATE DATABASE mytest1;
+    CREATE DATABASE mytest2 CHARACTER SET 'utf8';
+    CREATE DATABASE IF NOT EXISTS mytest3 CHARACTER SET 'utf8';  -- 如果数据库已经存在，则不执行该命令
+
+    -- 查看
+    SHOW DATABASES;
+    SHOW CREATE DATABASE mytest1;
+    SHOW CREATE DATABASE mytest1 \G;
+
+    -- 使用
+    USE mytest1;
+    SHOW TABLES;
+    SHOW TABLES FROM mytest1;
+    
+    -- 修改
+    ---- 1. 修改字符集
+    ALTER DATABASE mytest1 CHARACTER SET 'gbk';
+    
+    ---- 2. 修改数据库名
+    ---- 无法通过命令创建，一些mysql软件的重命名，其实是新建了一个库，然后将所有表数据同步
+
+    -- 删除
+    DROP DATABASE mytest1;
+    DROP DATABASE IF EXISTS mytest1;
+    ```
+
+* 数据类型
+
+    大类：数值、日期、字符串及空间数据
+
+    | 类型             | 类型举例                                                                                                            |
+    | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+    | 整数类型         | TINYINT、SMALLINT、MEDIUMINT、INT(或INTEGER)、BIGINT                                                                |
+    | 浮点类型         | FLOAT、DOUBLE                                                                                                       |
+    | 定点数类型       | DECIMAL                                                                                                             |
+    | 位类型           | BIT                                                                                                                 |
+    | 日期时间类型     | YEAR、TIME、DATE、DATETIME、TIMESTAMP                                                                               |
+    | 文本字符串类型   | CHAR、VARCHAR、TINYTEXT、TEXT、MEDIUMTEXT、LONGTEXT                                                                 |
+    | 枚举类型         | ENUM                                                                                                                |
+    | 集合类型         | SET                                                                                                                 |
+    | 二进制字符串类型 | BINARY、VARBINARY、TINYBLOB、BLOB、MEDIUMBLOB、LONGBLOB                                                             |
+    | JSON类型         | JSON对象、JSON数组                                                                                                  |
+    | 空间数据类型     | 单值：GEOMETRY、POINT、LINESTRING、POLYGON <br>集合：MULTIPOINT、MULTILINESTRING、MULTIPOLYGON、 GEOMETRYCOLLECTION |
+
+
+* 表 - 创建、查看
+
+    ```sql
+    USE atguigudb;
+
+    -- 创建
+    ---- 1 方式一
+    CREATE TABLE IF NOT EXISTS myemp1 (
+        id INT,
+        emp_name VARCHAR(15),
+        hire_date DATE
+    );
+
+    ---- 2 方式二 - 基于现有表创建(同时会导入数据)
+    CREATE TABLE myemp2
+    AS
+    SELECT employee_id, last_name, salary
+    FROM employees;
+
+    -- 查看
+    DESC myemp1;
+    SHOW CREATE TABLE myemp1; -- 字符集使用所在数据库的字符集
+    ```
+
+* 表 - 管理、修改
+
+    * 修改表
+
+        ```sql
+        -- 1、添加字段
+        ALTER TABLE myemp1
+        ADD salary DOUBLE(10,2);  -- 默认把新增字段放在最后
+        
+        ALTER TABLE myemp1
+        ADD phone_number VARCHAR(20) FIRST; -- 字段放在最开头
+        
+        ALTER TABLE myemp1
+        ADD email VARCHAR(30) AFTER id;  -- 字段放在指定字段后面
+
+        -- 2、修改字段：数据类型（一般不操作）、长度、默认值
+        ALTER TABLE myemp1
+        MODIFY emp_name VARCHAR(35);
+
+        ALTER TABLE myemp1
+        MODIFY emp_name VARCHAR(35) DEFAULT 'aaa';  -- 设置字段默认值
+        
+        -- 3、重命名字段
+        ALTER TABLE myemp1
+        CHANGE salary monthly_salary DOUBLE(10,2);
+
+        ALTER TABLE myemp1
+        CHANGE email my_email VARCHAR(50);  -- 改名的时候也可以改长度
+        
+        -- 4、删除字段
+        ALTER TABLE myemp1
+        DROP COLUMN my_email;
+        ```
+
+    * 重命名、删除表、清空表
+
+        ```sql
+        -- 重命名
+        RENAME TABLE myemp1
+        TO myemp2;
+
+        ALTER TABLE myemp2
+        RENAME TO myemp3;
+        
+        -- 删除表: 删除数据及表结构
+        DROP TABLE IF EXISTS myemp3; 
+
+        -- 清空表：只删除数据，保留表结构
+        TRUNCATE TABLE myemp1;
+        ```
+
+* 附A：DCL中的 COMMIT 和 ROLLBACK
+
+    * COMMIT: 提交数据。一旦执行COMMIT，则数据被永久的保存在数据库中，意味着数据不可以回滚。
+    * ROLLBACK：回滚数据。一旦执行ROLLBACK，则可以实现数据的回滚，回滚到最近的一次COMMIT之后。
+
+* 附B：对比 `TRUNCATE TABLE` 和 `DELETE FROM`
+
+    * 相同点：都可以实现清除表数据，同时保留表结构
+    * 不同点：`TRUNCATE TABLE` 一旦执行操作，表数据全部清除，同时数据不可回滚；`DELETE FROM` 可以指定删除数据（WHERE过滤），同时数据可以实现回滚（需额外配置，见附C）。
+
+* 附C：DDL 和 DML 说明
+
+    * DDL：一旦执行就不可回滚
+    * DML：一旦执行，也是不可回滚的；但是如果设置了 `SET autocommit = FALSE`(默认值为TRUE) 则可以实现回滚
+
 #### 第11章：数据处理之增删改
 
 #### 第12章：MySQL数据类型精讲
@@ -1625,6 +1778,7 @@ mysql> SELECT DECODE(ENCODE('123qweQ.','thisisased'), 'thisisased');
 #### 第06章：InnoDB数据页结构
 
 ### 2. 索引及调优篇
+
 #### 第07章：索引
 
 #### 第08章：性能分析工具的使用
