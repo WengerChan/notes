@@ -1733,11 +1733,37 @@ mysql> SELECT DECODE(ENCODE('123qweQ.','thisisased'), 'thisisased');
 
     * 相同点：都可以实现清除表数据，同时保留表结构
     * 不同点：`TRUNCATE TABLE` 一旦执行操作，表数据全部清除，同时数据不可回滚；`DELETE FROM` 可以指定删除数据（WHERE过滤），同时数据可以实现回滚（需额外配置，见附C）。
+    * 阿里开发规范：`TRUNCATE TABLE` 比 `DELETE` 速度快，且使用的系统和事务日志资源少，但 `TRUNCATE` 无事务且不触发 `TRIGGER`，有可能造成事故，故不建议在开发代码中使用此语句。
 
 * 附C：DDL 和 DML 说明
 
     * DDL：一旦执行就不可回滚
     * DML：一旦执行，也是不可回滚的；但是如果设置了 `SET autocommit = FALSE`(默认值为TRUE) 则可以实现回滚
+
+* 附D：阿里巴巴MySQL字段命名
+
+    * 【 强制 】表名、字段名必须使用小写字母或数字，禁止出现数字开头，禁止两个下划线中间只出现数字。数据库字段名的修改代价很大，因为无法进行预发布，所以字段名称需要慎重考虑。
+        * 正例：aliyun_admin，rdc_config，level3_name
+        * 反例：AliyunAdmin，rdcConfig，level_3_name 【 强制 】禁用保留字，如 desc、range、match、delayed 等，请参考 MySQL 官方保留字。
+    * 【 强制 】表必备三字段：id, gmt_create, gmt_modified。
+        * 其中 id 必为主键，类型为 BIGINT UNSIGNED、单表时自增、步长为 1。
+        * gmt_create, gmt_modified 的类型均为 DATETIME 类型，前者现在时表示主动式创建，后者过去分词表示被动式更新
+    * 【 推荐 】表的命名最好是遵循 “业务名称_表的作用”。
+        * 正例：alipay_task 、 force_project、 trade_config 
+    * 【 推荐 】库名与应用名称尽量一致。
+    * 【 参考 】合适的字符存储长度，不但节约数据库表空间、节约索引存储，更重要的是提升检索速度。
+        * 正例：无符号值可以避免误存负数，且扩大了表示范围。
+
+* 附E：MySQL新特性 - DDL的原子化
+
+    在MySQL 8.0版本中，InnoDB表的DDL支持事务完整性，即 **DDL操作要么成功要么回滚** 。DDL操作回滚日志写入到data dictionary数据字典表mysql.innodb_ddl_log（该表是隐藏的表，通过show tables无法看到）中，用于回滚操作。通过设置参数，可将DDL操作日志打印输出到MySQL错误日志中。
+
+    ```sql
+    -- book1 存在，book2 不存在
+    mysql> DROP TABLE book1,book2;  -- 5.7 中book1会被删除，8.0中不会（回滚）
+    ERROR 1051 (42S02): Unknown table 'mytest.book2'
+    ```
+
 
 #### 第11章：数据处理之增删改
 

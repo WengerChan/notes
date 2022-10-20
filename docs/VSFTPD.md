@@ -360,12 +360,13 @@ VSFTPD 提供3种远程的登录方式：
 
 * `user_config_dir=/path/to/dir` — 设置一个目录路径, 该目录下存放指定用户的专属配置 (该配置会覆盖 `/etc/vsftpd/vsftpd.conf` 全局配置)
     
-    > 示例: 设置 `user_config_dir=/etc/vsftpd/user_conf`, 当 tom 用户登录时, 会尝试加载 `/etc/vsftpd/user_conf/tom` 配置
+    > 示例: 1 设置 `user_config_dir=/etc/vsftpd/user_conf`, 当 tom 用户登录时, 会尝试加载 `/etc/vsftpd/user_conf/tom` 配置
+    > 2 设置不同用户的 chroot: `/etc/vsftpd/user_conf/tom` 下插入一行 `local_root=/path/to/dir/tom`
 
 ---
 
 <b id="f6"><font size=1>6 "目录": 默认情况下, 本地用户登录后会切换到"家目录"; 当 "local_root" 指令时, 用户会切换到 "local_root" 设定的目录中 </font></b> [↺](#a6)  
-<b id="f7"><font size=1>7 RHEL 6 中, 默认值为 "022"; 虽然 RHEL 7 中默认值为 "077", 但是主配置文件初始配置为 "YES"</font></b> [↺](#a7)  
+<b id="f7"><font size=1>7 RHEL 6 中, 默认值为 "022"; 虽然 RHEL 7 中默认值为 "077", 但是主配置文件初始配置为 "022"</font></b> [↺](#a7)  
 
 
 ### Directory Options
@@ -458,7 +459,7 @@ vsftpd_log_file=/var/log/vsftpd.log
 * `max_login_fails=3`
 
 
-* `idle_session_timeout=20` — 设置最长空闲时间, 超时后连接中断 (单位 s)
+* `idle_session_timeout=300` — 设置最长空闲时间, 超时后连接中断 (单位 s)
 
 * `data_connection_timeout=300` — 设置允许数据传输停止的最长时间, 超时后连接会中断 (单位 s)
 
@@ -527,10 +528,16 @@ vsftpd_log_file=/var/log/vsftpd.log
 
 * `allow_anon_ssl=NO` — 控制是否允许匿名用户使用 SSL 连接
 
+* `force_local_data_ssl=YES` - 设置是否使所有非匿名用户登录的用户使用 SSL 连接发送、接收数据
+
+* `force_local_logins_ssl=YES` - 设置是否使所有非匿名用户登录时使用 SSL 连接发送密码
+
+* `implicit_ssl=NO` - 设置是否开启隐式SSL<sup id="a15">[15](#f15)</sup>
 
 ---
 
 <b id="f14"><font size=1>14 "索取": 只发送 `request`, 并不是 `require`</font></b> [↺](#a14)  
+<b id="f15"><font size=1>15 "FTPS 显式 SSL": 显示 SSL 下服务器可以同时支持 FTP 和 FTPS 会话。开始会话前客户端需要先建立与 FTP 服务器的未加密连接，并在发送用户凭证前先发送 AUTH TLS 或 AUTH SSL 命令来请求服务器将命令通道切换到 SSL 加密通道，成功建立通道后再将用户凭证发送到 FTP 服务器，从而保证在会话期间的任何命令都可以通过 SSL 通道自动加密。"FTPS 隐式 SSL"：在这个模式下全部数据的交换都需要在客户端和服务器之间建立 SSL 会话，并且服务器会拒绝任何不使用 SSL 进行的连接尝试。</font></b> [↺](#a15)  
 
 
 ## 示例
@@ -614,6 +621,7 @@ tcp_wrappers=YES
     chroot_local_user=NO
     chroot_list_enable=YES
     chroot_list_file=/etc/vsftpd/chroot_list
+    write_enable=YES
     allow_writeable_chroot=NO
     guest_enable=NO
 
@@ -752,6 +760,42 @@ tcp_wrappers=YES
     account         required        pam_userdb.so db=/etc/vsftpd/vuser
     ```
 
+### FTP+SSL
+
+* 生成自签名证书
+
+    ```sh
+    # vsftpd SSL： Key 和 Cert 放在一个文件中
+    openssl req -new -x509 -text -days 3650 -out /etc/pki/tls/private/vsftpd.pem -keyout /etc/pki/tls/private/vsftpd.pem
+
+    # vsftpd SSL： Key 和 Cert 分开
+    (umask 066; openssl genrsa -out /etc/pki/tls/private/vsftpd.key 2048)
+    openssl req -new -x509 -days 3650 -key /etc/pki/tls/private/vsftpd.key -out /etc/pki/tls/private/vsftpd.cert
+    ```
+
+* `/etc/vsftpd/vsftpd.conf` 添加配置
+
+    ```text
+    # SSL
+    ssl_enable=YES
+    ssl_sslv2=YES
+    ssl_sslv3=YES
+    ssl_tlsv1=YES
+    ssl_tlsv1_1=YES
+    ssl_tlsv1_2=YES
+    force_local_logins_ssl=YES # 非匿名用户强制使用SSL
+    force_local_data_ssl=YES   # 非匿名用户强制使用SSL
+
+    # 如果没有指定 rsa_private_key_file，vsftpd 会从 rsa_cert_file 指定的文件中获取 key
+    # 因此也可以将 key 和 cert 放在一个文件中，使用以下配置：
+    rsa_cert_file=/etc/pki/CA/cert/vsftpd.pem
+
+    # 或者使用以下配置：
+    # rsa_cert_file=/etc/pki/CA/cert/vsftpd.cert
+    # rsa_private_key_file=/etc/pki/CA/cert/vsftpd.key
+
+    ```
+
 ## VSFTPD 问题汇总
 
 ### 关于设置防火墙的问题
@@ -867,6 +911,17 @@ listen_ipv6=YES
 
 * 给用户配置的 login shell, 是否在系统支持的 shell 列表中? 检查 `/etc/shells`
 
+
+### 550 Permission denied
+
+上传文件时报这个错误，检查是否配置: `wirte_enable=YES`
+
+
+### 553 Could not create file
+
+检查目录权限
+
+
 ### SELinux 
 
 For example, in order to be able to share files anonymously, the `public_content_t` label must be assigned to the files and directories to be shared. You can do this using the chcon command as `root`:
@@ -929,10 +984,8 @@ allow ftpd_t default_t:dir { read write };
 <sup id="a17">[17](#f17)</sup>
 <sup id="a18">[18](#f18)</sup>
 <sup id="a19">[19](#f19)</sup>
- 
-  
- 
- 
+
+
 <b id="f15"><font size=1>15 </font></b> [↺](#a15)  
 <b id="f16"><font size=1>16 </font></b> [↺](#a16)  
 <b id="f17"><font size=1>17 </font></b> [↺](#a17)  
