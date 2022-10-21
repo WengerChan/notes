@@ -796,6 +796,24 @@ tcp_wrappers=YES
 
     ```
 
+* 如何连接到 FTPs
+
+    * 1 安装 lftp
+    * 2 编辑家目录下 `.lftprc` 文件或者 直接修改 `/etc/lftp.conf`, 添加：
+
+        ```conf
+        set ftps:initial-prot ""
+        set ftp:ssl-force true
+        set ftp:ssl-protect-data true
+        set ssl:verify-certificate no  #充分信任host的情况下
+        ```
+
+    * 3 连接
+
+        ```sh
+        lftp -u "用户名","密码" ftps://IP:Port
+        ```
+
 ## VSFTPD 问题汇总
 
 ### 关于设置防火墙的问题

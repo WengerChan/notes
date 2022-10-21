@@ -1173,8 +1173,8 @@
 | ------------------------------------------------------------ | :------------------------------------------------------- |
 | `IF(value,value1,value2)`                                    | 如果value的值为TRUE，返回value1，否则返回value2          |
 | `IFNULL(value1, value2)`                                     | 如果value1不为NULL，返回value1，否则返回value2           |
-| `CASE WHEN 条件1 THEN 结果1 WHEN 条件2 THEN 结果2 ....`      | [ELSE resultn] END 相当于Java的 `if...else if...else...` |
-| `CASE expr WHEN 常量值1 THEN 值1 WHEN 常量值1 THEN 值1 ....` | [ELSE 值n] END 相当于Java的 `switch...case...`           |
+| `CASE WHEN 条件1 THEN 结果1 WHEN 条件2 THEN 结果2 .... END `      | [ELSE resultn] END 相当于Java的 `if...else if...else...` |
+| `CASE expr WHEN 常量值1 THEN 值1 WHEN 常量值1 THEN 值1 .... END` | [ELSE 值n] END 相当于Java的 `switch...case...`           |
 
 
 ##### 加密与解密函数
@@ -1767,7 +1767,99 @@ mysql> SELECT DECODE(ENCODE('123qweQ.','thisisased'), 'thisisased');
 
 #### 第11章：数据处理之增删改
 
+* 添加数据
+
+    ```sql
+    -- 方式一：一条一条添加数据
+    INSERT INTO emp1
+    VALUES (1, 'Tom', '2000-12-21', 3400);   -- 此时需要按照声明的字段先后顺序添加
+
+    INSERT INTO emp1(id, hire_date, salary, `name`)  -- 自定义字段顺序
+    VALUES (2, '1999-10-09', 3200, 'Lily');
+
+    INSERT INTO emp1(id, `name`)                    -- 未指定的字段，值为NULL
+    VALUES
+    (3, 'Sam'),    -- 多条记录（比一条一条执行快）
+    (4, 'Sha');
+
+
+    -- 方式二：将查询结果插入表中
+    INSERT INTO emp1(id, `name`, hire_date, salary)
+    SELECT employee_id, last_name, hire_date, salary
+    FROM employees
+    LIMIT 0,25
+    ```
+
+* 更新数据
+
+    ```sql
+    UPDATE emp1
+    SET hire_date = CURDATE(),salary = 6000
+    WHERE id = 4;
+
+    UPDATE emp1
+    SET salary = salary * 1.2
+    WHERE `name` LIKE '%a%';
+    ```
+
+    > 修改数据时，可能存在不成功的情况（比如约束影响）
+
+* 删除数据
+
+    ```sql
+    DELETE FROM emp1
+    WHERE id < 4;
+
+    DELETE e1, u       -- 同时删除 emp1 和 users 表中 id 为 100 的记录
+    FROM emp1 e1
+    JOIN users u
+    ON e1.id = u.user_id
+    WHERE e1.id = '100';
+    ```
+
+    > 删除数据时，可能存在不成功的情况（比如约束影响）
+    
+
+* 小结：默认情况下，DML操作执行完以后都会自动提交数据（COMMIT）；如果系统不自动提交数据，则需要设置 `SET autocommit = FALSE`。
+
+* MySQL8 新特性：计算列
+
+    什么叫计算列呢？简单来说就是某一列的值是通过别的列计算得来的。例如，a列值为1、b列值为2，c列不需要手动插入，定义a+b的结果为c的值，那么c就是计算列，是通过别的列计算得来的。
+
+    ```sql
+    CREATE TABLE tb1 ( 
+        id INT, 
+        a INT, 
+        b INT, 
+        c INT GENERATED ALWAYS AS (a + b) VIRTUAL  -- c 为计算列
+    );
+
+    INSERT INTO tb1(a, b)
+    VALUES (10, 20);   -- c: 30
+
+    UPDATE tb1 
+    SET a = 100;    -- c: 120
+    ```
+
 #### 第12章：MySQL数据类型精讲
+
+大类：数值、日期、字符串及空间数据
+
+| 类型             | 类型举例                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 整数类型         | TINYINT、SMALLINT、MEDIUMINT、INT(或INTEGER)、BIGINT                                                                |
+| 浮点类型         | FLOAT、DOUBLE                                                                                                       |
+| 定点数类型       | DECIMAL                                                                                                             |
+| 位类型           | BIT                                                                                                                 |
+| 日期时间类型     | YEAR、TIME、DATE、DATETIME、TIMESTAMP                                                                               |
+| 文本字符串类型   | CHAR、VARCHAR、TINYTEXT、TEXT、MEDIUMTEXT、LONGTEXT                                                                 |
+| 枚举类型         | ENUM                                                                                                                |
+| 集合类型         | SET                                                                                                                 |
+| 二进制字符串类型 | BINARY、VARBINARY、TINYBLOB、BLOB、MEDIUMBLOB、LONGBLOB                                                             |
+| JSON类型         | JSON对象、JSON数组                                                                                                  |
+| 空间数据类型     | 单值：GEOMETRY、POINT、LINESTRING、POLYGON <br>集合：MULTIPOINT、MULTILINESTRING、MULTIPOLYGON、 GEOMETRYCOLLECTION |
+
+
 
 #### 第13章：约束
 
