@@ -22,16 +22,16 @@ NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外�
 
 关于 `(权限)` 相关理解:
 
-|权限|解释|
-| --------- | ------- |
-|`rw`, `ro` | 指定客户端对共享目录的权限: 可读或读写(最终能不能"读写", 需要检查文件权限及身份) |
-|`sync`, `async` | `sync`代表数据会同步写入到内存与硬盘中, `async`则代表数据会暂存于内存当中, 而非直接写入硬盘 |
-|`root_squash`, `no_root_squash` | 客户端使用NFS文件系统的账号为root时, 系统该如何判断这个账号的身份？<br>默认的情况下, 客户端root的身份会由`root_squash`的设置`nfsnobody`, 如此对服务器系统会较有保障。<br>如果想开放客户端使用root身份来操作服务器的文件系统, 设置`no_root_squash` |
-|`all_squash` | 不论NFS的用户为何, 他的身份都会被压缩成为匿名用户, 通常也就是nobody(nfsnobody) |
-|`anonuid`, `anongid` | 对匿名用户设置uid和gid(必须是`/etc/passwd`存在的uid和gid) |
-|`hide`, `no_hide` | `hide`: NFS共享目录下的子目录不可见<br>`no_hide` : 可见 |
-|`secure`, `insecure` | `secure`: 限制客户端只能从小于1024的tcp/ip端口连接nfs服务器（默认设置）<br>`insecure` : 允许 |
-|`subtree`, `no_subtree` | `subtree`: 若输出目录是一个子目录, 则nfs服务器将检查其父目录的权限(默认设置)；<br>`no_subtree`: 即使输出目录是一个子目录, nfs服务器也不检查其父目录的权限, 这样可以提高效率； |
+| 权限                            | 解释                                                                                                                                                                                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `rw`, `ro`                      | 指定客户端对共享目录的权限: 可读或读写(最终能不能"读写", 需要检查文件权限及身份)                                                                                                                                                                  |
+| `sync`, `async`                 | `sync`代表数据会同步写入到内存与硬盘中, `async`则代表数据会暂存于内存当中, 而非直接写入硬盘                                                                                                                                                       |
+| `root_squash`, `no_root_squash` | 客户端使用NFS文件系统的账号为root时, 系统该如何判断这个账号的身份？<br>默认的情况下, 客户端root的身份会由`root_squash`的设置`nfsnobody`, 如此对服务器系统会较有保障。<br>如果想开放客户端使用root身份来操作服务器的文件系统, 设置`no_root_squash` |
+| `all_squash`                    | 不论NFS的用户为何, 他的身份都会被压缩成为匿名用户, 通常也就是nobody(nfsnobody)                                                                                                                                                                    |
+| `anonuid`, `anongid`            | 对匿名用户设置uid和gid(必须是`/etc/passwd`存在的uid和gid)                                                                                                                                                                                         |
+| `hide`, `no_hide`               | `hide`: NFS共享目录下的子目录不可见<br>`no_hide` : 可见                                                                                                                                                                                           |
+| `secure`, `insecure`            | `secure`: 限制客户端只能从小于1024的tcp/ip端口连接nfs服务器（默认设置）<br>`insecure` : 允许                                                                                                                                                      |
+| `subtree`, `no_subtree`         | `subtree`: 若输出目录是一个子目录, 则nfs服务器将检查其父目录的权限(默认设置)；<br>`no_subtree`: 即使输出目录是一个子目录, nfs服务器也不检查其父目录的权限, 这样可以提高效率；                                                                     |
 
 ### (可选) 修改服务端口
 
@@ -170,12 +170,13 @@ NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外�
         sudo mount -t nfs -o vers=3,nolock,proto=tcp,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev,noresvport file-system-id.region.nas.aliyuncs.com:/ /mnt
         ```
 
-        | 参数 | 说明 |
-        | vers | 文件系统版本，如 nfs v3、nfs v4 |
-        | _netdev | 防止客户端在网络就绪之前开始挂载文件系统 |
-        | noresvport | 网络重连时使用新的TCP端口，保障在网络发生故障恢复的时候不会中断连接 |
-        | lock,nolock | 是否使用 NLM 来实现主机间的文件锁 (不指定时，默认为 lock) |
-        | local_lock= | 是否在本地锁。可选参数 all,flock,posix,none |
+        | 参数        | 说明                                                                |
+        | ----------- | :------------------------------------------------------------------ |
+        | vers        | 文件系统版本，如 nfs v3、nfs v4                                     |
+        | _netdev     | 防止客户端在网络就绪之前开始挂载文件系统                            |
+        | noresvport  | 网络重连时使用新的TCP端口，保障在网络发生故障恢复的时候不会中断连接 |
+        | lock,nolock | 是否使用 NLM 来实现主机间的文件锁 (不指定时，默认为 lock)           |
+        | local_lock= | 是否在本地锁。可选参数 all,flock,posix,none                         |
 
         NLM 仅在 NFS v2,v3 中可用，NFS v4 自身管理文件锁。
 
