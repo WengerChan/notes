@@ -202,6 +202,8 @@ apt install libffi libffi-dev    # ubuntu
 
 ### LVM reports `Cannot use device with duplicates.`
 
+Refer to: [https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/logical_volume_manager_administration/duplicate_pv_multipath](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/logical_volume_manager_administration/duplicate_pv_multipath)
+
 * When attempting to extend a VG, the below error is produced: 
 
     ```sh
@@ -262,6 +264,30 @@ apt install libffi libffi-dev    # ubuntu
     # global_filter are not opened by LVM.
     # This configuration option has an automatic default value.
     global_filter = [ "a|.*/|" ]
+    ```
+
+    This filter accepts the second partition on the first hard drive ( `/dev/sda` and any `device-mapper-multipath devices`, while rejecting everything else.)
+    
+    ```conf
+    filter = [ "a|/dev/sda2$|", "a|/dev/mapper/mpath.*|", "r|.*|" ]
+    ```
+    
+    This filter accepts all HP SmartArray controllers and any EMC PowerPath devices.
+    
+    ```conf
+    filter = [ "a|/dev/cciss/.*|", "a|/dev/emcpower.*|", "r|.*|" ]
+    ```
+    
+    This filter accepts any partitions on the first IDE drive and any multipath devices.
+    
+    ```conf
+    filter = [ "a|/dev/hda.*|", "a|/dev/mapper/mpath.*|", "r|.*|" ]
+    ```
+
+    -> 2022-11-25 EMC存储:
+
+    ```conf
+    filter = [ "a|/dev/sda3$|", "a|/dev/sda4$|", "a|/dev/cciss/.*|", "a|/dev/mapper/mpath.*|","a|/dev/emcpower.*|","r|.*|" ]
     ```
 
 
