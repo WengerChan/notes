@@ -243,7 +243,10 @@ Refer to: [https://access.redhat.com/documentation/en-us/red_hat_enterprise_linu
 
 * 附 `lvm.conf` filter 配置示例
 
-    ```text
+    > * `a` - accept
+    > * `r` - reject
+
+    ```conf
     # Accept every block device (default value):
     filter = [ "a|.*/|" ]
 

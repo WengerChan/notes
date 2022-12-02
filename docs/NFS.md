@@ -65,7 +65,7 @@ NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外�
     /           master(rw) trusty(rw,no_root_squash)`
     ```
 
-- Examples for wildcard hostnames and netgroups (This is the entry `@trusted').
+- Examples for wildcard hostnames and netgroups (This is the entry `@trusted`).
 
     ```sh
     /projects   proj*.local.domain(rw)`
