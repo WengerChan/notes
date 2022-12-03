@@ -42,10 +42,13 @@ nav:
     - 证书: docs/证书
     - 其他: docs/其他
   - Drafts:
+    - DNS: draft/DNS
     - echo,printf: drafts/echo_printf
     - Git: drafts/Git
     - MySQL: drafts/MySQL
+    - quota: drafts/quota
     - sed: drafts/sed
+    - Systemd: draft/Systemd
     - Ubuntu: drafts/Ubuntu
     - 计算机网络: drafts/计算机网络
     - 三次握手与四次挥手: drafts/三次握手与四次挥手

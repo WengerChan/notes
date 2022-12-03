@@ -49,9 +49,12 @@ Some notes that hopefully will help you.
   - [证书](docs/证书.md)
   - [其他](docs/其他.md)
 - Drafts:
+  - [DNS](drafts/DNS.md)
   - [echo,printf](drafts/echo_printf.md)
   - [Git](drafts/Git.md)
+  - [quota](drafts/quota.md)
   - [sed](drafts/sed.md)
+  - [Systemd](drafts/Systemd.md)
   - [MySQL](drafts/MySQL.md)
   - [Ubuntu](drafts/Ubuntu.md)
   - [计算机网络](drafts/计算机网络.md)
