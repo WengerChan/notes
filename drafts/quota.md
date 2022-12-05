@@ -120,52 +120,196 @@ quota 可以实现对用户的磁盘空间使用量的配额：
 * xfs文件系统除了支持user、group配置配额，还可以以project形式配置配额
 * There is no need for quota files in the root of the XFS filesystem. - 即不需要 `aquota.group`, `aquota.user` 文件
 
-xfs_quota [ -x ] [ -p prog ] [ -c cmd ] ... [ -d project ] ... [ path ... ]
-xfs_quota -V
+### 相关命令、参数介绍
 
-xfs_quota
+* `xfs_quota` 参数：
 
-`-x` 启用专业模式，可使用管理命令
-`-p` 
-`-c` 后面接命令，可多个`-c`同时使用
-`-d` 后面接project名字或者数字标识，可多个`-d`同时使用
-`path` 挂载点路径
+    ```sh
+    xfs_quota [ -x ] [ -p prog ] [ -c cmd ] ... [ -d project ] ... [ path ... ]
+    xfs_quota -V
+    ```
 
+    | 参数   | 说明                                              |
+    | ------ | ------------------------------------------------- |
+    | `-x`   | 启用专业模式，可使用管理命令                      |
+    | `-p`   |                                                   |
+    | `-c`   | 后面接命令，可多个`-c`同时使用                    |
+    | `-d`   | 后面接project名字或者数字标识，可多个`-d`同时使用 |
+    | `path` | 挂载点路径                                        |
+
+* USER COMMANDs
+
+    | 命令                                                         | 用途                              | 参数解释                                                                                                                                  |
+    | ------------------------------------------------------------ | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+    | `print`                                                      | 列出所有路径，包括device和project |
+    | `df`                                                         | =`free`                           |
+    | `quota [-g\|-p\|-u] [-bir] [-hnNv] [-f file] [ID\|name]` ... | 显示配额信息                      | `-u`,`-g`,`-p` 指定用户/用户组/项目<br>`-b`,`-i`,`-r` 显示block/inode/实时数据??<br>`-h` 输出可读性<br>`-N` 不显示表头<br>`-f` 输出到文件 |
+    | `free [-bir] [-hN] [-f file]`                                | 显示文件系统使用信息              |
+    | `help [command]`                                             |                                   |                                                                                                                                           |
+    | `quit`,`q`                                                   |                                   |                                                                                                                                           |
+
+* ADMINISTATOR COMMANDs
+
+    | 命令                                                                                       | 用途                                                                                | 备注                                                |
+    | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | --------------------------------------------------- |
+    | `path [N]`                                                                                 | 列出所有路径                                                                        |                                                     |
+    | `report [-gpu] [-bir] [-ahntlLNU] [-f file]`                                               | 查询文件系统配额信息                                                                |                                                     |
+    | `state [-f file] [-av] [-f file]`                                                          | 查询所有配额信息                                                                    |                                                     |
+    | `limit [-g\|-p\|-u] bsoft=N\|bhard=N\|isoft=N\|ihard=N\|rtbsoft=N\|rtbhard=N -d\|id\|name` | 配置配额                                                                            | N可以加单位                                         |
+    | `timer [-g\|-p\|-u] [-bir] value`                                                          | 配置宽限时间                                                                        |                                                     |
+    | `warn [-g\|-p\|-u] [-bir] value -d\|id\|name`                                              | 配置quota警告                                                                       | 如发送警告的次数                                    |
+    | `enable [-gpu] [-v]`                                                                       | 启用配额                                                                            |                                                     |
+    | `diable [-gpu] [-v]`                                                                       | 暂停配额                                                                            |                                                     |
+    | `off [-gpu] [-v]`                                                                          | 关闭配额                                                                            |                                                     |
+    | `remove [-gpu] [-v]`                                                                       | 移除所有配额                                                                        | 要在off的状态                                       |
+    | `dump [-g\|-p\|-u] [-f file]`                                                              | 导出配额信息数据                                                                    |                                                     |
+    | `restore [-g\|-p\|-u] [-f file]`                                                           | 从配额信息数据中恢复                                                                |                                                     |
+    | `quot [-g\|-p\|-u] [-bir] [-acnv] [-f file]`                                               | 统计文件系统信息                                                                    |                                                     |
+    | `project [-cCs [-d depth] [-p path] id\|name]`                                             | `-s` setup<br>`-C` clear<br>`-c` check<br>`-d` recursion level<br>`-p` 指定proj文件 | recursion level:<br>-1 infinite;0=top;1=first level |
+
+    * `-d` - defaults
+
+* projects, projid
+
+    * `/etc/projects` - provides a mapping between numeric project identifiers and directories(the roots of quota tree).
+
+        ```conf
+        # comments
+        10:/export/cage
+        42:/var/log
+        ```
+
+    * `/etc/projid` - provides a mapping between numeric project identifiers and human readable names(similar to that username with uid).
+
+        ```conf
+        # comments
+        cage:10
+        logfiles:42
+        ```
+
+    * 启用 `prjquota`
+
+        > 注：`prjquota`不能与 `grpquota` 同时配置
+
+        ```sh
+        mount -o prjquota /dev/vdc1 /dir_02
+        ```
+
+
+## 配置user、group配额
+
+* 挂载
+
+    ```sh
+    # Accounting=ON, Enforcement=ON
+    mount -o usrquota,grpquota,prjquota /dev/vdc1 /dir_02
+    mount -o uquota,gquota,pquota /dev/vdc1 /dir_02   # uquota=quota=usrquota
+    
+    # Accounting=ON, Enforcement=OFF
+    mount -o uqnoenforce,gqnoenforce,pqnoenforce /dev/vdc1 /dir_02
+    ```
+
+* 查看配额功能是否启用
+
+    ```sh
+    xfs_quota -x -c "state"
+    xfs_quota -x -c "state -u"  # 只查看 user
+    xfs_quota -x -c "state -g"  # 只查看 group
+    xfs_quota -x -c "state -p"  # 只查看 project
+
+
+    # 输出
+    User quota state on /dir_02 (/dev/vdc1)
+      Accounting: ON
+      Enforcement: ON
+      Inode: #67 (1 blocks, 1 extents)
+    Group quota state on /dir_02 (/dev/vdc1)
+      Accounting: ON
+      Enforcement: ON
+      Inode: #68 (1 blocks, 1 extents)
+    Project quota state on /dir_02 (/dev/vdc1)
+      Accounting: ON
+      Enforcement: ON
+      Inode: #68 (1 blocks, 1 extents)
+    Blocks grace time: [7 days]
+    Inodes grace time: [7 days]
+    Realtime Blocks grace time: [7 days]
+    ```
 
 * 配置配额
 
-```sh
-xfs_quota -x -c "limit -u bsoft=10M bhard=20M user_01" /dir_02
-xfs_quota -x -c "limit -g bsoft=10M bhard=20M group_01" /dir_02
+    * 查看当前配额配置情况：
 
-xfs_quota -x -c "report -ubih" /home/quota/
-```
+        ```sh
+        xfs_quota -x -c "report" /dir_02
+        xfs_quota -x -c "report -ugp -b" /dir_02  # 同上
 
-USER COMMANDs
+        xfs_quota -x -c "report -ugp -b" /dir_02  # 只查看block配额, -b 可省略
+        xfs_quota -x -c "report -ugp -i" /dir_02  # 只查看inode配额
 
-| 命令                                                         | 用途                 | 参数解释                                                                                                                                  |
-| ------------------------------------------------------------ | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `df`                                                         | =`free`              |
-| `quota [-g\|-p\|-u] [-bir] [-hnNv] [-f file] [ID\|name]` ... | 显示配额信息         | `-u`,`-g`,`-p` 指定用户/用户组/项目<br>`-b`,`-i`,`-r` 显示block/inode/实时数据??<br>`-h` 输出可读性<br>`-N` 不显示表头<br>`-f` 输出到文件 |
-| `free [-bir] [-hN] [-f file]`                                | 显示文件系统使用信息 |
-| `help [command]`                                             |                      |                                                                                                                                           |
-| `quit`,`q`                                                   |                      |                                                                                                                                           |
+        xfs_quota -x -c "report -u" /dir_02       # 只查看user配额
+        xfs_quota -x -c "report -g" /dir_02       # 只查看group配额
+        xfs_quota -x -c "report -p" /dir_02       # 只查看project配额
+        
+        # -h 可读友好性
+        ```
 
-ADMINISTATOR COMMANDs
+    * 通过user,group配置配额：
 
-| 命令                                                                                       | 用途 | 参数解释 |
-| ------------------------------------------------------------------------------------------ | ---- | -------- |
-| `path [N]`                                                                                 |      |          |
-| `report [-gpu] [-bir] [-ahntlLNU] [-f file]`                                               |      |          |
-| `state [-f file] [-av] [-f file]`                                                          |      |          |
-| `limit [-g\|-p\|-u] bsoft=N\|bhard=N\|isoft=N\|ihard=N\|rtbsoft=N\|rtbhard=N -d\|id\|name` |      |          |
-| `timer [-g\|-p\|-u] [-bir] value`                                                          |      |          |
-| `warn [-g\|-p\|-u] [-bir] value -d\|id\|name`                                              |      |          |
-| `enable [-gpu] [-v]`                                                                       |      |          |
-| `diable [-gpu] [-v]`                                                                       |      |          |
-| `off [-gpu] [-v]`                                                                          |      |          |
-| `remove [-gpu] [-v]`                                                                       |      |          |
-| `dump [-g\|-p\|-u] [-f file]`                                                              |      |          |
-| `restore [-g\|-p\|-u] [-f file]`                                                           |      |          |
-| `quot [-g\|-p\|-u] [-bir] [-acnv] [-f file]`                                               |      |          |
-| `project [-cCs [-d depth] [-p path] id \| name]`                                           |      |          |
+        ```sh
+        # 1. 配置配额
+        # block
+        xfs_quota -x -c "limit -u bsoft=10M bhard=20M user_01" /dir_02
+        xfs_quota -x -c "limit -g bsoft=10M bhard=20M group_01" /dir_02
+
+        # inode
+        xfs_quota -x -c "limit -u isoft=100 ihard=200 user_01" /dir_02
+        xfs_quota -x -c "limit -g isoft=100 ihard=200 group_01" /dir_02
+
+
+        # 2. 取消配置
+        # 值设置为 0 即取消配额
+        xfs_quota -x -c "limit -u bsoft=0 bhard=0 user_01" /dir_02
+        ```
+
+    * 通过project配置配额：
+
+        * 编辑文件，创建project对应关系
+        
+            ```sh
+            ~] vi /etc/projects
+            10:/dir_02           # ID:目录
+
+            ~] vi /etc/projid
+            project_user_02:10   # 项目名:ID
+            ```
+        
+        * 初始化project
+
+            ```sh
+            ~] xfs_quota -x -c 'project -s 10'
+
+            Setting up project 10 (path /dir_02)...
+            Processed 1 (/etc/projects and cmdline) paths for project 10 with recursion depth infinite (-1).
+            Setting up project 10 (path /dir_02)...
+            Processed 1 (/etc/projects and cmdline) paths for project 10 with recursion depth infinite (-1).
+            Setting up project 10 (path /dir_02)...
+            Processed 1 (/etc/projects and cmdline) paths for project 10 with recursion depth infinite (-1).
+            
+            ~] xfs_quota -x -c 'project -c 10'   # -c Check
+            ```
+
+            如何取消project：
+
+            ```sh
+            xfs_quota -x -c 'project -C 10'   # -C Clear
+            ```
+
+        * 配置配额
+
+            ```sh
+            xfs_quota -x -c 'limit -p bsoft=20M bhard=40M 10' /dir_02
+
+            # 如何取消配置：设置为0即取消配额
+            xfs_quota -x -c 'limit -p bsoft=0 bhard=0 10' /dir_02
+            ```
