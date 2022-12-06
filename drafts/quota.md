@@ -114,13 +114,16 @@ quota 可以实现对用户的磁盘空间使用量的配额：
     ext4 文件系统的quota配额信息保存在 `aquota.group`, `aquota.user` 文件中，这两个文件存在该磁盘的根目录级别下（如上例 `/dir_01/aquota.group`, `/dir_01/aquota.user`）
 
 
-## 方式二 - xfs_quota
+## 方式二 - XFS文件系统
 
-* 对 xfs 文件系统使用quota，可通过xfs_quota命令配置。
+* 对 xfs 文件系统使用quota，可通过`xfs_quota`命令配置。
 * xfs文件系统除了支持user、group配置配额，还可以以project形式配置配额
 * There is no need for quota files in the root of the XFS filesystem. - 即不需要 `aquota.group`, `aquota.user` 文件
 
 ### 相关命令、参数介绍
+
+> * Refer to: [RedHat KB](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/xfsquota)
+> * Refer to: [man 8 xfs_quota](https://linux.die.net/man/8/xfs_quota)
 
 * `xfs_quota` 参数：
 
@@ -169,7 +172,7 @@ quota 可以实现对用户的磁盘空间使用量的配额：
 
     * `-d` - defaults
 
-* projects, projid
+* 文件：`projects`, `projid`
 
     * `/etc/projects` - provides a mapping between numeric project identifiers and directories(the roots of quota tree).
 
@@ -196,7 +199,7 @@ quota 可以实现对用户的磁盘空间使用量的配额：
         ```
 
 
-## 配置user、group配额
+### 配额配置
 
 * 挂载
 
@@ -299,6 +302,12 @@ quota 可以实现对用户的磁盘空间使用量的配额：
             ~] xfs_quota -x -c 'project -c 10'   # -c Check
             ```
 
+            也可以不通过文件定义，直接在通过 `-p` 指定路径：
+
+            ```sh
+            xfs_quota -x -c 'project -s -p /dir_02 12'
+            ```
+
             如何取消project：
 
             ```sh
@@ -313,3 +322,4 @@ quota 可以实现对用户的磁盘空间使用量的配额：
             # 如何取消配置：设置为0即取消配额
             xfs_quota -x -c 'limit -p bsoft=0 bhard=0 10' /dir_02
             ```
+

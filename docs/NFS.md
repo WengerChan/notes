@@ -16,8 +16,11 @@ yum install nfs-utils rpcbind    # 安装nfs-utils时会依赖安装rpcbind
 
 NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外共享的目录, 其配置格式:
 
-```sh
-[共享目录] [第一台主机(权限)] [主机可用"主机名", "通配符"表示]
+```conf
+<共享目录> [-<权限>] 第一台主机(权限) [第二台主机(权限) ...]
+
+# 1. 主机可用"主机名", "通配符"表示
+# 2. "-" 开头，后面接整个共享的默认权限。如果主机未指定权限，则继承默认权限。
 ```
 
 关于 `(权限)` 相关理解:
@@ -27,7 +30,7 @@ NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外�
 | `rw`, `ro`                      | 指定客户端对共享目录的权限: 可读或读写(最终能不能"读写", 需要检查文件权限及身份)                                                                                                                                                                  |
 | `sync`, `async`                 | `sync`代表数据会同步写入到内存与硬盘中, `async`则代表数据会暂存于内存当中, 而非直接写入硬盘                                                                                                                                                       |
 | `root_squash`, `no_root_squash` | 客户端使用NFS文件系统的账号为root时, 系统该如何判断这个账号的身份？<br>默认的情况下, 客户端root的身份会由`root_squash`的设置`nfsnobody`, 如此对服务器系统会较有保障。<br>如果想开放客户端使用root身份来操作服务器的文件系统, 设置`no_root_squash` |
-| `all_squash`                    | 不论NFS的用户为何, 他的身份都会被压缩成为匿名用户, 通常也就是nobody(nfsnobody)                                                                                                                                                                    |
+| `all_squash`                    | 不论NFS的用户为何, 他的身份都会被压缩成为匿名用户, 通常也就是nobody(nfsnobody) <br>默认设置为 `no_all_squash` 表示不压缩                                                                                                                          |
 | `anonuid`, `anongid`            | 对匿名用户设置uid和gid(必须是`/etc/passwd`存在的uid和gid)                                                                                                                                                                                         |
 | `hide`, `no_hide`               | `hide`: NFS共享目录下的子目录不可见<br>`no_hide` : 可见                                                                                                                                                                                           |
 | `secure`, `insecure`            | `secure`: 限制客户端只能从小于1024的tcp/ip端口连接nfs服务器（默认设置）<br>`insecure` : 允许                                                                                                                                                      |
