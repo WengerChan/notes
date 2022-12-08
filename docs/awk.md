@@ -44,29 +44,46 @@
     ```
 
 
-## 指定输出分隔符
+## 指定输入、输出分隔符
 
-| 用法 | 解释 |
-| -- | --
-| `-F','` | 指定输入分隔符为"`,`"
-| `-v FS=',' -v OFS=':'` | 指定输入分隔符为"`,`"，输出分隔符为"`:`"
+| 用法                   | 解释                                     |
+| ---------------------- | ---------------------------------------- |
+| `-F','`                | 指定输入分隔符为"`,`"                    |
+| `-v FS=',' -v OFS=':'` | 指定输入分隔符为"`,`"，输出分隔符为"`:`" |
 
-示例:
+* 输出分隔符
+  
+    示例:
 
-```sh
-~] echo "chrony,postfix" | awk -v FS=',' -v OFS=':' '{print $1,$2}'
+    ```sh
+    ~] echo "chrony,postfix" | awk -v FS=',' -v OFS=':' '{print $1,$2}'
 
-chrony:postfix
-```
+    chrony:postfix
+    ```
 
-使用`$0`时, `OFS`未生效：
+    使用`$0`时, `OFS`未生效：
 
-> `$0` is the whole record 
+    > `$0` is the whole record 
 
-```sh
-~] echo "chrony,postfix,sshd" | awk -v FS=',' -v OFS=':' '{print $0}'
-chrony,postfix,sshd
-```
+    ```sh
+    ~] echo "chrony,postfix,sshd" | awk -v FS=',' -v OFS=':' '{print $0}'
+    chrony,postfix,sshd
+    ```
+
+* 输入分隔符
+
+    可使用以下方法指定多个分割符：
+
+    ```sh
+    # 0. 注：awk默认会忽略开头和结尾的空格
+    # 1. 使用"[]"
+    awk -F'[ :]' xxx   
+    awk -F'[ :]+' xxx      # "+" 将连续出现的记录分隔符当一个处理  
+    awk -F'[\\[\\]]+' xxx  # 特殊符号用 "\\" 来转义
+
+    # 2. 1. 使用"|"
+    awk -F'a|b' xxx
+    ```
 
 ## 输出多列
 
