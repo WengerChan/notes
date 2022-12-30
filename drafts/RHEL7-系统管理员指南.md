@@ -302,16 +302,50 @@ hwclock --hctosys  # hw -> sys
 
 ### 3.4. 其它资源
 
-
-
-
 ## 4. 管理用户和组
 
 ### 4.1. 用户和组介绍
 
+* 保留的用户和组群 ID
+
+    ```sh
+    cat /usr/share/doc/setup*/uidgid
+    ```
+
+* 设置系统UID和GID范围
+
+    ```sh
+    ~] cat /etc/login.defs
+    UID_MIN         1000
+    UID_MAX        60000
+    ...
+    GID_MIN         1000
+    GID_MAX        60000
+    ```
+
 ### 4.2. 在图形环境中管理用户
 
 ### 4.3. 使用命令行工具
+
+* 用户相关配置文件
+
+    ```sh
+    # /etc/passwd
+    juan:x:1001:1001::/home/juan:/bin/bash  # x 表示系统正在使用shadow密码
+
+    # /etc/shadow
+    juan:!!:14798:0:99999:7:::    # !! 该字段将锁定帐户
+
+    # /etc/group
+    juan:x:1001:
+    ```
+
+* umask
+
+    下图显示了 umask 0137 如何影响新文件的创建：
+
+    ![](./pictures/RHEL7-系统管理员指南/Users_Groups-Umask_Example.png)
+
 
 ### 4.4. 其它资源
 
@@ -321,23 +355,30 @@ hwclock --hctosys  # hw -> sys
 
 ### 5.2. 设置访问权限 ACL
 
-```sh
-setfacl -m rules files  # 设置
-setfacl -x rules files  # 删除
-setfacl -m d:o:rx /share # 设置默认ACL
-getfacl files # 查看
+* 访问ACL和默认ACL
 
-# rules:
-# 设置用户的访问权限 ACL
-u:uid:perms
-# 设置组的访问权限 ACL
-g:gid:perms
-# 设置有效的权利掩码
-m:perms
-# 为 组中不属于 文件的用户设置访问权限 ACL
-o:perms
-```
+    访问 ACL 是特定文件或目录的访问控制列表。
+    
+    默认 ACL 只能与目录关联；如果目录中的文件没有访问权限 ACL，它将使用目录的默认 ACL 规则。默认 ACL 是可选的。
 
+* 设置ACL
+
+    ```sh
+    setfacl -m rules file  # 设置访问ACL
+    setfacl -x rules file  # 删除
+    setfacl -m d:o:rx /dir # 设置默认ACL
+    getfacl <file|/dir> # 查看
+
+    # rules:
+    # 设置用户的访问权限 ACL
+    u:uid:perms
+    # 设置组的访问权限 ACL
+    g:gid:perms
+    # 设置有效的权利掩码
+    m:perms
+    # 为 组中不属于 文件的用户设置访问权限 ACL
+    o:perms
+    ```
 
 ### 5.3. 设置默认 ACL
 
@@ -351,24 +392,350 @@ o:perms
 
 ## 6. 获取特权
 
-6.1. 使用 su 实用程序配置管理访问权限
-6.2. 使用 sudo 实用程序配置管理访问权限
-6.3. 其它资源
-II. 订阅和支持
-
-```sh
-```
-```sh
-```
-```sh
-```
 # II. 订阅和支持
-
-
 
 # III. 安装和管理软件
 
+## 9. yum
+
+### 9.1. 检查和更新软件包
+
+* 更新
+
+    ```sh
+    yum check-update             # 检查更新
+    yum update package_name      # 更新
+    yum group update group_name  # 更新软件包组
+    yum update                   # 更新所有软件包及其依赖项
+    yum update --security        # 更新与安全相关的软件包
+    yum update-minimal --security # 更新为包含最新安全更新的版本
+
+    # e.g. 假设:
+    # kernel-3.10.0-1 软件包安装在您的系统中；
+    # kernel-3.10.0-2 软件包已作为安全更新发布；
+    # kernel-3.10.0-3 软件包已作为程序错误修复更新发布。
+    # 则:
+    # yum update-minimal --security 将软件包更新至 kernel-3.10.0-2
+    # yum update --security         将软件包更新为 kernel-3.10.0-3
+    ```
+
+* 自动更新软件包
+
+    ```sh
+    yum install yum-cron        # 安装 yum-cron
+
+    # 配置文件
+    /etc/yum/yum-cron.conf      # 用于日常任务
+    /etc/yum/yum-cron-hourly.conf   # 用于每小时任务
+
+    # 启用自动安装更新，编辑配置文件：
+    apply_updates = yes         
+
+    # 计划任务
+    ~] cat /etc/cron.daily/0yum-daily.cron
+    exec /usr/sbin/yum-cron
+
+    ~] /etc/cron.daily/0yum-hourly.cron
+    exec /usr/sbin/yum-cron /etc/yum-cron-hourly.conf
+    ```
+
+* 使用 ISO 和 Yum 离线升级系统
+
+    ```sh
+    # 创建挂载点
+    mkdir mount_dir
+
+    # 挂载ISO
+    mount -o loop iso_name mount_dir
+
+    # 将media.repo复制到 /etc/yum.repos.d/ 目录
+    cp mount_dir/media.repo /etc/yum.repos.d/new.repo
+
+    # 编辑 repo 文件
+    ~] vi /etc/yum.repos.d/new.repo
+    baseurl=file:///mount_dir
+
+    # 更新
+    yum update
+    ```
+
+### 9.2. 使用软件包
+
+*  搜索、列出软件包
+
+    ```sh
+    yum search package                 # 搜索
+    yum list all                       # 列出所有软件包
+    yum list glob_expression           # 列出 glob 表达式匹配的已安装和可用软件包
+    yum list installed glob_expression # 列出 glob 表达式匹配的已安装软件包
+    yum list available glob_expression # 列出 glob 表达式匹配的可用软件包
+    yum repolist                       # 列出存储库
+    yum repoinfo
+    yum repolist -v                    # 列出存储库，显示更多信息
+    yum repolist [all|disabled|enabled]
+    ```
+
+* 安装、卸载软件包
+
+    ```sh
+    yum install package_name1 [package_name2]  # 安装具体的package
+    yum install glob_expression                # 使用 glob 表达式安装多个名称相似的软件包
+    yum install /usr/sbin/named                # 通过文件名安装（如果仅知道要安装的文件的名称，但不知道其软件包名称）
+
+    yum remove totem  # 卸载可以使用 软件包名称、glob 表达式、文件列表、软件包提供者
+    
+    yum install-n package_name
+    yum install-na name.architecture
+    yum install-nevra name-epoch:version-release.architecture
+    yum remove-n
+    yum remove-na
+    yum remove-nevra
+
+    yum localinstall /path/to/package
+    ```
+
+
+### 9.3. 使用软件包组
+
+```sh
+yum groups summary              # 查看已安装组、可用组、可用环境组的数量
+yum group list                  # 列出软件包组
+yum group list hidden
+yum group list --hidden         # 列出软件包组，更细粒度
+yum group list ids
+yum group list --ids            # 列出软件包组与软件包组id
+yum group list glob_expression  # 列出指定的软件包组
+
+yum group info glob_expression  # 显示软件包组信息
+# 显示的软件包前符号含义：
+#   - : 未安装包，不会将其作为包组的一部分安装
+#   + : 包未安装，但将在下一次 yum 升级或 yum 组升级时安装
+#   = : 包已安装并且作为包组的一部分安装
+#   无符号 : 软件包已安装，但安装在软件包组之外; 这意味着 yum group remove 不会删除这些软件包
+yum group mark install xxx
+yum group mark remove xxx
+
+yum group install "group name"
+yum group install group_id
+yum install @"group name"  # @ 可以标记软件包组; @^ 可以标记环境包组
+yum install @group_id
+
+yum group remove "group name"
+yum group remove group_id
+yum remove @"group name"
+yum remove @group_id
+```
+
+### 9.4. 使用事务历史记录
+
+* 查看
+
+    ```sh
+    yum history list
+    yum history list all   # 列出所有
+    yum history list 1..5  # 列出 1-5
+    
+    # ID: 标识特定事务的整数值
+    # Login user: 用于启动事务的登录会话的用户名称。此信息通常显示为 Full Name <username> 。对于不是由用户发布的事务（如自动系统更新），则显示 System <unset>
+    # Date and time: 事务执行的日期和时间
+    # Action(s): 事务执行的操作列表
+    # Altered: 受事务影响的软件包数量
+    
+    yum history summary   # 事务的摘要
+    yum history summary start_id..end_id
+    
+    yum history package-list glob_expression  # 跟踪软件包历史记录
+    yum history package-info glob_expression
+    
+    yum history info start_id..end_id  # 详细地显示特定的事务，id 参数是可选的，当省略它时，yum 会自动使用最后一个事务
+    
+    yum history addon-info id
+    yum history addon-info last  # 还可以查看其他信息，如事务时使用的配置选项，或者从哪个存储库以及安装某些软件包的原因
+    # config-main: 事务期间使用的全局 yum 选项
+    # config-repos: 单个 yum 软件仓库的选项
+    # saved_tx: the data that can be used by the "yum load-transaction" command in order to repeat the transaction on another machine
+    yum history addon-info id config-main
+    ```
+
+    | Action     | Abbreviation | Description                                                   |
+    | ---------- | ------------ | ------------------------------------------------------------- |
+    | Downgrade  | D            | At least one package has been downgraded to an older version. |
+    | Erase      | E            | At least one package has been removed.                        |
+    | Install    | I            | At least one new package has been installed.                  |
+    | Obsoleting | O            | At least one package has been marked as obsolete.             |
+    | Reinstall  | R            | At least one package has been reinstalled.                    |
+    | Update     | U            | At least one package has been updated to a newer version.     |
+    
+    | Altered Symbol | Description                                                                                                                  |
+    | -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+    | `<`            | Before the transaction finished, the rpmdb database was changed outside yum.                                                 |
+    | `>`            | After the transaction finished, the rpmdb database was changed outside yum.                                                  |
+    | `*`            | The transaction failed to finish.                                                                                            |
+    | `#`            | The transaction finished successfully, but yum returned a non-zero exit code.                                                |
+    | `E`            | The transaction finished successfully, but an error or a warning was displayed.                                              |
+    | `P`            | The transaction finished successfully, but problems already existed in the rpmdb database.                                   |
+    | `s`            | The transaction finished successfully, but the --skip-broken command-line option was used and certain packages were skipped. |
+
+* 恢复和重复事务
+
+    ```sh
+    yum history undo id
+    yum history redo id
+    # undo和redo只会恢复或重复事务期间执行的步骤：
+    #   如果安装了新软件包，则undo则会卸载；
+    #   如果卸载了软件包，undo命令将再次安装它；
+    #   如果是升级/降级，且旧/新软件包可用，则会将所有更新的软件包降级/升级到之前的版本。
+
+    # 管理多个相同的系统时，yum 还允许您对其中一个系统执行事务，将事务详细信息存储在文件中，并在经过一段时间测试后，在剩余系统上重复同样的事务
+    # 将事务详情保存到文件：
+    yum -q history addon-info id saved_tx > file_name
+    # 将此文件复制到目标系统后，重复事务：
+    yum load-transaction file_name
+
+    yum histroy rollback id # 将事务回滚
+    # 假如有三个事务：安装A、安装B、安装C；则redo 1会重装A，undo 1会卸载A，rollback 1则会卸载B和C。
+
+    yum history new  # 启用新的事务历史记录（/var/lib/yum/histroy 中会新生成文件）
+    ```
+
+### 9.5. 配置 Yum 和 Yum 存储库
+
+* /etc/yum.conf
+
+    `[main]`: 允许您设置具有全局效果的 yum 选项
+
+    `[repository]`: 允许出现一个或多个，设置特定于存储库的选项；该部分定义的值会覆盖 `[main]` 部分中设置的值。
+
+    示例:
+
+    ```conf
+    [main]
+    cachedir=/var/cache/yum/$basearch/$releasever
+    keepcache=0
+    debuglevel=2
+    logfile=/var/log/yum.log
+    exactarch=1
+    obsoletes=1
+    gpgcheck=1
+    plugins=1
+    installonly_limit=5
+    bugtracker_url=http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum
+    distoroverpkg=centos-release
+    ```
+
+    | 参数                                   | 含义                                       | 取值                                                                                                                                                                                                         |
+    | -------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+    | `assumeyes=value`                      | yum 是否提示确认操作                       | 0 - 提示确认（默认）<br>1 - 不提示确认                                                                                                                                                                       |
+    | `cachedir=directory`                   | 设置 yum 存储其缓存和数据库文件的目录      | 默认为 `/var/cache/yum/$basearch/$releasever/`                                                                                                                                                               |
+    | `debuglevel=value`                     | 指定 yum 生成的输出调试详情级别            | 范围0~10，其中0表示禁用，10最详细，默认值为2                                                                                                                                                                 |
+    | `exactarch=value`                      | 安装时确定架构                             | 0 - 关闭<br> 1 - 开启（默认）                                                                                                                                                                                |
+    | `exclude=package_name ...`             | 允许在安装或系统更新期间按关键字排除软件包 | 多个软件包以空格分割的，支持glob通配符                                                                                                                                                                       |
+    | `gpgcheck=value`                       | 是否应对包执行 GPG 签名检查                | 0 - 禁止<br>1 - 启用（默认）<br>此处设置启用，依然可在`.repo`中针对软件库单独设置是否启用GPG检查                                                                                                             |
+    | `group_command=value`                  | 设置安装软件包组时的行为                   | simple - 安装软件包组的所有成员<br>compat - 类似于simple，但yum upgrade也会安装自上一次upgrade以来添加到组中的软件包<br>objects - 跟踪之前安装的组，并区分作为组一部分安装的软件包和单独安装的软件包（默认） |
+    | `group_package_types=package_type ...` | 设置安装软件包组时如何选择软件包           | 安装标记为optional、default、mandatory的软件包<br>默认选择default、mandatory                                                                                                                                 |
+    | `history_record=value`                 | 设置是否记录事务历史记录                   | 0 - 不记录<br>1 - 记录（默认）                                                                                                                                                                               |
+    | `installonlypkgs=package_list`         | 设置yum仅安装但不会更新的软件包列表        | 确保默认安装的软件包(参阅`man yum.conf`)在列表中，确保`installonly_limit`大于2                                                                                                                               |
+    | `installonly_limit=value`              | 设置yum可同时安装的软件包数量              | 默认值5                                                                                                                                                                                                      |
+    | `keepcache=value`                      | 安装成功后是否保留标头和软件包的缓存       | 0 - 不保留（默认）<br>1 - 保留                                                                                                                                                                               |
+    | `logfile=file_name`                    | 指定日志输出的位置                         | 默认值`/var/log/yum.log`                                                                                                                                                                                     |
+    | `max_connenctions=number`              | 并发连接的最大数量                         | 默认值5                                                                                                                                                                                                      |
+    | `multilib_policy=value`                | 设置多个架构的软件包可用时的安装行为       | best - 安装最佳选择架构<br>all - 安装所有可能的架构<br>如AMD64中设置best，则会安装64-bit，设置all，则会安装i686和64-bit                                                                                      |
+    | `obsoletes=value`                      | 是否启用 obsoletes 选项                    | 0 - 禁用<br>1 - 启用（默认）<br>如果启用，则软件包的spec文件中声明了obseletes另一个软件包，则安装该软件包时会替换另一个软件包                                                                                |
+    | `plugins=value`                        | 启用或禁用 yum 插件                        | 0 - 全局禁用<br>1 - 全局启用（默认）<br>特定插件的配置文件中`enabled=0`字段可以设置是否启用该插件                                                                                                            |
+    | `reposdir=directory`                   | 设置 `.repo` 文件存放目录                  | 如果没有设置，则使用 `/etc/yum.repos.d/`                                                                                                                                                                     |
+    | `retries=value`                        | 返回错误之前应尝试检索文件的次数           | 默认值10，0表示一直重试                                                                                                                                                                                      |
+
+* `[repository]`
+
+    每个 `[repository]` 部分必须包含以下指令：
+
+    * `[repository]`: 唯一存储库 ID
+    * `name=repository_name`: 描述存储库的可读字符串。
+    * `baseurl=repository_url`: 使用存储库数据目录所在目录。可设置 `ftp://`, `http://`, `file:///path`
+
+    其他指令：
+
+    * `enabled=value`: 是否启用。0 - 禁用，1 - 启用
+    * `async=value`: 是否并行下载。auto - 如果可能则将使用并行下载（默认），on - 启用，off - 禁用
+
+* 使用 Yum 变量
+
+    * `$releasever` - 发行版本。从 `/etc/yum.conf` 配置文件中的 `distroverpkg=value` 行获取，如果没有此行，则从 `redhat-release` 中获得版本号来推断正确的值。
+    * `$arch` - 系统的 CPU 架构。有效值包括：i586、i686 和 x86_64。
+    * `$basearch` - 系统基本架构。例如，i386, x86_64。
+    * `$YUM0-9` - 可用的变量
+
+    自定义变量：如要设置变量 `var1=100`，那么需要在 `/etc/yum/vars/` 中新建名为 var1 的文件，然后文件内容为100。
+
+    ```sh
+    echo 100 > /etc/yum/vars/var1
+    ```
+
+
+
+```sh
+```
+
+```sh
+```
+
+### 9.6. yum 插件
+
+### 9.7. 使用 Yum-cron 自动刷新软件包数据库和下载更新
+
+
+### 9.8. 其它资源
+
+
 # IV. 基础架构服务
+
+## 10. 使用 systemd 管理服务
+
+### 10.1. systemd 简介
+
+
+### 10.2. 管理系统服务
+
+
+### 10.3. 使用 systemd 目标
+
+### 10.4. 关闭、托管和占用系统
+
+
+### 10.5. 控制远程机器上的 systemd
+### 10.6. 创建和修改 systemd 单元文件
+
+### 10.7. 管理服务时的其他注意事项
+### 10.8. 其它资源
+## 11. 配置系统可访问性
+
+### 11.1. 配置 brltty 服务
+### 11.2. switch On Always Show Universal Access Menu
+### 11.3. 启用 Festival Speech Synthesis 系统
+## 12. OpenSSH
+
+### 12.1. SSH 协议
+
+
+### 12.2. 配置 OpenSSH
+
+
+### 12.3. OpenSSH 客户端
+
+### 12.4. 更多安全 Shell
+
+### 12.5. 其它资源
+## 13. tigervnc
+
+### 13.1. VNC 服务器
+
+
+### 13.2. 共享现有桌面
+### 13.3. VNC Viewer
+
+
+### 13.4. 其它资源
+
 
 # V. 服务器
 
