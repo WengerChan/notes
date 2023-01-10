@@ -140,35 +140,35 @@ quota 可以实现对用户的磁盘空间使用量的配额：
     | `-d`   | 后面接project名字或者数字标识，可多个`-d`同时使用 |
     | `path` | 挂载点路径                                        |
 
-* USER COMMANDs
+* USER 
 
-    | 命令                                                         | 用途                              | 参数解释                                                                                                                                  |
-    | ------------------------------------------------------------ | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-    | `print`                                                      | 列出所有路径，包括device和project |
-    | `df`                                                         | =`free`                           |
-    | `quota [-g\|-p\|-u] [-bir] [-hnNv] [-f file] [ID\|name]` ... | 显示配额信息                      | `-u`,`-g`,`-p` 指定用户/用户组/项目<br>`-b`,`-i`,`-r` 显示block/inode/实时数据??<br>`-h` 输出可读性<br>`-N` 不显示表头<br>`-f` 输出到文件 |
-    | `free [-bir] [-hN] [-f file]`                                | 显示文件系统使用信息              |
-    | `help [command]`                                             |                                   |                                                                                                                                           |
-    | `quit`,`q`                                                   |                                   |                                                                                                                                           |
+    | 命令                                                       | 用途                              | 参数解释                                                                                                                                  |
+    | ---------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+    | `print`                                                    | 列出所有路径，包括device和project |
+    | `df`                                                       | =`free`                           |
+    | quota [-g\|-p\|-u] [-bir] [-hnNv] [-f file] [ID\|name] ... | 显示配额信息                      | `-u`,`-g`,`-p` 指定用户/用户组/项目<br>`-b`,`-i`,`-r` 显示block/inode/实时数据??<br>`-h` 输出可读性<br>`-N` 不显示表头<br>`-f` 输出到文件 |
+    | `free [-bir] [-hN] [-f file]`                              | 显示文件系统使用信息              |
+    | `help [command]`                                           |                                   |                                                                                                                                           |
+    | `quit`,`q`                                                 |                                   |                                                                                                                                           |
 
 * ADMINISTATOR COMMANDs
 
-    | 命令                                                                                       | 用途                                                                                | 备注                                                |
-    | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | --------------------------------------------------- |
-    | `path [N]`                                                                                 | 列出所有路径                                                                        |                                                     |
-    | `report [-gpu] [-bir] [-ahntlLNU] [-f file]`                                               | 查询文件系统配额信息                                                                |                                                     |
-    | `state [-f file] [-av] [-f file]`                                                          | 查询所有配额信息                                                                    |                                                     |
-    | `limit [-g\|-p\|-u] bsoft=N\|bhard=N\|isoft=N\|ihard=N\|rtbsoft=N\|rtbhard=N -d\|id\|name` | 配置配额                                                                            | N可以加单位                                         |
-    | `timer [-g\|-p\|-u] [-bir] value`                                                          | 配置宽限时间                                                                        |                                                     |
-    | `warn [-g\|-p\|-u] [-bir] value -d\|id\|name`                                              | 配置quota警告                                                                       | 如发送警告的次数                                    |
-    | `enable [-gpu] [-v]`                                                                       | 启用配额                                                                            |                                                     |
-    | `diable [-gpu] [-v]`                                                                       | 暂停配额                                                                            |                                                     |
-    | `off [-gpu] [-v]`                                                                          | 关闭配额                                                                            |                                                     |
-    | `remove [-gpu] [-v]`                                                                       | 移除所有配额                                                                        | 要在off的状态                                       |
-    | `dump [-g\|-p\|-u] [-f file]`                                                              | 导出配额信息数据                                                                    |                                                     |
-    | `restore [-g\|-p\|-u] [-f file]`                                                           | 从配额信息数据中恢复                                                                |                                                     |
-    | `quot [-g\|-p\|-u] [-bir] [-acnv] [-f file]`                                               | 统计文件系统信息                                                                    |                                                     |
-    | `project [-cCs [-d depth] [-p path] id\|name]`                                             | `-s` setup<br>`-C` clear<br>`-c` check<br>`-d` recursion level<br>`-p` 指定proj文件 | recursion level:<br>-1 infinite;0=top;1=first level |
+    | 命令                                                                                         | 用途                                                                                | 备注                                                |
+    | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------- |
+    | path [N]                                                                                     | 列出所有路径                                                                        |                                                     |
+    | report [-gpu] [-bir] [-ahntlLNU] [-f file]                                                   | 查询文件系统配额信息                                                                |                                                     |
+    | state [-f file] [-av] [-f file]                                                              | 查询所有配额信息                                                                    |                                                     |
+    | limit [-g\|-p\|-u] bsoft=N\|bhard=N\|isoft=N\|<br>ihard=N\|rtbsoft=N\|rtbhard=N -d\|id\|name | 配置配额                                                                            | N可以加单位                                         |
+    | timer [-g\|-p\|-u] [-bir] value                                                              | 配置宽限时间                                                                        |                                                     |
+    | warn [-g\|-p\|-u] [-bir] value -d\|id\|name                                                  | 配置quota警告                                                                       | 如发送警告的次数                                    |
+    | enable [-gpu] [-v]                                                                           | 启用配额                                                                            |                                                     |
+    | diable [-gpu] [-v]                                                                           | 暂停配额                                                                            |                                                     |
+    | off [-gpu] [-v]                                                                              | 关闭配额                                                                            |                                                     |
+    | remove [-gpu] [-v]                                                                           | 移除所有配额                                                                        | 要在off的状态                                       |
+    | dump [-g\|-p\|-u] [-f file]                                                                  | 导出配额信息数据                                                                    |                                                     |
+    | restore [-g\|-p\|-u] [-f file]                                                               | 从配额信息数据中恢复                                                                |                                                     |
+    | quot [-g\|-p\|-u] [-bir] [-acnv] [-f file]                                                   | 统计文件系统信息                                                                    |                                                     |
+    | project [-cCs [-d depth] [-p path] id\|name]                                                 | `-s` setup<br>`-C` clear<br>`-c` check<br>`-d` recursion level<br>`-p` 指定proj文件 | recursion level:<br>-1 infinite;0=top;1=first level |
 
     * `-d` - defaults
 
@@ -323,3 +323,8 @@ quota 可以实现对用户的磁盘空间使用量的配额：
             xfs_quota -x -c 'limit -p bsoft=0 bhard=0 10' /dir_02
             ```
 
+## 附
+
+* 已知bugs: [BZ-1663502](https://bugzilla.redhat.com/show_bug.cgi?id=1663502) - xfs_quota project check results in "project inheritance flag is not set" error
+
+    -> 更新 `xfsprogs` 到 `4.5.0-20.el7` 以上版本。
