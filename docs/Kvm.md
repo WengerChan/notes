@@ -206,6 +206,15 @@ virt-clone -o VM-NAME-01 -n VM-NAME-02 -f /data/VM-NAME-02.qcow2  # VM-NAME-01�
           <source file='/data/tmp.qcow2'/>
           <target dev='vdb' bus='virtio'/>
         </disk>
+
+        # 添加共享磁盘
+        $ virsh attach-disk --domain rhel79 --source /data/tmp.raw  --target vdc --targetbus virtio --driver qemu --subdriver raw --shareable --print-xml
+        <disk type='file'>
+          <driver name='qemu' type='raw'/>
+          <source file='/data/tmp.raw'/>
+          <target dev='vdc' bus='virtio'/>
+          <shareable/>
+        </disk>
         ```
 
 
