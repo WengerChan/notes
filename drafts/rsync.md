@@ -84,45 +84,45 @@
 
     > 模块名称不能包含斜杠或闭合方括号；如果名称包含空格，则每个内部空格序列将被更改为一个空格，而前导或后面的空格将被丢弃。
 
-    | PARAMETERS      | 说明                                                          |
-    | --------------- | :------------------------------------------------------------ |
-    | comment         | 设置模块说明                                                  |
-    | path            | 设置模块导出的目录                                            |
-    | user chroot     | 设置传输文件是否先chroot到path（默认true）                    |
-    | numeric ids     | 设置是否将UID/GID与用户名/组名对应<sup id="a1">[1](#f1)</sup> |
-    | munge symlinks  | 拷贝链接文件                                                  |
-    | charset         | 设置字符集                                                    |
-    | max connections | 设置最大连接数（默认0不限制）                                 |
-    | log file        | 设置日志文件名                                                |
-    | syslog facility | 设置syslog日志设备                                            |
-    | max verbosity   | 设置日志详细程度（默认1）                                     |
-    | lock file       | 设置锁文件（用于支持 max connections）                        |
-    | read only       | 设置只读，客户端不能上传（默认true）                          |
-    | write only      | 设置只写，客户端不能下载（默认false）                         |
-    | list            | 设置该module是否可被list（默认true）                          |
-    | uid             | 默认-2                                                        |
-    | gid             | 默认-2                                                        |
-    | fake super      |                                                               |
-    | filter          |                                                               |
-    | exclude         | 跳过                                                          |
-    | include         | 传输                                                          |
-    | exclude from    |                                                               |
-    | include from    |                                                               |
-    | incoming chmod  | 设置接收到的文件的权限                                        |
-    | outcoming chmod | 设置发出去的文件的权限                                        |
-    | auth users      |                                                               |
-    | secrets file    |                                                               |
-    | strict modes    |                                                               |
-    | hosts allow     |                                                               |
-    hosts deny
-    ignore errors
-    ignore nonreadable
-    transfer logging
-    log format
-    timeout
-    refuse options
-    dont compress
-    pre-xfer exec, post-xfer exec
+    | PARAMETERS                    | 说明                                                          |
+    | ----------------------------- | :------------------------------------------------------------ |
+    | comment                       | 设置模块说明                                                  |
+    | path                          | 设置模块导出的目录                                            |
+    | user chroot                   | 设置传输文件是否先chroot到path（默认true）                    |
+    | numeric ids                   | 设置是否将UID/GID与用户名/组名对应<sup id="a1">[1](#f1)</sup> |
+    | munge symlinks                | 拷贝链接文件                                                  |
+    | charset                       | 设置字符集                                                    |
+    | max connections               | 设置最大连接数（默认0不限制）                                 |
+    | log file                      | 设置日志文件名                                                |
+    | syslog facility               | 设置syslog日志设备                                            |
+    | max verbosity                 | 设置日志详细程度（默认1）                                     |
+    | lock file                     | 设置锁文件（用于支持 max connections）                        |
+    | read only                     | 设置只读，客户端不能上传（默认true）                          |
+    | write only                    | 设置只写，客户端不能下载（默认false）                         |
+    | list                          | 设置该module是否可被list（默认true）                          |
+    | uid                           | 默认-2                                                        |
+    | gid                           | 默认-2                                                        |
+    | fake super                    |                                                               |
+    | filter                        |                                                               |
+    | exclude                       | 跳过                                                          |
+    | include                       | 传输                                                          |
+    | exclude from                  |                                                               |
+    | include from                  |                                                               |
+    | incoming chmod                | 设置接收到的文件的权限                                        |
+    | outcoming chmod               | 设置发出去的文件的权限                                        |
+    | auth users                    | 设置允许访问该module的用户                                    |
+    | secrets file                  | 设置该module的用户密码数据（格式：username:password）         |
+    | strict modes                  |                                                               |
+    | hosts allow                   |                                                               |
+    | hosts deny                    |                                                               |
+    | ignore errors                 |                                                               |
+    | ignore nonreadable            |                                                               |
+    | transfer logging              |                                                               |
+    | log format                    |                                                               |
+    | timeout                       |                                                               |
+    | refuse options                |                                                               |
+    | dont compress                 |                                                               |
+    | pre-xfer exec, post-xfer exec |                                                               |
 
 <b id="f1"><font size=1>1 By default, this parameter is enabled for chroot modules and disabled for non-chroot modules.</font></b> [↺](#a1)  
 <b id="f2"><font size=2>2 Daemon端过滤链由filter, include from, include, exclude from, exclude参数组成，并以此为先后（生效）顺序</font></b> [↺](#a2)  
