@@ -334,7 +334,225 @@ Github md不支持 `[TOC]`, 不过其二级标题可这样写:
 
 <b id="f2">2 脚注内容 [?](#a2)
 
-<-!>
+## 18. Mermaid绘图
+
+> [https://mermaid.js.org/intro/](https://mermaid.js.org/intro/)
+
+### 18.1 简介
+
+* 怎么使用Mermaid？
+    * 使用特定的Mermaid渲染器；
+    * 使用集成了Mermaid渲染功能的Markdown编辑器，如Typora。使用时，需要将代码块的语言选择为Mermaid。
+    * VScode可以下载插件 `Markdown Preview Mermaid Support` 以支持 Mermaid
+
+* Mermaid能绘制哪些图？
+    * 饼状图：使用`pie`关键字，具体用法后文将详细介绍
+    * 流程图：使用`graph`关键字，具体用法后文将详细介绍
+    * 序列图：使用`sequenceDiagram`关键字
+    * 甘特图：使用`gantt`关键字
+    * 类图：使用`classDiagram`关键字
+    * 状态图：使用`stateDiagram`关键字
+    * 用户旅程图：使用`journey`关键字
+
+* 示例：
+
+    ```text
+    graph LR
+    emperor((朱八八))-.子.->朱五四-.子.->朱四九-.子.->朱百六
+
+
+    朱雄英--长子-->朱标--长子-->emperor
+    emperor2((朱允炆))--次子-->朱标
+    朱樉--次子-->emperor
+    朱棡--三子-->emperor
+    emperor3((朱棣))--四子-->emperor
+    emperor4((朱高炽))--长子-->emperor3
+    ```
+
+    ```mermaid
+    graph LR
+    emperor((朱八八))-.子.->朱五四-.子.->朱四九-.子.->朱百六
+
+
+    朱雄英--长子-->朱标--长子-->emperor
+    emperor2((朱允炆))--次子-->朱标
+    朱樉--次子-->emperor
+    朱棡--三子-->emperor
+    emperor3((朱棣))--四子-->emperor
+    emperor4((朱高炽))--长子-->emperor3
+    ```
+
+### Diagram Types
+
+* Flowchart 流程图
+
+    ```text
+    graph TD;
+        A-->B;
+        A-->C;
+        B-->D;
+        C-->D;
+    ```
+
+    ```mermaid
+    graph TD;
+        A-->B;
+        A-->C;
+        B-->D;
+        C-->D;
+    ```
+
+* Sequence diagram 时序图、顺序图
+
+    ```text
+    sequenceDiagram
+        participant Alice
+        participant Bob
+        Alice->>John: Hello John, how are you?
+        loop Healthcheck
+            John->>John: Fight against hypochondria
+        end
+        Note right of John: Rational thoughts <br/>prevail!
+        John-->>Alice: Great!
+        John->>Bob: How about you?
+        Bob-->>John: Jolly good!
+    ```
+
+    ```mermaid
+    sequenceDiagram
+        participant Alice
+        participant Bob
+        Alice->>John: Hello John, how are you?
+        loop Healthcheck
+            John->>John: Fight against hypochondria
+        end
+        Note right of John: Rational thoughts <br/>prevail!
+        John-->>Alice: Great!
+        John->>Bob: How about you?
+        Bob-->>John: Jolly good!
+    ```
+
+* Gantt diagram 甘特图
+
+    ```text
+    gannty
+    dateFormat  YYYY-MM-DD
+    title Adding GANTT diagram to mermaid
+    excludes weekdays 2014-01-10
+
+    section A section
+    Completed task            :done,    des1, 2014-01-06,2014-01-08
+    Active task               :active,  des2, 2014-01-09, 3d
+    Future task               :         des3, after des2, 5d
+    Future task2               :         des4, after des3, 5d
+    ```
+
+    ```mermaid
+    gantt
+    dateFormat  YYYY-MM-DD
+    title Adding GANTT diagram to mermaid
+    excludes weekdays 2014-01-10
+
+    section A section
+    Completed task            :done,    des1, 2014-01-06,2014-01-08
+    Active task               :active,  des2, 2014-01-09, 3d
+    Future task               :         des3, after des2, 5d
+    Future task2               :         des4, after des3, 5d
+    ```
+
+* Class diagram 
+
+    ```text
+    classDiagram
+    Class01 <|-- AveryLongClass : Cool
+    Class03 *-- Class04
+    Class05 o-- Class06
+    Class07 .. Class08
+    Class09 --> C2 : Where am i?
+    Class09 --* C3
+    Class09 --|> Class07
+    Class07 : equals()
+    Class07 : Object[] elementData
+    Class01 : size()
+    Class01 : int chimp
+    Class01 : int gorilla
+    Class08 <--> C2: Cool label
+
+    ```
+
+    ```mermaid
+    classDiagram
+    Class01 <|-- AveryLongClass : Cool
+    Class03 *-- Class04
+    Class05 o-- Class06
+    Class07 .. Class08
+    Class09 --> C2 : Where am i?
+    Class09 --* C3
+    Class09 --|> Class07
+    Class07 : equals()
+    Class07 : Object[] elementData
+    Class01 : size()
+    Class01 : int chimp
+    Class01 : int gorilla
+    Class08 <--> C2: Cool label
+    ```
+
+* Git graph
+
+```text
+gitGraph
+   commit
+   commit
+   branch develop
+   commit
+   commit
+   commit
+   checkout main
+   commit
+   commit
+```
+
+```mermaid
+gitGraph
+   commit
+   commit
+   branch develop
+   commit
+   commit
+   commit
+   checkout main
+   commit
+   commit
+```
+
+### 18.2 饼状图
+
+* 语法
+    * 从pie关键字开始图表
+    * 使用title关键字及其在字符串中的值，为饼图赋予标题。（这是可选的）
+    * 数据部分
+        * 在`" "`内写上分区名。
+        * 分区名后使用`:`作为分隔符
+        * 分隔符后写上数值，最多支持2位小数——数据会以百分比的形式展示
+
+* 示例
+
+```text
+pie
+    title 为什么总是宅在家里？
+    "喜欢宅" : 15
+    "天气太热或太冷" : 20
+    "穷" : 500
+```
+
+```mermaid
+pie
+    title 为什么总是宅在家里？
+    "喜欢宅" : 15
+    "天气太热或太冷" : 20
+    "穷" : 500
+```
+
 
 ## 其他
 

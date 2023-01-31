@@ -239,6 +239,8 @@ ip addr flush eth0                    # 清空网卡的临时配置
 
 ## Network - bond
 
+> 参考：[https://netplan.io/examples](https://netplan.io/examples)
+
 * 18.04
 
     ```sh
