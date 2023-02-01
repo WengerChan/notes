@@ -554,6 +554,204 @@ pie
 ```
 
 
+## 19 表格
+
+### 普通表格
+
+* 普通
+
+    ```markdown
+    项目     | Value
+    -------- | -----
+    电脑  | $1600
+    手机  | $12
+    导管  | $1
+    ```
+
+* 对齐：
+
+    ```markdown
+    | Column 1 | Column 2  |	Column 3 |
+    |:--------| :---------:|--------:|
+    | centered 文本居左 | right-aligned 文本居中 |right-aligned 文本居右|
+    ```
+
+* 竖线 `|`：单元格中的|用&#124;表示
+
+* 表格内换行：`<br>`
+
+### 合并表格
+
+Markdown并没有单元格合并语法，但是Markdown是兼容HTML的，因此，我们可以通过HTML的方式实现单元格合并。
+
+* 基础的html表格:
+
+    ```html
+    <table>
+        <tr>
+            <td>行1列1</td> 
+            <td>行1列2</td> 
+            <td>行1列3</td> 
+        </tr>
+        <tr>
+            <td>行2列1</td> 
+            <td>行2列2</td> 
+            <td>行2列3</td> 
+        </tr>
+        <tr>
+            <td>行3列1</td> 
+            <td>行3列2</td> 
+            <td>行3列3</td> 
+        </tr>
+    </table>
+    ```
+
+    其中 每对 `<tr>.....</tr>` 标签之间为一行，每对 `<td>....</td>` 标签之间为一列。
+
+<table>
+    <tr>
+        <td>行1列1</td> 
+        <td>行1列2</td> 
+        <td>行1列3</td> 
+</tr>
+    <tr>
+        <td>行2列1</td> 
+        <td>行2列2</td> 
+        <td>行2列3</td> 
+    </tr>
+    <tr>
+        <td>行3列1</td> 
+        <td>行3列2</td> 
+        <td>行3列3</td> 
+    </tr>
+</table>
+
+* 合并行
+
+    `colspan`：规定单元格可纵跨的列数，即跨几列来合并行。
+    
+    ```html
+    <table>
+        <tr>
+            <td>行/列</td> 
+            <td>列2</td> 
+            <td>列3</td> 
+        </tr>
+        <tr>
+            <td>行2列1</td> 
+            <td colspan="2">跨两列合并行</td>    
+        </tr>
+        <tr>
+            <td colspan="3">跨三列合并行</td>    
+        </tr>
+    </table>
+    ```
+
+    要注意要少写几个 `<td>` 标签，如下所示，共三列，其中第二行合并第二列和第三列，只需要在前面再写一列即可，第三行跨三列，即已包括三列，不需要再写 `<td>`
+
+<table>
+    <tr>
+        <td>行/列</td> 
+        <td>列2</td> 
+        <td>列3</td> 
+</tr>
+    <tr>
+        <td>行2列1</td> 
+        <td colspan="2">跨两列合并行</td>    
+    </tr>
+    <tr>
+        <td colspan="3">跨三列合并行</td>    
+    </tr>
+</table>
+
+* 合并列
+
+    `rowspan`：规定单元格可横跨的行数，跨几行来合并列。
+
+    ```html
+    <table>
+        <tr>
+            <td>行1列1</td> 
+            <td>行1列2</td> 
+            <td>行1列3</td> 
+    </tr>
+        <tr>
+            <td rowspan="2">合并两列</td>    
+            <td>行2列2</td> 
+            <td>行2列3</td> 
+        </tr>
+        <tr>
+            <td>行3列2</td> 
+            <td>行3列3</td>    
+        </tr>
+    </table>
+    ```
+
+    在第一列合并了第二三行，则在第二行写合并，第三行就不用了再写第一列了。
+
+<table>
+    <tr>
+        <td>行1列1</td> 
+        <td>行1列2</td> 
+        <td>行1列3</td> 
+</tr>
+    <tr>
+        <td rowspan="2">合并两列</td>    
+        <td>行2列2</td> 
+        <td>行2列3</td> 
+    </tr>
+    <tr>
+        <td>行3列2</td> 
+        <td>行3列3</td>    
+    </tr>
+</table>
+
+* 合并行列
+
+    ```html
+    <table>
+        <tr>
+            <td>列一</td> 
+            <td>列二</td> 
+       </tr>
+       <tr>
+            <td colspan="2">合并行</td>    
+       </tr>
+       <tr>
+            <td>列一</td> 
+            <td>列二</td> 
+       </tr>
+        <tr>
+            <td rowspan="2">合并列</td>    
+            <td >行二列二</td>  
+        </tr>
+        <tr>
+            <td >行三列二</td>  
+        </tr>
+    </table>
+    ```
+
+<table>
+    <tr>
+        <td>列一</td> 
+        <td>列二</td> 
+   </tr>
+   <tr>
+        <td colspan="2">合并行</td>    
+   </tr>
+   <tr>
+        <td>列一</td> 
+        <td>列二</td> 
+   </tr>
+    <tr>
+        <td rowspan="2">合并列</td>    
+        <td >行二列二</td>  
+    </tr>
+    <tr>
+        <td >行三列二</td>  
+    </tr>
+</table>
+
 ## 其他
 
 * 注释
