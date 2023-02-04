@@ -263,6 +263,32 @@ To create a share named `example`, that provides the content of the `/srv/samba/
 [RedHat_KB: Setting Up a Samba Print Server](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/ch-file_and_print_servers#setting_up_a_samba_print_server)
 
 
+### Parameters of smb.conf
+
+Each section in the configuration file (except for the `[global]` section) describes a shared resource (known as a "share"). The section name is the name of the shared resource and the parameters within the section define the shares attributes.
+
+#### Special Section
+
+There are three special sections, `[global]`, `[homes]` and `[printers]`, which are described under special sections.
+
+* `[global]` - parameters in this section apply to the sever as a whole, or are defaults for sections.
+
+* `[homes]` - services connecting clients to their home directories can be created on the fly by the server.
+
+  * The share name is changed from `homes` to the located username.
+
+  * If no `path` was given, the `path` is set to the user's home directory.
+
+  * If you decide to use a `path = line` in your `[homes]` section, it may be useful to use the `%S` macro. For example:
+
+    ```conf
+    path = /data/pchome/%S
+    ```
+
+    is useful if you have different home directories for your PCs than for UNIX access.
+
+* `[printers]` - works like `[home]`, but for printers. 
+
 ## Tuning the Performance of a Samba Server
 
 ### SMB Protocol Version
@@ -427,3 +453,26 @@ For example, to back up the content of the `demo` directory on the `//server/exa
 ```sh
 ~] smbtar -s server -x example -u user_name -p password -t /root/example.tar
 ```
+
+### pdbedit
+
+Manage the SAM database (Database of Samba Users).
+
+| Options                       | Notes |
+| ----------------------------- | ----- |
+| -L,--list                     |       |
+| -v,--verbose                  |       |
+| -u,--user <username>          |       |
+| -f,--fullname <fullname>      |       |
+| -h,--homedir <homedir>        |       |
+| -S,--script <script>          |       |
+| -p,--profile <profile>        |       |
+| -c,--account-control <flag>   |       |
+| -a,--create                   |       |
+| -t,--password-from-stdin      |       |
+| -r,--modify                   |       |
+| -x,--delete                   |       |
+| -i,--import <passdb>          |       |
+| -e,--export <passdb>          |       |
+| -g,--group                    |       |
+| -z,--bad-password-count-reset |       |
