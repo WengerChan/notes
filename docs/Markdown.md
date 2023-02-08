@@ -654,7 +654,7 @@ Markdown并没有单元格合并语法，但是Markdown是兼容HTML的，因此
         <td>行/列</td> 
         <td>列2</td> 
         <td>列3</td> 
-</tr>
+    </tr>
     <tr>
         <td>行2列1</td> 
         <td colspan="2">跨两列合并行</td>    
