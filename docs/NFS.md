@@ -133,8 +133,7 @@ NFS配置文件主要为 `/etc/exports`, 每行一条记录, 代表一个对外�
 * 启动服务:
 
     ```sh
-    systemctl start rpcbind
-    systemctl start nfs-server
+    systemctl start rpcbind rpc-statd nfs-server
     ```
 
 
