@@ -440,9 +440,136 @@ This system is not registered to Red Hat Subscription Management. You can use su
 - Change `vm.zone_reclaim_mode` to 1 if it's set to zero, so the system can reclaim back memory from cached memory.  
 
 
-### `PAM uable to dlopen(/usr/lib/security/pam_limits.so): /usr/lib/security/pam_limits.so: cannot open share object file: No such file or directory
+### `PAM uable to dlopen(/usr/lib/security/pam_limits.so): /usr/lib/security/pam_limits.so: cannot open share object file: No such file or directory`
 
 ```sh
 mkdir -p /lib/security/
 cp /lib64/security/pam_limits.so /lib/security/
 ```
+
+
+### `dbus daemon fails with undefined symbol: XML_SetHashSalt`
+
+* dbus daemon fails with undefined symbol: XML_SetHashSalt
+* failed to start login service
+* systemd-logind start failed
+
+根源：
+
+A path to 3rd party libraries has been specified in `/etc/ld.so.conf.d`, causing some incompatible library (usually `libexpat.so.1`) to take precedence over the corresponding RHEL library, which then prevents dbus from running properly, leading to issues with services requiring dbus
+
+[https://access.redhat.com/solutions/3468321](https://access.redhat.com/solutions/3468321)
+
+**Solution 1: Remove any path to 3rd party libraries from `/etc/ld.so.conf.d/`**
+
+* 1 Remove any path to 3rd party libraries from `/etc/ld.so.conf.d/`
+
+    Boot the system with the RHEL DVD into Rescue environment
+
+    Once booted, enter the chroot:
+
+    ```
+    # chroot /mnt/sysimage
+    ```
+
+* 2 Remove the paths to 3rd party libraries from /etc/ld.so.conf.d
+
+    In the example below (and rest of the document), a file named `/etc/ld.so.conf.d/oracle.conf` contains a path to 3rd party libraries, including `libexpat.so.1`
+
+    ```
+    # cat /etc/ld.so.conf.d/oracle.conf
+    /soft/oracle/product/client/12.1/lib
+
+    # ls -1 /soft/oracle/product/client/12.1/lib/libexpat.so*
+    /soft/oracle/product/client/12.1/lib/libexpat.so
+    /soft/oracle/product/client/12.1/lib/libexpat.so.1
+    /soft/oracle/product/client/12.1/lib/libexpat.so.1.5.2
+
+    # ls /usr/lib64/libexpat.so*
+    /usr/lib64/libexpat.so.1
+    /usr/lib64/libexpat.so.1.6.0
+    ```
+
+    In the example above, the incompatible library `libexpat.so.1.5.2` takes precedence over system library `libexpat.so.1.6.0`.
+
+    ```
+    # rm /etc/ld.so.conf.d/oracle.conf
+    ```
+
+* 3 Rebuild the ld cache
+
+    ```
+    # ldconfig
+    ```
+
+* 4 Verify that dbus now links against the expected library in `/usr/lib64`
+
+    ```
+    # ldd /usr/bin/dbus-daemon | grep libexpat
+        libexpat.so.1 => /lib64/libexpat.so.1 (0x00007f5000c0c000)
+    ```
+
+* 5 Reboot
+
+* 6 Update the 3rd party software scripts to set `LD_LIBRARY_PATH` if needed
+
+    If your 3rd party application doesn't start anymore, you may need to fix its startup script.
+
+    If you know which scripts are used to start the 3rd party application, edit the scripts to add the following statement so that the 3rd party libraries take precedence:
+
+
+    ```
+    export LD_LIBRARY_PATH="/soft/oracle/product/client/12.1/lib"
+    ```
+
+    If your 3rd party software vendor didn't explain how to use the `LD_LIBRARY_PATH` alternative to start their application, contact the vendor.
+
+**Solution 2: Protect system services from 3rd party libraries**
+
+> This solution is less intrusive but may have some impact on custom or 3rd party services.
+
+* 1 Boot the system with the RHEL DVD into Rescue environment
+
+    Once booted, enter the chroot:
+
+    ```
+    # chroot /mnt/sysimage
+    ```
+
+* 2 Tell systemd to always start services with /usr/lib64 taking precedence
+
+    Create a drop-in overriding DefaultEnvironment variable:
+
+    ```
+    # mkdir -p /etc/systemd/system.conf.d
+    # cat > /etc/systemd/system.conf.d/kcs-3468321.conf << EOF
+    [Manager]
+    # Make sure /usr/lib64 takes precedence over paths specified in /etc/ld.so.conf.d
+    DefaultEnvironment="LD_LIBRARY_PATH=/usr/lib64"
+    EOF
+    ```
+
+* 3 Reboot
+
+* 4 Update the 3rd party software scripts to set LD_LIBRARY_PATH if needed
+
+    If your 3rd party application doesn't start anymore, you may need to fix its startup script or startup service.
+
+    * If your 3rd party application uses a systemd service unit, create the following drop-in:
+
+
+    ```
+    # systemctl edit <your service>.service
+    ... Editor opens, usually vim ...
+    [Unit]
+    Environment=/soft/oracle/product/client/12.1/lib
+    ... Save and close the editor ...
+    ```
+
+    * Otherwise, if you know which scripts are used to start the 3rd party application, edit the scripts to add the following statement so that the 3rd party libraries take precedence:
+
+    ```
+    export LD_LIBRARY_PATH="/soft/oracle/product/client/12.1/lib"
+    ```
+
+    If your 3rd party software vendor didn't explain how to use the `LD_LIBRARY_PATH` alternative to start their application, contact the vendor.

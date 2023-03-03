@@ -1,0 +1,41 @@
+From a769a35a6197c76390e1dd8f5054d426fbbbda05 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lubo=C5=A1=20Uhliarik?= <luhliari@redhat.com>
+Date: Wed, 22 Sep 2021 16:12:58 +0200
+Subject: [PATCH] Init openssl engine properly
+
+---
+ src/event/ngx_event_openssl.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
+index 270b200..f813458 100644
+--- a/src/event/ngx_event_openssl.c
++++ b/src/event/ngx_event_openssl.c
+@@ -798,16 +798,24 @@ ngx_ssl_load_certificate_key(ngx_pool_t *pool, char **err,
+             return NULL;
+         }
+ 
++        if (!ENGINE_init(engine)) {
++            *err = "ENGINE_init() failed";
++            ENGINE_free(engine);
++            return NULL;
++        }
++
+         *last++ = ':';
+ 
+         pkey = ENGINE_load_private_key(engine, (char *) last, 0, 0);
+ 
+         if (pkey == NULL) {
+             *err = "ENGINE_load_private_key() failed";
++            ENGINE_finish(engine);
+             ENGINE_free(engine);
+             return NULL;
+         }
+ 
++        ENGINE_finish(engine);
+         ENGINE_free(engine);
+ 
+         return pkey;
+-- 
+2.31.1
+

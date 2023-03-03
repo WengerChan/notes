@@ -1,0 +1,26 @@
+From 80c0ee172cceaef933ff5a451ec2a16213e03996 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lubo=C5=A1=20Uhliarik?= <luhliari@redhat.com>
+Date: Wed, 22 Sep 2021 15:55:39 +0200
+Subject: [PATCH] Set proper compiler optimalization level (O2) for perl
+ module.
+
+---
+ src/http/modules/perl/Makefile.PL | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/http/modules/perl/Makefile.PL b/src/http/modules/perl/Makefile.PL
+index 7edadcb..2ebb7c4 100644
+--- a/src/http/modules/perl/Makefile.PL
++++ b/src/http/modules/perl/Makefile.PL
+@@ -14,7 +14,7 @@ WriteMakefile(
+     AUTHOR            => 'Igor Sysoev',
+ 
+     CCFLAGS           => "$ENV{NGX_PM_CFLAGS}",
+-    OPTIMIZE          => '-O',
++    OPTIMIZE          => '-O2',
+ 
+     LDDLFLAGS         => "$ENV{NGX_PM_LDFLAGS}",
+ 
+-- 
+2.31.1
+

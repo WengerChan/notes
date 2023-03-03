@@ -2,14 +2,14 @@
 
 ## 工作目录
 
-| Directory | Purpose |
-| -- | -- |
-| `BUILD` | When packages are built, various `%buildroot` directories are created here. <br>This is useful for investigating a failed build if the logs output do not provide enough information. |
-| `BUILDROOT` |  |
-| `RPMS`  | Binary RPMs are created here, in subdirectories for different architectures, <br>for example in subdirectories "x86_64" and "noarch". |
-| `SOURCES` | Here, the packager puts *compressed source code archives* and *patches*. The `rpmbuild` command looks for them here. |
-| `SPECS`   | The packager puts SPEC files here. |
-| `SRPMS`   | When `rpmbuild` is used to build an SRPM instead of a binary RPM, the resulting SRPM is created here. |
+| Directory   | Purpose                                                                                                                                                                               |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BUILD`     | When packages are built, various `%buildroot` directories are created here. <br>This is useful for investigating a failed build if the logs output do not provide enough information. |
+| `BUILDROOT` |                                                                                                                                                                                       |
+| `RPMS`      | Binary RPMs are created here, in subdirectories for different architectures, <br>for example in subdirectories "x86_64" and "noarch".                                                 |
+| `SOURCES`   | Here, the packager puts *compressed source code archives* and *patches*. The `rpmbuild` command looks for them here.                                                                  |
+| `SPECS`     | The packager puts SPEC files here.                                                                                                                                                    |
+| `SRPMS`     | When `rpmbuild` is used to build an SRPM instead of a binary RPM, the resulting SRPM is created here.                                                                                 |
 
 创建工作目录:
 
@@ -65,27 +65,27 @@
 
     主要记录 RPM 的一些元数据, 常见的配置指令有:
 
-    |    指令     | 定义 |
-    | ---------- | :-- |
-    | `Name`     | 软件包名, 必须和 spec 文件名保持一致 |
-    | `Epoch`    | 软件包迭代号 |
-    | `Version`  | 软件包版本 |
-    | `Release`  | 软件包发行号, 一般设置为 `1%{?dist}` |
-    | `Summary`  | 软件包简介 |
-    | `License`  | 软件包许可 |
-    | `Group`    | 软件包分组 |
-    | `Vendor`   | 打包软件的组织/公司 |
-    | `Packager` | 打包软件的人员 |
-    | `URL`      | 软件包来源 |
-    | `BuildArch` | 软件包 CPU 架构 |
-    | `BuildRoot` | 软件包安装/编译时的临时目录, 用来模拟安装生成的文件目录 |
-    | `BuildRequires` | 软件包编译时的依赖项, (可用 "," 分隔多个) |
-    | `Requires`      | 软件包安装时的依赖项, (可用 "," 分隔多个) |
-    | `Conflicts` | 与 `Requires` 含义相反 |
-    | `Source`    | 软件包源代码或源文件 |
-    | `Patch`     | 补丁包 |
-    | `Obsoletes` | 列出安装软件包后, 将标记为 "过时" 的其他软件包 |
-    | `Provides`  | 软件包提供的内容, 其他软件包可以通过此处列出的内容引用此软件包 |
+    | 指令            | 定义                                                           |
+    | --------------- | :------------------------------------------------------------- |
+    | `Name`          | 软件包名, 必须和 spec 文件名保持一致                           |
+    | `Epoch`         | 软件包迭代号                                                   |
+    | `Version`       | 软件包版本                                                     |
+    | `Release`       | 软件包发行号, 一般设置为 `1%{?dist}`                           |
+    | `Summary`       | 软件包简介                                                     |
+    | `License`       | 软件包许可                                                     |
+    | `Group`         | 软件包分组                                                     |
+    | `Vendor`        | 打包软件的组织/公司                                            |
+    | `Packager`      | 打包软件的人员                                                 |
+    | `URL`           | 软件包来源                                                     |
+    | `BuildArch`     | 软件包 CPU 架构                                                |
+    | `BuildRoot`     | 软件包安装/编译时的临时目录, 用来模拟安装生成的文件目录        |
+    | `BuildRequires` | 软件包编译时的依赖项, (可用 "," 分隔多个)                      |
+    | `Requires`      | 软件包安装时的依赖项, (可用 "," 分隔多个)                      |
+    | `Conflicts`     | 与 `Requires` 含义相反                                         |
+    | `Source`        | 软件包源代码或源文件                                           |
+    | `Patch`         | 补丁包                                                         |
+    | `Obsoletes`     | 列出安装软件包后, 将标记为 "过时" 的其他软件包                 |
+    | `Provides`      | 软件包提供的内容, 其他软件包可以通过此处列出的内容引用此软件包 |
 
     ---
 
@@ -186,17 +186,17 @@
     * 软件编译/打包全过程 (Build-time): `%prep`, `%build`, `%check`, `%clean`, `%install`, `%files`
     * 控制软件包按安装/升级/卸载过程 (Install-time): `Scriptlets`, `Triggers`
 
-    |       指令     | 定义 |
-    | -------------- | :-- |
-    | `%description` | 软件包的完整描述 |
-    | `%package`     | 定义不同软件包 |
+    | 指令           | 定义                                 |
+    | -------------- | :----------------------------------- |
+    | `%description` | 软件包的完整描述                     |
+    | `%package`     | 定义不同软件包                       |
     | `%prep`        | 准备编译的一系列动作 ( 宏, Sh 脚本 ) |
-    | `%build`       | 编译 ( `configure`, `make` ) |
-    | `%check`       | 测试 |
-    | `%clean`       | 清理 |
-    | `%install`     | 打包 ( `make install` ) |
-    | `%files`       | 指定软件包文件列表 ( 打包文件 ) |
-    | `%changelog`   | 软件包修改记录 |
+    | `%build`       | 编译 ( `configure`, `make` )         |
+    | `%check`       | 测试                                 |
+    | `%clean`       | 清理                                 |
+    | `%install`     | 打包 ( `make install` )              |
+    | `%files`       | 指定软件包文件列表 ( 打包文件 )      |
+    | `%changelog`   | 软件包修改记录                       |
 
 
 ### `%description`, `%package`
@@ -312,7 +312,7 @@ support cryptographic algorithms and protocols.
 
 * Scriptlet 指令
 
-    |   Directive  |                                          Definition                                       |
+    | Directive    | Definition                                                                                |
     | ------------ | :---------------------------------------------------------------------------------------- |
     | `%pre`       | Scriptlet that is executed just before installing the package on the target system.       |
     | `%post`      | Scriptlet that is executed just after the package was installed on the target system.     |
@@ -467,7 +467,7 @@ support cryptographic algorithms and protocols.
     * 已安装 `ruby` 或 `perl`, 此包被安装/升级时
 
     | Comparison           | Meaning                                                          |
-    | -------------------- | -----------------------------------------------------------------|
+    | -------------------- | ---------------------------------------------------------------- |
     | `package < version`  | A package with a version number less than version                |
     | `package > version`  | A package with a version number greater than version             |
     | `package >= version` | A package with a version number greater than or equal to version |
@@ -878,22 +878,22 @@ Hello, World!
 
     Several macro definitions provided by the default rpm macro set have uses in packaging similar to the autoconf variables that are used in building packages:
 
-    | Macro | Body |
-    | -- | -- |
-    | `%_prefix`         | `/usr` |
-    | `%_exec_prefix`    | `%{_prefix}` |
-    | `%_bindir`         | `%{_exec_prefix}/bin` |
-    | `%_sbindir`        | `%{_exec_prefix}/sbin` |
+    | Macro              | Body                      |
+    | ------------------ | ------------------------- |
+    | `%_prefix`         | `/usr`                    |
+    | `%_exec_prefix`    | `%{_prefix}`              |
+    | `%_bindir`         | `%{_exec_prefix}/bin`     |
+    | `%_sbindir`        | `%{_exec_prefix}/sbin`    |
     | `%_libexecdir`     | `%{_exec_prefix}/libexec` |
-    | `%_datadir`        | `%{_prefix}/share` |
-    | `%_sysconfdir`     | `/etc` |
-    | `%_sharedstatedir` | `%{_prefix}/com` |
-    | `%_localstatedir`  | `%{_prefix}/var` |
-    | `%_libdir`         | `%{_exec_prefix}/lib` |
-    | `%_includedir`     | `%{_prefix}/include` |
-    | `%_oldincludedir`  | `/usr/include` |
-    | `%_infodir`        | `%{_datadir}/info` |
-    | `%_mandir`         | `%{_datadir}/man` |
+    | `%_datadir`        | `%{_prefix}/share`        |
+    | `%_sysconfdir`     | `/etc`                    |
+    | `%_sharedstatedir` | `%{_prefix}/com`          |
+    | `%_localstatedir`  | `%{_prefix}/var`          |
+    | `%_libdir`         | `%{_exec_prefix}/lib`     |
+    | `%_includedir`     | `%{_prefix}/include`      |
+    | `%_oldincludedir`  | `/usr/include`            |
+    | `%_infodir`        | `%{_datadir}/info`        |
+    | `%_mandir`         | `%{_datadir}/man`         |
 
 #### 路径相关的内建宏
 
@@ -903,7 +903,7 @@ The macros for build system invocations (for example, `%configure`, `%cmake`, or
 
 The following table lists macros which are widely used in fedora `.spec` files.
 
-|        macro         |       definition          |                  comment                  |
+| macro                | definition                | comment                                   |
 | -------------------- | ------------------------- | ----------------------------------------- |
 | `%{_sysconfdir}`     | `/etc`                    |                                           |
 | `%{_prefix}`         | `/usr`                    | can be defined to /app for flatpak builds |
@@ -924,15 +924,15 @@ The following table lists macros which are widely used in fedora `.spec` files.
 
 Some seldomly used macros are listed below for completeness. Old `.spec` files might still use them, and there might be cases where they are still needed.
 
-|        macro      |      definition    |        comment                             |
-| ----------------- | ------------------ | ------------------------------------------ |
-| `%{_datarootdir}` | `%{_prefix}/share` | default: `/usr/share`                      |
-| `%{_var}`         | `/var`             |                                            |
-| `%{_tmppath}`     | `%{_var}/tmp`      | default: `/var/tmp`                        |
-| `%{_usr}`         | `/usr`             |                                            |
-| `%{_usrsrc}`      | `%{_usr}/src`      | default: `/usr/src`                        |
-| `%{_initddir}`    | `%{_sysconfdir}/rc.d/init.d` | default: `/etc/rc.d/init.d`      |
-| `%{_initrddir}`   | `%{_initddir}`     | old misspelling, provided for compatiblity |
+| macro             | definition                   | comment                                    |
+| ----------------- | ---------------------------- | ------------------------------------------ |
+| `%{_datarootdir}` | `%{_prefix}/share`           | default: `/usr/share`                      |
+| `%{_var}`         | `/var`                       |                                            |
+| `%{_tmppath}`     | `%{_var}/tmp`                | default: `/var/tmp`                        |
+| `%{_usr}`         | `/usr`                       |                                            |
+| `%{_usrsrc}`      | `%{_usr}/src`                | default: `/usr/src`                        |
+| `%{_initddir}`    | `%{_sysconfdir}/rc.d/init.d` | default: `/etc/rc.d/init.d`                |
+| `%{_initrddir}`   | `%{_initddir}`               | old misspelling, provided for compatiblity |
 
 RPM also exposes the locations of several directories that are relevant to the package build process via macros.
 
@@ -940,7 +940,7 @@ The only macro that's widely used in `.spec` files is `%{buildroot}`, which poin
 
 The other macros are usually only used outside `.spec` files. For example, they are set by `fedpkg` to override the default directories.
 
-|       macro        |                    definition                             |       comment        |
+| macro              | definition                                                | comment              |
 | ------------------ | --------------------------------------------------------- | -------------------- |
 | `%{buildroot}`     | `%{_buildrootdir}/%{name}-%{version}-%{release}.%{_arch}` | same as `$BUILDROOT` |
 | `%{_topdir}`       | `%{getenv:HOME}/rpmbuild`                                 |                      |
@@ -1541,7 +1541,7 @@ rpm -i openssl-1.1.1n-1.el7.src.rpm
 
 ### B.2 准备几个 `SOURCES` 文件
 
-| 名字 | 下载路径 |
+| 名字                                 | 下载路径                                                                       |
 | ------------------------------------ | ------------------------------------------------------------------------------ |
 | `Source0: openssl-1.1.1n.tar.gz`     |                                                                                |
 | `Source1: Makefile.certificate`      | [`Makefile.certificate`       ](./files/RPM_openssl/Makefile.certificate)      |
@@ -1625,7 +1625,7 @@ rpm -i openssh-9.0p1-1.el7.src.rpm
 
 > 解压 `openssh-9.0p1-1.el7.src.rpm` 获取以下文件
 
-|                            名字                            |
+| 名字                                                       |
 | :--------------------------------------------------------- |
 | `Source0: openssh-9.0p1.tar.gz`                            |
 | `Source1: openssh-9.0p1.tar.gz.asc`                        |
@@ -1790,7 +1790,7 @@ rpm -i python38-3.8.13-1.el7.src.rpm
 
 ### D.2 准备几个 `SOURCES` 文件
 
-| 名字 | 下载路径 |
+| 名字                                     | 下载路径                                                                             |
 | ---------------------------------------- | ------------------------------------------------------------------------------------ |
 | `Source0: Python-3.8.13.tar.xz`          |                                                                                      |
 | `Source1: python38-3.8.13-ldconfig.conf` | [`python38-3.8.13-ldconfig.conf` ](./files/RPM_python/python38-3.8.13-ldconfig.conf) |
@@ -1818,3 +1818,84 @@ rpm -i python38-3.8.13-1.el7.src.rpm
 ### D.5 注意事项
 
 安装 `python38-3.8.13-1.el7.x86_64.rpm` 前请先卸载所有其他 `Python 3.x`
+
+
+## E 实战 4：编译 nginx
+
+### E.1 准备源码包和工作目录
+
+下载源码包并上传到虚拟机: 下载地址 [Nginx 1.21.1](https://nginx.org/download/nginx-1.22.1.tar.gz)
+
+或者直接使用本文提供的 SRPM 文件: [nginx-1.22.1-1.el7.src.rpm](./files/RPM_nginx/nginx-1.22.1-1.el7.src.rpm), 使用方法如下:
+
+```sh
+useradd rpmbuilder
+su - rpmbuilder
+rpm -i nginx-1.22.1-1.el7.src.rpm
+```
+
+> 注: src.rpm 中包含各种 `SOURCES` 文件，可直接跳转到 [`E.4 编译`](#e4-编译)
+
+### D.2 准备几个 `SOURCES` 及 `Patch` 文件
+
+| 名字                                                                      | 下载路径                                                                                                                                           |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Source0: nginx-1.22.1.tar.gz`                                            | [nginx-1.22.1.tar.gz](files/RPM_nginx/nginx-1.22.1.tar.gz)                                                                                         |
+| `Source1: nginx-1.22.1.tar.gz.asc`                                        | [nginx-1.22.1.tar.gz.asc](files/RPM_nginx/nginx-1.22.1.tar.gz.asc)                                                                                 |
+| `Source2: maxim.key`                                                      | [maxim.key](files/RPM_nginx/maxim.key)                                                                                                             |
+| `Source3: mdounin.key`                                                    | [mdounin.key](files/RPM_nginx/mdounin.key)                                                                                                         |
+| `Source4: sb.key`                                                         | [sb.key](files/RPM_nginx/sb.key)                                                                                                                   |
+| `Source10: nginx.service`                                                 | [nginx.service](files/RPM_nginx/nginx.service)                                                                                                     |
+| `Source11: nginx.logrotate`                                               | [nginx.logrotate](files/RPM_nginx/nginx.logrotate)                                                                                                 |
+| `Source12: nginx.conf`                                                    | [nginx.conf](files/RPM_nginx/nginx.conf)                                                                                                           |
+| `Source13: nginx-upgrade`                                                 | [nginx-upgrade](files/RPM_nginx/nginx-upgrade)                                                                                                     |
+| `Source14: nginx-upgrade.8`                                               | [nginx-upgrade.8](files/RPM_nginx/nginx-upgrade.8)                                                                                                 |
+| `Source15: macros.nginxmods.in`                                           | [macros.nginxmods.in](files/RPM_nginx/macros.nginxmods.in)                                                                                         |
+| `Source16: nginxmods.attr`                                                | [nginxmods.attr](files/RPM_nginx/nginxmods.attr)                                                                                                   |
+| `Source102: nginx-logo.png`                                               | [nginx-logo.png](files/RPM_nginx/nginx-logo.png)                                                                                                   |
+| `Source103: 404.html`                                                     | [404.html](files/RPM_nginx/404.html)                                                                                                               |
+| `Source104: 50x.html`                                                     | [50x.html](files/RPM_nginx/50x.html)                                                                                                               |
+| `Source200: README.dynamic`                                               | [README.dynamic](files/RPM_nginx/README.dynamic)                                                                                                   |
+| `Source210: UPGRADE-NOTES-1.6-to-1.10`                                    | [UPGRADE-NOTES-1.6-to-1.10](files/RPM_nginx/UPGRADE-NOTES-1.6-to-1.10)                                                                             |
+| `Patch0: 0001-remove-Werror-in-upstream-build-scripts.patch`              | [0001-remove-Werror-in-upstream-build-scripts.patch](files/RPM_nginx/0001-remove-Werror-in-upstream-build-scripts.patch)                           |
+| `Patch1: 0002-fix-PIDFile-handling.patch`                                 | [0002-fix-PIDFile-handling.patch](files/RPM_nginx/0002-fix-PIDFile-handling.patch)                                                                 |
+| `Patch2: 0003-Support-loading-cert-hardware-token-PKC.patch`              | [0003-Support-loading-cert-hardware-token-PKC.patch](files/RPM_nginx/0003-Support-loading-cert-hardware-token-PKC.patch)                           |
+| `Patch3: 0004-Set-proper-compiler-optimalization-level-O2-for-perl.patch` | [0004-Set-proper-compiler-optimalization-level-O2-for-perl.patch](files/RPM_nginx/0004-Set-proper-compiler-optimalization-level-O2-for-perl.patch) |
+| `Patch4: 0005-Init-openssl-engine-properly.patch`                         | [0005-Init-openssl-engine-properly.patch](files/RPM_nginx/0005-Init-openssl-engine-properly.patch)                                                 |
+| `Patch5: 0006-Fix-ALPACA-security-issue.patch`                            | [0006-Fix-ALPACA-security-issue.patch](files/RPM_nginx/0006-Fix-ALPACA-security-issue.patch)                                                       |
+| `Patch6: 0007-Enable-TLSv1.3-by-default.patch`                            | [0007-Enable-TLSv1.3-by-default.patch](files/RPM_nginx/0007-Enable-TLSv1.3-by-default.patch)                                                       |
+
+
+### E.3 准备 `nginx.spec` 文件
+
+[`nginx.spec`](./files/RPM_nginx/nginx.spec)
+
+> 参考:
+> 
+> * EPEL `nginx-1.20.1-10.el7.src.rpm` 中的 [`nginx.spec`](./files/RPM_nginx/nginx-1.20.1-10.el7.spec)
+> * 红帽 `nginx-1.20.1-13.el9.src.rpm` 中的 [`nginx.spec`](./files/RPM_nginx/nginx-1.20.1-13.el9.spec)
+
+### E.4 编译
+
+```sh
+~]$ cd /home/rpmbuilder/rpmbuild/SPEC
+~]$ rpmbuild --nobuild nginx.spec
+~]$ rpmbuild -bs nginx.spec
+~]$ rpmbuild -bb nginx.spec
+```
+
+### E.5 注意事项
+
+* `%{gpgverify}` 这个 macros 需要安装 `epel-rpm-macros` 才会有, 不然会有以下报错：
+
+    ![](./pictures/RPM/RPM_nginx_1.png)
+
+    实验中安装后依然有以下报错：
+
+    ![](./pictures/RPM/RPM_nginx_2.png)
+
+    所以便暂时将校验注释（255行）。
+
+* 编译过程中会提示 `Reversed (or previously applied) patch detected! Assume -R?`
+
+    需要输入 `y` 才可正常编译。

@@ -1570,3 +1570,65 @@ echo " Stop: ${stop}"
 
     exec 6>&-                # 关闭fd-6
     ```
+
+## 数组
+
+* Bash Shell 只支持一维数组（不支持多维数组）
+* 初始化时不需要定义数组大小
+* 与大部分编程语言类似，数组元素的下标由 0 开始
+
+
+```sh
+# 1. 定义数组
+array_name=(value1 value2 ... valuen)
+
+my_array=(A B "C" D)
+
+# 也可以使用数字下标来定义数组, 如:
+# array_name[0]=value0
+# array_name[1]=value1
+
+
+# 2. 读取数组
+${array_name[index]}
+
+echo "第一个元素为: ${my_array[0]}"
+echo "第二个元素为: ${my_array[1]}"
+echo "第三个元素为: ${my_array[2]}"
+echo "第四个元素为: ${my_array[3]}"
+
+# 3. 关联数组
+# 声明
+declare -A array_name
+array_name=([index1]=value1 [index2]=value2 ...)
+
+declare -A site=(["google"]="www.google.com" ["runoob"]="www.runoob.com" ["taobao"]="www.taobao.com")
+
+# 访问
+${array_name["index"]}  # index对应的value
+
+# 4. 使用 @ 或 * 可以获取数组中的所有元素
+${array_name[*]}, ${array_name[@]}      # @ 和 * 输出有区别
+${!array_name[*]}, ${!array_name[*]}    # 加 ! 可以输出所有index
+
+~] a=(1 2 3)
+~] for i in ${a[@]}; do echo "$i END"; done
+1 END
+2 END
+3 END
+
+~] for i in "${a[@]}"; do echo "$i END"; done # 输出同上
+~] for i in ${a[*]}; do echo "$i END"; done   # 输出同上
+
+~] for i in "${a[*]}"; do echo "$i END"; done
+1 2 3 4 END
+
+# 5. 查看数组长度
+ ${#my_array[*]}
+ ${#my_array[@]}
+```
+
+
+
+e.g.
+
