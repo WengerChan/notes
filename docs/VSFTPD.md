@@ -663,6 +663,67 @@ tcp_wrappers=YES
     ftpuser02
     ```
 
+## 实践
+
+* vsftpd.conf
+
+    ```conf
+    anonymous_enable=NO
+    guest_enable=NO
+    local_enable=YES
+    write_enable=YES
+
+    chroot_local_user=NO
+    chroot_list_enable=YES
+    chroot_list_file=/etc/vsftpd/chroot_list
+    local_root=/data
+    user_config_dir=/etc/vsftpd/user
+    allow_writeable_chroot=NO
+    userlist_enable=YES
+    userlist_deny=NO
+    userlist_file=/etc/vsftpd/user_list
+    local_umask=007
+
+    listen=YES
+    listen_ipv6=NO
+    port_enable=NO
+    pasv_enable=YES
+    listen_port=21
+    pasv_min_port=8820
+    pasv_max_port=8920
+
+    pam_service_name=vsftpd
+    tcp_wrappers=YES
+
+    # SSL
+    # ssl_enable=YES
+    # ssl_sslv2=YES
+    # ssl_sslv3=YES
+    # ssl_tlsv1=YES
+    # ssl_tlsv1_1=YES
+    # ssl_tlsv1_2=YES
+    # force_local_logins_ssl=YES
+    # force_local_data_ssl=YES
+    # rsa_cert_file=/etc/pki/tls/private/vsftpd.crt
+    # rsa_private_key_file=/etc/pki/tls/private/vsftpd.key
+    # implicit_ssl=YES
+
+    # 日志配置
+    xferlog_enable=YES
+    xferlog_std_format=YES
+    xferlog_file=/var/log/xferlog
+    dual_log_enable=YES
+    vsftpd_log_file=/var/log/vsftpd.log
+    ## 写入syslog
+    syslog_enable=YES
+
+    # Rate Limit (bytes/s)
+    local_max_rate=2500000
+    ```
+
+* vsftpdmon.sh - 标志文件
+
+    [vsftpdmon.sh](files/vsftpdmon.sh)
 
 ### 虚拟用户登录方式
 
