@@ -1862,14 +1862,14 @@ mysql> SELECT DECODE(ENCODE('123qweQ.','thisisased'), 'thisisased');
 
 * 常见数据类型的属性：
 
-    | 关键字               | 含义                                       |
-    | -------------------- | :----------------------------------------- |
-    | `NULL`               | 数据列可包含NULL值                         |
-    | `NOT`                | NULL 数据列不允许包含NULL值 DEFAULT 默认值 |
-    | `PRIMARY`            | KEY 主键                                   |
-    | `AUTO_INCREMENT`     | 自动递增，适用于整数类型                   |
-    | `UNSIGNED`           | 无符号                                     |
-    | `CHARACTER SET name` | 指定一个字符集                             |
+    | 关键字               | 含义                                  |
+    | -------------------- | :------------------------------------ |
+    | `NULL`               | 数据列可包含NULL值                    |
+    | `NOT NULL`           | 数据列不允许包含NULL值 DEFAULT 默认值 |
+    | `PRIMARY KEY`        | 主键                                  |
+    | `AUTO_INCREMENT`     | 自动递增，适用于整数类型              |
+    | `UNSIGNED`           | 无符号                                |
+    | `CHARACTER SET name` | 指定一个字符集                        |
 
 * 整型
 
