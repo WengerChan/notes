@@ -66,6 +66,25 @@ virsh shutdown VM-NAME-01                                         # 确保VM-NAM
 virt-clone -o VM-NAME-01 -n VM-NAME-02 -f /data/VM-NAME-02.qcow2  # VM-NAME-01克隆为VM-NAME-02
 ```
 
+### 导入、导出（迁移）虚拟机
+
+* 热迁移 - 共享存储
+* 冷迁移
+
+    1. 迁移磁盘文件（位置信息要一致）
+
+    2. 导出配置文件
+
+        ```sh
+        virsh dumpxml <vmname> > vmname.xml
+        ```
+
+        或者去 `/etc/libvirt/qemu/` 下找xml文件
+
+    3. 将配置文件放置到新主机 `/etc/libvirt/qemu/ `下
+
+    4. 启动
+
 ### 配置虚拟机
 
 

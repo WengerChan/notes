@@ -1000,6 +1000,22 @@ listen_ipv6=YES
 
 检查目录权限
 
+### 连接超时
+
+华为Fusion Compute通过 FTPs 备份数据时，会先使用 lftp 连接 ftp 校验，校验的时候会指定参数: 
+
+```sh
+lftp -u username,"password" -e "set net:timeout 5;set net:max-retries 1; set ssl:verify-certificate no;set ftp:ssl-protect-data true;;ls ;bye" ftps://ip:port
+```
+
+经查，`reverse_lookup_enable` 默认为 `YES`，对于配置了DNS的服务器来说，会严重影响连接数据，手动配置为 `no`
+
+![](pictures/VSFTPD/VSFTPD-reverse_lookup_enable.png)
+
+```conf
+reverse_lookup_enable=NO
+```
+
 
 ### SELinux 
 
