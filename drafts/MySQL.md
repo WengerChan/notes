@@ -149,7 +149,7 @@
     ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'abc123';
     
     -- 刷新权限
-    FLUSH PRIVILEGE
+    FLUSH PRIVILEGES;
     ```
 
 * MySQL Workbench 报错："Could not acquire managementaccess for administrationRuntimeError"

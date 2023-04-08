@@ -213,6 +213,8 @@ ip addr flush eth0                    # 清空网卡的临时配置
 
 * 18.04/20.04
 
+    > 网络命令 `netplan` 由 `netplan.io` 这个包提供，不要安装成 `netplan` 这个包。
+
     ```sh
     ~] cat /etc/netplan/00-installer-config.yaml
 
