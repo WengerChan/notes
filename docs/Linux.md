@@ -573,3 +573,12 @@ A path to 3rd party libraries has been specified in `/etc/ld.so.conf.d`, causing
     ```
 
     If your 3rd party software vendor didn't explain how to use the `LD_LIBRARY_PATH` alternative to start their application, contact the vendor.
+
+### SSH hangs with `debug1: Next authentication method: gssapi-with-mic`
+
+```text
+debug1: Next authentication method: gssapi-with-mic
+debug1: Unspecified GSS failure. Minor code may provide more information
+```
+
+-> Add 'GSSAPIAuthentication no'
