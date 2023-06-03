@@ -268,3 +268,49 @@ ip addr flush eth0                    # 清空网卡的临时配置
         eno2: {}
       version: 2
     ```
+  
+## Network - team
+
+18.04 - Install `NetworkManager, teamd`, then use `nmcli` to configurate 'team0'
+
+```sh
+# 1. install
+$ sudo apt install network-manager
+$ sudo apt install teamd
+
+# 2. 
+$ vim /etc/NetworkManager/NetworkManager.conf
+[main]
+plugins=ifupdown,keyfile
+
+[ifupdown]
+managed=false   # false -> true
+
+[device]
+wifi.scan-rand-mac-address=no
+
+# 3. 
+$ vim /etc/netplan/00-installer-config.yaml
+# This is the network config written by 'subiquity'
+network:
+  renderer: NetworkManager    # -> add: NetworkManager
+  ethernets:
+    enp1s0:
+      addresses:
+      - 192.168.161.21/24
+      gateway4: 192.168.161.1
+      nameservers:
+        addresses: []
+        search: []
+  version: 2
+
+$ netplan apply
+
+# 4. start NetworkManager
+$ systemctl start network-manager
+$ systemctl enable network-manager
+$ nmcli con add type team ifname team0 con-name team0 config '{"runner":{"name":"activebackup"}}'
+$ nmcli con add type team-slave ifname eth0 con-name team0-eth0 master team0
+$ nmcli con add type team-slave ifname eth1 con-name team0-eth1 master team0
+$ nmcli con mod team0 ipv4.addresses 192.168.161.40/24 ipv4.gateway 192.168.161.1 ipv4.method manual autoconnect yes
+```
