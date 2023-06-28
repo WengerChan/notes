@@ -211,6 +211,12 @@ ip addr flush eth0                    # 清空网卡的临时配置
     ~] resolvconf -u
     ```
 
+    重启网络生效：
+
+    ```sh
+    /etc/init.d/networking restart
+    ```
+
 * 18.04/20.04
 
     > 网络命令 `netplan` 由 `netplan.io` 这个包提供，不要安装成 `netplan` 这个包。
@@ -278,7 +284,7 @@ ip addr flush eth0                    # 清空网卡的临时配置
 $ sudo apt install network-manager
 $ sudo apt install teamd
 
-# 2. 
+# 2. Edit
 $ vim /etc/NetworkManager/NetworkManager.conf
 [main]
 plugins=ifupdown,keyfile
@@ -289,11 +295,16 @@ managed=false   # false -> true
 [device]
 wifi.scan-rand-mac-address=no
 
-# 3. 
+# 3. start
+$ systemctl start network-manager
+$ systemctl enable network-manager
+
+# 4. 
 $ vim /etc/netplan/00-installer-config.yaml
 # This is the network config written by 'subiquity'
 network:
-  renderer: NetworkManager    # -> add: NetworkManager
+  renderer: NetworkManager    # -> add: 'renderer: NetworkManager'
+                              # -> or change 'renderer: networkd' -> 'renderer: NetworkManager'
   ethernets:
     enp1s0:
       addresses:
@@ -304,11 +315,17 @@ network:
         search: []
   version: 2
 
+# 5. Remove all of other network config
+$ mv /etc/netplan/xxx.yaml /tmp/   # backup
 $ netplan apply
 
-# 4. start NetworkManager
-$ systemctl start network-manager
-$ systemctl enable network-manager
+# 6. use 'nmcli'
+# delete old
+$ nmcli con del bond0
+$ nmcli con del bond0-ens192
+$ nmcli con del bond0-ens224
+
+# create new
 $ nmcli con add type team ifname team0 con-name team0 config '{"runner":{"name":"activebackup"}}'
 $ nmcli con add type team-slave ifname eth0 con-name team0-eth0 master team0
 $ nmcli con add type team-slave ifname eth1 con-name team0-eth1 master team0
