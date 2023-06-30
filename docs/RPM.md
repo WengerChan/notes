@@ -262,6 +262,7 @@ support cryptographic algorithms and protocols.
     ```
 
     | 选项 | 说明 |
+    | -- | -- |
     | `-n <dir>` | 指定自动进入目录名称, 用于当源码解压后目录名不规范 |
     | `-c`       | 解压之前先创建默认目录, 用于压缩文件未包含在一个顶层目录下 |
     | `-q`       | 简化输出信息 ( 执行 `tar -xof` 而不是 `tar -xvvof`)     |
@@ -1899,3 +1900,117 @@ rpm -i nginx-1.22.1-1.el7.src.rpm
 * 编译过程中会提示 `Reversed (or previously applied) patch detected! Assume -R?`
 
     需要输入 `y` 才可正常编译。
+
+### E.6 CentOS 7.6 基于 `nginx-1.20.1-10.el7.src.rpm` 添加 ngx-fancyindex 模块
+
+* 安装
+
+    ```sh
+    su - rpmbuilder
+    rpm -i nginx-1.20.1-10.el7.src.rpm
+    ```
+
+    > 说明：
+    >
+    > 1. 此处安装的 `nginx-1.20.1-10.el7.src.rpm` 为EPEL源中下载的。
+    > 
+    > 2. 本库 [`file/RPM_nginx/Lab_add-module`](files/RPM_nginx/Lab_add-module/) 目录下也提供了 [`nginx-1.20.1-10.el7.src.rpm`](files/RPM_nginx/Lab_add-module/nginx-1.20.1-10.el7.src.rpm)，这是已经修改好的SRPM，使用 `rpm -i nginx-1.20.1-10.el7.src.rpm` 安装后可直接执行 `rpmbuild -bb nginx.spec` 进行编译打包。
+
+* 添加 `ngx-fancyindex` 模块的源码文件到 SOURCES
+
+    下载：[github link](https://github.com/aperezdc/ngx-fancyindex)
+
+    * ngx-fancyindex-0.5.2.tar.xz
+    * ngx-fancyindex-0.5.2.tar.xz.sig
+
+* 修改 `SPECE/nginx.spec`
+
+    修改完成后的 [nginx.spec](files/RPM_nginx/Lab_add-module/nginx.spec)
+
+    与 SRPM 的差异：
+
+    ```diff
+    diff -U 1 -p nginx.spec.old nginx.spec
+
+    --- nginx.spec.old      2023-06-30 16:14:13.322094460 +0800
+    +++ nginx.spec  2023-06-30 16:13:37.031486400 +0800
+    @@ -51,8 +51,8 @@ URL:               https://nginx.org
+     
+    -Source0:           https://nginx.org/download/nginx-%{version}.tar.gz
+    -Source1:           https://nginx.org/download/nginx-%{version}.tar.gz.asc
+    +Source0:           nginx-%{version}.tar.gz
+    +Source1:           nginx-%{version}.tar.gz.asc
+     # Keys are found here: https://nginx.org/en/pgp_keys.html
+    -Source2:           https://nginx.org/keys/maxim.key
+    -Source3:           https://nginx.org/keys/mdounin.key
+    -Source4:           https://nginx.org/keys/sb.key
+    +Source2:           maxim.key
+    +Source3:           mdounin.key
+    +Source4:           sb.key
+     Source10:          nginx.service
+    @@ -70,2 +70,7 @@ Source210:         UPGRADE-NOTES-1.6-to-
+     
+    +# Add module: fancyindex
+    +Source5:           ngx-fancyindex-0.5.2.tar.xz
+    +Source6:           ngx-fancyindex-0.5.2.tar.xz.sig
+    +%global ngx_fancyindex_version 0.5.2
+    +
+     # removes -Werror in upstream build scripts.  -Werror conflicts with
+    @@ -145,2 +150,3 @@ Requires:          nginx-mod-mail = %{ep
+     Requires:          nginx-mod-stream = %{epoch}:%{version}-%{release}
+    +Requires:          nginx-mod-fancyindex = %{epoch}:%{version}-%{release}
+     
+    @@ -241,2 +247,9 @@ Requires:          zlib-devel
+     
+    +# Add mod-fancyindex
+    +%package mod-fancyindex
+    +Summary:           Nginx fancyindex modules
+    +Requires:          nginx(abi) = %{nginx_abiversion}
+    +
+    +%description mod-fancyindex
+    +%{summary}. INFO: This package is built with "ngx-fancyindex-0.5.2.tar.xz".
+     
+    @@ -261,2 +274,6 @@ sed \
+     
+    +# Unpack fancyindex module
+    +tar -xof %{SOURCE5} -C .
+    +
+    +
+     # Prepare sources for installation
+    @@ -329,3 +346,4 @@ if ! ./configure \
+         --with-cc-opt="%{optflags} $(pcre-config --cflags)" \
+    -    --with-ld-opt="$nginx_ldopts"; then
+    +    --with-ld-opt="$nginx_ldopts" \
+    +    --add-dynamic-module=ngx-fancyindex-%{ngx_fancyindex_version}; then
+       : configure failed
+    @@ -426,2 +444,4 @@ echo 'load_module "%{nginx_moduledir}/ng
+         > %{buildroot}%{nginx_moduleconfdir}/mod-stream.conf
+    +echo 'load_module "%{nginx_moduledir}/ngx_http_fancyindex_module.so";' \
+    +    > %{buildroot}%{nginx_moduleconfdir}/mod-fancyindex.conf
+     
+    @@ -484,2 +504,7 @@ fi
+     
+    +%post mod-fancyindex
+    +if [ $1 -eq 1 ]; then
+    +    /usr/bin/systemctl reload nginx.service >/dev/null 2>&1 || :
+    +fi
+    +
+     %preun
+    @@ -576,2 +601,6 @@ fi
+     
+    +%files mod-fancyindex
+    +%{nginx_moduleconfdir}/mod-fancyindex.conf
+    +%{nginx_moduledir}/ngx_http_fancyindex_module.so
+    +
+     %files mod-devel
+    @@ -583,4 +612,4 @@ fi
+     %changelog
+    -* Thu Nov 10 2022 Felix Kaechele <felix@kaechele.ca> - 1:1.20.1-10
+    -- backport fix for CVE-2022-41741 and CVE-2022-41742
+    -...<many lines>...
+    +* Fri Jun 30 2023 WengerChan <cnwn1111@hotmail.com> - 1:1.20.1-10
+    +- add module aperezdc/ngx-fancyindex:0.5.2 to nginx<based on nginx-1.20.1-10.el7.src.rpm>
+    
+    ```
+
+
