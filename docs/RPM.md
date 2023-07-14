@@ -2013,4 +2013,101 @@ rpm -i nginx-1.22.1-1.el7.src.rpm
     
     ```
 
+## F 实战 5：编译 NFS (nfs-utils)
+
+* `nfs-2.6.3` 依赖 `rpcbind`, 先编译一个高版本的 `rpcbind-1.2.6`
+* 同步编译较高版本 `libtirpc-1.3.3`, `rpcsvc-proto-devel-1.4`, `libuuid-devel-2.37.4`
+
+### F.1 编译 `libtirpc-1.3.3`
+
+1. 从 `redhat.com` 下载得到 SRPM: [libtirpc-1.3.3-2.el9.src.rpm](./files/RPM_NFS/libtirpc-1.3.3-2.el9.src.rpm)
+
+2. 由于低版本 libtirpc 中的 [libtirpc.so.1.0.10](./files/RPM_NFS/libtirpc.so.1.0.10) 被其他软件包使用，为了避免出现报错，也改文件打包进 rpm
+    
+    ```diff
+    diff -U 1 -p libtirpc-1.3.3-2.el9.spec libtirpc.spec 
+    --- libtirpc-1.3.3-2.el9.spec   2023-07-14 16:30:49.605034814 +0800
+    +++ libtirpc.spec       2023-07-14 16:29:36.616226495 +0800
+    @@ -10,2 +10,5 @@ Source0:              http://downloads.sourceforge.n
+     
+    +# Add libtirpc 0.2.0 .so file
+    +Source1:    libtirpc.so.1.0.10
+    +
+     BuildRequires:         automake, autoconf, libtool, pkgconfig
+    @@ -73,2 +76,9 @@ mv %{buildroot}%{_mandir}/man3 %{buildro
+     
+    +# Add libtirpc 0.2.0 .so file
+    +install -m755 %{SOURCE1} \
+    +       %{buildroot}%{_root_libdir}/libtirpc.so.1.0.10
+    +# /usr/bin/fipshmac %{buildroot}%{_root_libdir}/libtirpc.so.1.0.10
+    +pushd %{buildroot}%{_root_libdir}
+    +ln -s -f libtirpc.so.1.0.10 libtirpc.so.1
+    +popd
+     
+    @@ -125,418 +135,3 @@ mv %{buildroot}%{_mandir}/man3 %{buildro
+     %changelog
+    -* Thu May 18 2023 Steve Dickson <steved@redhat.com> - 1.3.3-2
+    -- getnetconfigent: avoid potential DoS (bz 2150611)
+    -...
+    +* Fri Jul 14 2023 Wenger Chan <cnwn1111@hotmail.com> - 1.3.3-2
+    +- Build in CentOS 7.6 with Kernel 5.4.249 (And add libtirpc 0.2.0-49 .so file)
+    ```
+
+3. 准备SPEC, 编译
+
+    文件: 
+
+    * [libtirpc.spec](./files/RPM_NFS/libtirpc.spec)
+    * [libtirpc-1.3.3-2.el7.src.rpm](./files/RPM_NFS/libtirpc-1.3.3-2.el7.src.rpm)
+
+    ```sh
+    useradd rpmbuilder
+    su - rpmbuilder
+
+    rpm -i libtirpc-1.3.3-2.el9.src.rpm
+    mv libtirpc.so.1.0.10 rpmbuild/SOURCES/
+    mv libtirpc.spec rpmbuild/SPECS/
+    # 如果使用本文提供的 libtirpc-1.3.3-2.el7.src.rpm, 以上步骤可省略
+    #  rpm -i libtirpc-1.3.3-2.el7.src.rpm
+
+    cd rpmbuild
+    rpmbuild -bs SPECS/libtirpc.spec
+    rpmbuild -bb SPECS/libtirpc.spec
+    ```
+
+### F.2 编译 `rpcsvc-proto-devel-1.4`
+
+1. 从 `redhat.com` 下载得到 SRPM: [rpcsvc-proto-1.4-9.el9.src.rpm](./files/RPM_NFS/rpcsvc-proto-1.4-9.el9.src.rpm)
+
+2. 编译
+
+    ```sh
+    useradd rpmbuilder
+    su - rpmbuilder
+
+    rpm -i rpcsvc-proto-1.4-9.el9.src.rpm
+
+    cd rpmbuild
+    rpmbuild -bs SPECS/rpcsvc-proto.spec
+    rpmbuild -bb SPECS/rpcsvc-proto.spec
+    ```
+
+### F.3 编译 `rpcbind-1.2.6`
+
+1. 从 `redhat.com` 下载得到 SRPM: [rpcbind-1.2.6-5.el9.src.rpm](./files/RPM_NFS/rpcbind-1.2.6-5.el9.src.rpm)
+
+2. 编译
+
+    ```sh
+    useradd rpmbuilder
+    su - rpmbuilder
+
+    rpm -i rpcbind-1.2.6-5.el9.src.rpm
+
+    cd rpmbuild
+    rpmbuild -bs SPECS/rpcbind.spec
+    rpmbuild -bb SPECS/rpcbind.spec
+    ```
+
+### F.4 编译 `libuuid-devel-2.37.4`
 
