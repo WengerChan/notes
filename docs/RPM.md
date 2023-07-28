@@ -2075,6 +2075,13 @@ rpm -i nginx-1.22.1-1.el7.src.rpm
     rpmbuild -bb SPECS/libtirpc.spec
     ```
 
+> 如果不愿自己编译，可使用本文提供的 `libtirpc` 和 `libtirpc-devel` :
+> 
+> * [libtirpc](./files/RPM_NFS/libtirpc-1.3.3-2.el7.x86_64.rpm)
+> * [libtirpc-devel](./files/RPM_NFS/libtirpc-devel-1.3.3-2.el7.x86_64.rpm)
+
+
+
 ### F.2 编译 `rpcsvc-proto-devel-1.4`
 
 1. 从 `redhat.com` 下载得到 SRPM: [rpcsvc-proto-1.4-9.el9.src.rpm](./files/RPM_NFS/rpcsvc-proto-1.4-9.el9.src.rpm)
@@ -2088,15 +2095,26 @@ rpm -i nginx-1.22.1-1.el7.src.rpm
     rpm -i rpcsvc-proto-1.4-9.el9.src.rpm
 
     cd rpmbuild
-    rpmbuild -bs SPECS/rpcsvc-proto.spec
     rpmbuild -bb SPECS/rpcsvc-proto.spec
     ```
 
+> 如果不愿自己编译，可使用本文提供的 `rpcsvc-proto-devel`:
+> 
+> * [rpcsvc-proto-devel](./files/RPM_NFS/rpcsvc-proto-devel-1.4-9.el7.x86_64.rpm)
+
+
 ### F.3 编译 `rpcbind-1.2.6`
 
-1. 从 `redhat.com` 下载得到 SRPM: [rpcbind-1.2.6-5.el9.src.rpm](./files/RPM_NFS/rpcbind-1.2.6-5.el9.src.rpm)
+1. 安装上文中编译得到的 `libtirpc`, `libtirpc-devel` 以及 `rpcsvc-proto-devel`
 
-2. 编译
+    ```sh
+    rpm -Uvh libtirpc-1.3.3-2.el7.x86_64.rpm libtirpc-devel-1.3.3-2.el7.x86_64.rpm
+    yum localinstall rpcsvc-proto-devel-1.4-9.el7.x86_64.rpm
+    ```
+
+2. 从 `redhat.com` 下载得到 SRPM: [rpcbind-1.2.6-5.el9.src.rpm](./files/RPM_NFS/rpcbind-1.2.6-5.el9.src.rpm)
+
+3. 编译
 
     ```sh
     useradd rpmbuilder
@@ -2105,9 +2123,160 @@ rpm -i nginx-1.22.1-1.el7.src.rpm
     rpm -i rpcbind-1.2.6-5.el9.src.rpm
 
     cd rpmbuild
-    rpmbuild -bs SPECS/rpcbind.spec
     rpmbuild -bb SPECS/rpcbind.spec
     ```
 
 ### F.4 编译 `libuuid-devel-2.37.4`
 
+1. 从 `redhat.com` 下载得到 SRPM: [util-linux-2.32.1-42.el8_8.src.rpm](./files/RPM_NFS/util-linux-2.32.1-42.el8_8.src.rpm)
+
+2. 编译
+
+    ```sh
+    useradd rpmbuilder
+    su - rpmbuilder
+
+    rpm -i util-linux-2.32.1-42.el8_8.src.rpm
+
+    cd rpmbuild
+    rpmbuild -bb SPECS/util-linux.spec
+    ```
+
+> 如果不愿自己编译，可使用本文提供的 `libuuid` 和 `libuuid-devel`:
+> 
+> * [libuuid](./files/RPM_NFS/libuuid-2.32.1-42.el7.x86_64.rpm)
+> * [libuuid-devel](./files/RPM_NFS/libuuid-devel-2.32.1-42.el7.x86_64.rpm)
+
+### F.5 编译NFS
+
+1. 安装上文编译得到的 `libuuid` 和 `libuuid-devel`
+
+    ```sh
+    rpm -e libuuid libuuid --nodeps
+    yum localinstall libuuid-2.32.1-42.el7.x86_64.rpm libuuid-uuid-2.32.1-42.el7.x86_64.rpm
+    ```
+
+2. 从 `redhat.com` 下载得到 SRPM: [nfs-utils-2.5.4-18.el9.src.rpm](./files/RPM_NFS/nfs-utils-2.5.4-18.el9.src.rpm)
+
+3. 编辑 `nfs-utils.spec`：
+
+    ```diff
+    chenwen1@abcdef:/Stor/Workspace/notes/docs/files/RPM_NFS$ diff -U 1 -p nfs-utils-2.5.4-18.el9.spec  nfs-utils.spec  | head -n 300
+    --- nfs-utils-2.5.4-18.el9.spec 2023-02-14 05:29:43.000000000 +0800
+    +++ nfs-utils.spec      2023-07-24 17:25:10.685573109 +0800
+    @@ -79,3 +79,3 @@ BuildRequires: python3-devel
+     BuildRequires: systemd
+    -BuildRequires: rpcgen
+    +BuildRequires: /usr/bin/rpcgen
+     Requires(pre): shadow-utils >= 4.0.3-25
+    @@ -88,3 +88,3 @@ Requires: gssproxy => 0.7.0-3
+     Requires: rpcbind, sed, gawk, grep
+    -Requires: kmod, keyutils, quota, python3-pyyaml
+    +Requires: kmod, keyutils, quota, python36-PyYAML
+     %{?systemd_requires}
+    @@ -178,3 +178,3 @@ sh -x autogen.sh
+     %configure \
+    -    CFLAGS="%{build_cflags} -D_FILE_OFFSET_BITS=64" \
+    +    CFLAGS="%{build_cflags} -std=gnu99 -D_FILE_OFFSET_BITS=64" \
+         LDFLAGS="%{build_ldflags}" \
+    @@ -232,3 +232,3 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/e
+     mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/nfsmount.conf.d
+    -install -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/nfsmount.conf.d
+    +#install -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/nfsmount.conf.d
+     
+    @@ -288,8 +288,8 @@ fi
+     
+    -%post -n nfsv4-client-utils
+    -if [ $1 -eq 1 ] ; then
+    -       # Initial installation
+    -       /bin/systemctl enable nfs-client.target >/dev/null 2>&1 || :
+    -       /bin/systemctl start nfs-client.target  >/dev/null 2>&1 || :
+    -fi
+    +# %post -n nfsv4-client-utils
+    +# if [ $1 -eq 1 ] ; then
+    +#      # Initial installation
+    +#      /bin/systemctl enable nfs-client.target >/dev/null 2>&1 || :
+    +#      /bin/systemctl start nfs-client.target  >/dev/null 2>&1 || :
+    +# fi
+     
+    @@ -301,9 +301,9 @@ fi
+     
+    -%preun -n nfsv4-client-utils
+    -if [ $1 -eq 0 ]; then
+    -       %systemd_preun nfs-client.target
+    -
+    -       rm -rf /etc/nfsmount.conf.d
+    -    rm -rf /var/lib/nfs/v4recovery
+    -fi
+    +# %preun -n nfsv4-client-utils
+    +# if [ $1 -eq 0 ]; then
+    +#      %systemd_preun nfs-client.target
+    +#
+    +#      rm -rf /etc/nfsmount.conf.d
+    +#     rm -rf /var/lib/nfs/v4recovery
+    +# fi
+     
+    @@ -313,4 +313,4 @@ fi
+     
+    -%postun -n nfsv4-client-utils
+    -%systemd_postun_with_restart  nfs-client.target
+    +# %postun -n nfsv4-client-utils
+    +# %systemd_postun_with_restart  nfs-client.target
+     
+    @@ -394,1939 +394,95 @@ fi
+     
+    -%files -n nfs-utils-coreos
+    -%dir %attr(555, root, root) %{_sharedstatedir}/nfs/rpc_pipefs
+    - ...
+    - ...
+    -%{_pkgdir}/*/var-lib-nfs-rpc_pipefs.mount
+    +# %files -n nfs-utils-coreos
+    +# %dir %attr(555, root, root) %{_sharedstatedir}/nfs/rpc_pipefs
+    + ...
+    + ...
+    +# %{_pkgdir}/*/var-lib-nfs-rpc_pipefs.mount
+    
+    
+    +# %files -n nfsv4-client-utils
+    +# %config(noreplace) /etc/nfsmount.conf
+    + ...
+    + ...
+    +# %{_pkgdir}/*/var-lib-nfs-rpc_pipefs.mount
+
+    +# %files -n nfs-stats-utils
+    +# %{_sbindir}/mountstats
+    +# %{_sbindir}/nfsiostat
+    +# %{_mandir}/*/mountstats.8.gz
+    +# %{_mandir}/*/nfsiostat.8.gz
+     
+    -%files -n nfsv4-client-utils
+    -%config(noreplace) /etc/nfsmount.conf
+    - ...
+    - ...
+    -%{_pkgdir}/*/var-lib-nfs-rpc_pipefs.mount
+     
+    -%files -n nfs-stats-utils
+    -%{_sbindir}/mountstats
+    -%{_sbindir}/nfsiostat
+    -%{_mandir}/*/mountstats.8.gz
+    -%{_mandir}/*/nfsiostat.8.gz
+     
+     %changelog
+    -* Thu Jan 26 2023 Steve Dickson <steved@redhat.com> 2.5.4-18
+    -- Covscan Scan: Wrong Check of Return Value (bz 2151968)
+    - ...
+    +* Mon Jul 24 2023 Wenger Chan <cnwn1111@hotmail.com> - 1.3.3-2
+    +- Build in CentOS 7.6 with Kernel 5.4.249
+    ```
+
+    或者直接使用本文提供的打包好的 SRPM: [nfs-utils-2.5.4-18.el7.src.rpm](./files/RPM_NFS/nfs-utils-2.5.4-18.el7.src.rpm)，执行 `rpm -i` 安装
+
+4. 编译
+
+    ```sh
+    useradd rpmbuilder
+    su - rpmbuilder
+
+    cd rpmbuild
+    rpmbuild -bb SPECS/nfs-utils.spec
+    ```
